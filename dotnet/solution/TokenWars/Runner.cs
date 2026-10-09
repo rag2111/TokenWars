@@ -278,7 +278,7 @@ public static class Runner
             try
             {
                 var truth = workload[result.Id];
-                var verdict = await judge.JudgeAsync(truth.Question, truth.ReferenceAnswer, truth.MustInclude, result.Answer);
+                var verdict = await judge.JudgeAsync(truth.Question, truth.ReferenceAnswer, truth.MustInclude, result.Answer, truth.CustomerId);
                 result.JudgeScore = verdict.Score;
                 result.JudgeReason = verdict.Reason;
                 result.Success = verdict.Score >= passScore;

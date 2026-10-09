@@ -27,6 +27,8 @@ public sealed class Judge
 
     private readonly LlmClient _client;
     private readonly string _template;
+    private readonly string _knowledgeBase;
+    private readonly List<JsonNode> _orders;
 
     public Judge(AppConfig cfg, LlmClient client)
     {
@@ -41,6 +43,8 @@ public sealed class Judge
         if (model.ViaGateway || model.Type != "chat")
             throw new ConfigException("The independent judge must be a chat model with via_gateway: false.");
         _template = File.Exists(path) ? File.ReadAllText(path).Replace("\r\n", "\n") : FallbackJudge;
+        _knowledgeBase = string.Join("\n\n", ContextBuilder.LoadKnowledgeBase(cfg.Root).Select(d => d.Content));
+        _orders = ContextBuilder.LoadOrders(cfg.Root);
     }
 
     public string ModelKey { get; }
@@ -76,10 +80,16 @@ public sealed class Judge
         return (1, "unparseable judge output: " + Truncate(text.Trim(), 160));
     }
 
-    public async Task<Verdict> JudgeAsync(string question, string referenceAnswer, IReadOnlyList<string> mustInclude, string answer)
+    public async Task<Verdict> JudgeAsync(string question, string referenceAnswer, IReadOnlyList<string> mustInclude, string answer, string customerId = "")
     {
         var mustText = string.Join("; ", mustInclude);
+        var customerOrders = _orders
+            .Where(o => (o["customer_id"]?.GetValue<string>() ?? "") == customerId)
+            .ToList();
+        var ordersText = customerOrders.Count > 0 ? ContextBuilder.OrdersToJson(customerOrders) : "(no orders)";
         var prompt = _template
+            .Replace("{{knowledge_base}}", _knowledgeBase)
+            .Replace("{{customer_orders}}", ordersText)
             .Replace("{{question}}", question)
             .Replace("{{reference_answer}}", referenceAnswer ?? "")
             .Replace("{{must_include}}", mustText.Length > 0 ? mustText : "(none)")

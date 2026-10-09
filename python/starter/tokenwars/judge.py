@@ -7,6 +7,7 @@ import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from .context import load_knowledge_base, load_orders, orders_to_json
 
 from .config import ConfigError
 from .llm_client import RETRYABLE_STATUS, LlmError
@@ -59,9 +60,18 @@ class Judge:
             raise ConfigError("The independent judge must be a chat model with via_gateway: false.")
         path = Path(config.root) / "shared" / "prompts" / "judge.md"
         self.template = path.read_text(encoding="utf-8") if path.exists() else _FALLBACK_JUDGE
+        # Evidence for the judge: the same knowledge base and order data the assistant had.
+        root = Path(config.root)
+        self.knowledge_base = "\n\n".join(doc.content for doc in load_knowledge_base(root))
+        self.orders = load_orders(root)
 
-    def judge(self, question: str, reference_answer: str, must_include: list[str], answer: str) -> Verdict:
-        prompt = (self.template.replace("{{question}}", question)
+    def judge(self, question: str, reference_answer: str, must_include: list[str], answer: str,
+            customer_id: str = "") -> Verdict:
+        customer_orders = [o for o in self.orders if o.get("customer_id") == customer_id]
+        orders_text = orders_to_json(customer_orders) if customer_orders else "(no orders)"
+        prompt = (self.template.replace("{{knowledge_base}}", self.knowledge_base)
+                  .replace("{{customer_orders}}", orders_text)
+                  .replace("{{question}}", question)
                   .replace("{{reference_answer}}", reference_answer or "")
                   .replace("{{must_include}}", "; ".join(must_include or []) or "(none)")
                   .replace("{{answer}}", answer))

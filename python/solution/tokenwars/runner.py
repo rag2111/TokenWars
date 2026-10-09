@@ -126,7 +126,7 @@ def judge_all(config: AppConfig, results: list[ItemResult], workload: dict[str, 
     def work(result: ItemResult) -> float:
         truth = workload[result.id]
         verdict = judge.judge(truth["question"], truth.get("reference_answer", ""), truth.get("must_include", []),
-                              result.answer)
+                              result.answer, truth.get("customer_id", ""))
         result.judge_score, result.judge_reason = verdict.score, verdict.reason
         result.success = verdict.score >= pass_score
         return verdict.cost_usd

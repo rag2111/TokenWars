@@ -47,8 +47,10 @@ public static class Prompts
         return File.Exists(path) ? File.ReadAllText(path).Replace("\r\n", "\n") : FallbackBaseline;
     }
 
+    /// <summary>Fixed "today" of the ByteCart scenario (used in the cache-friendly user message).</summary>
     public static string UtcNowIso() =>
-        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
+        AppInfo.ScenarioToday + "T" +
+        DateTime.UtcNow.ToString("HH:mm:ss", CultureInfo.InvariantCulture) + "Z";
 
     // TODO 2.3 – Model-specific prompt adaptation (Challenge 2 "Bring Your Own Model")
     // Open-weight and small self-hosted models tend to drift (answer in another language, make up policies).

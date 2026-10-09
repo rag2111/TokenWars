@@ -49,8 +49,9 @@ def load_baseline_template(root: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else _FALLBACK_BASELINE
 
 
+# "Today" for the ByteCart scenario (used in the prompt-cache-friendly layout).
 def utc_now_iso() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return SCENARIO_DATE + "T" + datetime.now(timezone.utc).strftime("%H:%M:%S") + "Z"
 
 
 # TODO 2.3 – Model-specific prompt adaptation (Challenge 2 "Bring Your Own Model")

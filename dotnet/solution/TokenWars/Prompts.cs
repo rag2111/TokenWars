@@ -44,8 +44,10 @@ public static class Prompts
         return File.Exists(path) ? File.ReadAllText(path).Replace("\r\n", "\n") : FallbackBaseline;
     }
 
+    /// <summary>Fixed "today" of the ByteCart scenario (used in the cache-friendly user message).</summary>
     public static string UtcNowIso() =>
-        DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
+        AppInfo.ScenarioToday + "T" +
+        DateTime.UtcNow.ToString("HH:mm:ss", CultureInfo.InvariantCulture) + "Z";
 
     // SOLUTION 2.3 – model-specific prompt adaptation for every non-OpenAI model:
     // open-weight (open), self-hosted, the coach's fine-tuned "custom" model and Fireworks models (fw_*).
