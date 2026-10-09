@@ -630,7 +630,7 @@ public static class Runner
                 Say($"      {new string(' ', 11)} {details}");
             }
         }
-        var missing = new[] { "frontier", "mini", "nano", "embedding", "judge" }.Where(k => !cfg.Models.ContainsKey(k)).ToList();
+        var missing = new[] { "premium", "balanced", "economy", "embedding", "judge" }.Where(k => !cfg.Models.ContainsKey(k)).ToList();
         if (missing.Count > 0) Say($"    ⚠️  not configured: {string.Join(", ", missing)}");
         if (cfg.Gateway != null)
         {

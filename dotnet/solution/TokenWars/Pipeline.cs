@@ -56,14 +56,14 @@ public sealed class Pipeline
 {
     /// <summary>
     /// Next model tier when a cheaper model answers ESCALATE (TODO 3.3).
-    /// Any other non-frontier key (fw_fast, fw_pro, custom, ...) escalates straight to "frontier".
+    /// Any other non-premium key (fw_fast, fw_pro, custom, ...) escalates straight to "premium".
     /// </summary>
     public static readonly Dictionary<string, string> EscalationNext = new(StringComparer.Ordinal)
     {
-        ["nano"] = "mini",
-        ["mini"] = "frontier",
-        ["open"] = "frontier",
-        ["selfhosted"] = "frontier",
+        ["economy"] = "balanced",
+        ["balanced"] = "premium",
+        ["open"] = "premium",
+        ["selfhosted"] = "premium",
     };
 
     private readonly AppConfig _cfg;
@@ -190,10 +190,10 @@ public sealed class Pipeline
         // 8. SOLUTION 3.3 – escalation: a cheaper model that answers ESCALATE hands over to the next tier.
         if (_strategy.Escalation)
         {
-            while (modelKey != "frontier"
+            while (modelKey != "premium"
                    && answer.Trim().ToUpperInvariant().StartsWith("ESCALATE", StringComparison.Ordinal))
             {
-                var next = EscalationNext.TryGetValue(modelKey, out var mapped) ? mapped : "frontier"; // unmapped keys (fw_*, custom) -> frontier
+                var next = EscalationNext.TryGetValue(modelKey, out var mapped) ? mapped : "premium"; // unmapped keys (fw_*, custom) -> premium
                 if (!_cfg.Models.ContainsKey(next)) break;
                 modelKey = next;
                 result.ModelPath.Add(modelKey);

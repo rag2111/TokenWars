@@ -71,18 +71,18 @@ variable "ai_endpoint_style" {
 #                          (GPT-5.x: "none" | "low" | "medium" | "high"; reasoning tokens are billed as output tokens)
 #   extra_headers        = string map added as HTTP headers to every request for that model (default {})
 #
-# Answer defaults use GPT-5.6: Sol (frontier), Terra (mini), Luna (nano).
+# Answer defaults use GPT-5.6: Sol (premium), Terra (balanced), Luna (economy).
 # The independent judge uses GPT-5.5, pinned separately from the answer tiers.
 # The GPT-4.1 family is deprecated for new customers in 2026;
 # its values are kept as a commented alternative in terraform.tfvars.example.
-# The baseline sends ~15k prompt tokens per call with 8 parallel workers, so the frontier deployment needs a
+# The baseline sends ~15k prompt tokens per call with 8 parallel workers, so the premium deployment needs a
 # generous TPM capacity. Quota is per subscription + region + model + deployment type: check it in the Foundry
 # portal > Quota (or az cognitiveservices usage list --location <region> -o table) before the event.
 # -----------------------------------------------------------------------------
 
 # Verify availability first: az cognitiveservices model list --location <region> --query "[?model.name=='gpt-5.6-sol']" -o table
-variable "frontier_model" {
-  description = "Frontier (most capable, most expensive) chat model."
+variable "premium_model" {
+  description = "Premium tier: highest-capability chat model. The tier name is provider-neutral; configure the catalog model and request settings below."
   type = object({
     name                 = optional(string, "gpt-5.6-sol")
     version              = optional(string, "2026-07-09")
@@ -99,8 +99,8 @@ variable "frontier_model" {
 }
 
 # Verify availability first: az cognitiveservices model list --location <region> --query "[?model.name=='gpt-5.6-terra']" -o table
-variable "mini_model" {
-  description = "Mid-tier chat model."
+variable "balanced_model" {
+  description = "Balanced tier: chat model balancing answer quality and cost, independent of provider."
   type = object({
     name                 = optional(string, "gpt-5.6-terra")
     version              = optional(string, "2026-07-09")
@@ -117,8 +117,8 @@ variable "mini_model" {
 }
 
 # Verify availability first: az cognitiveservices model list --location <region> --query "[?model.name=='gpt-5.6-luna']" -o table
-variable "nano_model" {
-  description = "Smallest / cheapest chat model (also used by the classifier router)."
+variable "economy_model" {
+  description = "Economy tier: lowest-cost chat model (also used by the classifier router), independent of provider."
   type = object({
     name                 = optional(string, "gpt-5.6-luna")
     version              = optional(string, "2026-07-09")
@@ -243,7 +243,7 @@ variable "tokens_per_minute_per_consumer" {
 }
 
 variable "failover_model_map" {
-  description = "Multi-provider failover (policies/ai-gateway-multiprovider.xml): Azure deployment name sent by the app -> Fireworks deployment name. null = { <mini deployment> = <fw_fast deployment>, <frontier deployment> = <fw_pro deployment> }. Requests for unmapped models are never failed over."
+  description = "Multi-provider failover (policies/ai-gateway-multiprovider.xml): Azure deployment name sent by the app -> Fireworks deployment name. null = { <balanced deployment> = <fw_fast deployment>, <premium deployment> = <fw_pro deployment> }. Requests for unmapped models are never failed over."
   type        = map(string)
   default     = null
 }
@@ -279,7 +279,7 @@ variable "selfhosted_memory" {
 # Secondary region (failover demo for the APIM backend pool)
 # -----------------------------------------------------------------------------
 variable "deploy_secondary_region" {
-  description = "Deploy a second Foundry resource (frontier/mini/nano with the same deployment names) as failover backend."
+  description = "Deploy a second Foundry resource (premium/balanced/economy with the same deployment names) as failover backend."
   type        = bool
   default     = false
 }

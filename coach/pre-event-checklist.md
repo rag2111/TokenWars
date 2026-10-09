@@ -95,6 +95,9 @@ terraform output next_steps
 ```
 
 - [ ] `terraform apply` finished; `.env` and `shared/config/models.json` were written.
+- [ ] Existing checkout: migrate tier overrides/registries to `premium` / `balanced` / `economy` using the
+      [tier migration instructions](../README.md#provider-neutral-model-tiers). Confirm the old infrastructure was
+      destroyed using its original configuration before a fresh deployment; no automatic state migration is provided.
 - [ ] `doctor` is green for every chat model (`fw_fast` / `fw_pro` too if enabled):
       `cd python/starter && python -m tokenwars doctor` or `cd dotnet/starter/TokenWars && dotnet run -- doctor`.
 - [ ] One quick real call works: `run --limit 20 --no-judge` (≈ $0.80 on the baseline). Don't submit it.
@@ -121,7 +124,7 @@ terraform output next_steps
 | T-3 d | Check every team's A1–A4 status; help teams with quota or policy problems. | [ ] |
 | T-2 d | "Own the Weights": `generate_dataset.py --mock`, then the real run; review `manifest.json` and leakage rows. | [ ] |
 | T-1 d | **Deploy the leaderboard** ([coach-guide.md](coach-guide.md) section 8, `az containerapp up` + 1 replica); note URL + submit key; submit one real test run; reset the board. | [ ] |
-| T-1 d | **"Own the Weights" training**: `finetune all` (train + deploy), `register_custom_model.py --write-pricing`, `doctor`, dry-run `compare --models mini,frontier,custom`, save the JSON as a backup slide. Hosting fee starts now. | [ ] |
+| T-1 d | **"Own the Weights" training**: `finetune all` (train + deploy), `register_custom_model.py --write-pricing`, `doctor`, dry-run `compare --models balanced,premium,custom`, save the JSON as a backup slide. Hosting fee starts now. | [ ] |
 | T-1 d | Confirm every team ran A5 (`terraform apply` + `doctor`). | [ ] |
 | T-1 h | Leaderboard on the big screen, coach docs open, `custom` reachable in `doctor`. | [ ] |
 | Event | Announce at kickoff: Fireworks limitations and unverified prices; the `custom` demo model is not eligible for the leaderboard. | [ ] |

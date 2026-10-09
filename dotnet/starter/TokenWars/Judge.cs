@@ -35,7 +35,7 @@ public sealed class Judge
         if (!cfg.Models.ContainsKey(ModelKey))
         {
             var chatModels = cfg.ChatModels();
-            var fallback = cfg.Models.ContainsKey("mini") ? "mini" : chatModels.FirstOrDefault()
+            var fallback = cfg.Models.ContainsKey("balanced") ? "balanced" : chatModels.FirstOrDefault()
                 ?? throw new ConfigException("No chat model configured for the judge.");
             Console.Error.WriteLine($"⚠️  Judge model \"{ModelKey}\" not configured – judging with \"{fallback}\".");
             ModelKey = fallback;

@@ -61,7 +61,7 @@ public static class Prompts
     public static string ExtraInstructions(string modelKey, bool escalation)
     {
         var lines = new List<string> { ModelSpecificInstructions(modelKey) };
-        if (escalation && modelKey != "frontier")
+        if (escalation && modelKey != "premium")
         {
             lines.Add(EscalateInstruction);
         }

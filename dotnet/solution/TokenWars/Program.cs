@@ -14,7 +14,7 @@ public sealed class CliOptions
     public bool Mock { get; set; }
     public bool Help { get; set; }
     public string Customer { get; set; } = "C1001";
-    public string Models { get; set; } = "frontier,mini,nano,open";
+    public string Models { get; set; } = "premium,balanced,economy,open";
     public string? StrategyPath { get; set; }
 
     private static readonly Dictionary<string, string[]> AllowedOptions = new(StringComparer.Ordinal)
@@ -117,7 +117,7 @@ public static class Program
         "Usage (run in dotnet/<variant>/TokenWars/):\n" +
         "  dotnet run -- run [--limit N] [--no-judge] [--submit]     answer the workload, judge it, print the scorecard\n" +
         "  dotnet run -- ask \"<question>\" [--customer C1001]         answer one question with the current strategy\n" +
-        "  dotnet run -- compare [--models frontier,mini,nano,open] [--no-judge] [--limit N]\n" +
+        "  dotnet run -- compare [--models premium,balanced,economy,open] [--no-judge] [--limit N]\n" +
         "                                                            compare models on the 30 compare:true items\n" +
         "  dotnet run -- doctor                                      check configuration, data files and model connectivity\n" +
         "\n" +

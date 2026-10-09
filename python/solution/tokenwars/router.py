@@ -1,4 +1,4 @@
-"""Model routing: none (default_model), rules (TODO 3.1) or a nano classifier (TODO 3.2)."""
+"""Model routing: none (default_model), rules (TODO 3.1) or an economy classifier (TODO 3.2)."""
 from __future__ import annotations
 
 import re
@@ -6,7 +6,7 @@ import re
 from .prompts import CLASSIFIER_SYSTEM_PROMPT
 
 # Challenge 2.2: after `compare`, you may change which model serves each tier.
-TIER_MODELS = {"SIMPLE": "nano", "STANDARD": "mini", "COMPLEX": "frontier"}
+TIER_MODELS = {"SIMPLE": "economy", "STANDARD": "balanced", "COMPLEX": "premium"}
 
 COMPLEXITY_MARKERS = ["but", "however", "although", "both", "and also", "what if", "exception", "combine",
                       "at the same time", "instead"]
@@ -41,10 +41,10 @@ class Router:
             return TIER_MODELS["STANDARD"]
         return TIER_MODELS["SIMPLE"]
 
-    # SOLUTION 3.2 – classifier router: ask nano for SIMPLE / STANDARD / COMPLEX (its tokens are costed).
+    # SOLUTION 3.2 – classifier router: ask economy for SIMPLE / STANDARD / COMPLEX (its tokens are costed).
     def route_classifier(self, question: str, calls: list) -> str:
         result = self.client.chat(
-            "nano",
+            "economy",
             [{"role": "system", "content": CLASSIFIER_SYSTEM_PROMPT}, {"role": "user", "content": question}],
             temperature=0,
             max_tokens=5,

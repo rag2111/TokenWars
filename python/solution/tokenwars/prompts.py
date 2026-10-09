@@ -61,7 +61,7 @@ def model_specific_instructions(model_key: str) -> str:
 
 def extra_instructions(model_key: str, escalation: bool) -> str:
     lines = [model_specific_instructions(model_key)]
-    if escalation and model_key != "frontier":
+    if escalation and model_key != "premium":
         lines.append(ESCALATE_INSTRUCTION)
     return "\n".join(line for line in lines if line)
 

@@ -2,10 +2,10 @@
 """Register the fine-tuned deployment as model key `custom` in shared/config/models.json (coach machine only).
 
 After this, the workshop apps can use it like any other key:
-  python -m tokenwars compare --models mini,frontier,custom      (Python, in python/solution)
-  dotnet run -- compare --models mini,frontier,custom            (.NET, in dotnet/solution/TokenWars)
+  python -m tokenwars compare --models balanced,premium,custom      (Python, in python/solution)
+  dotnet run -- compare --models balanced,premium,custom            (.NET, in dotnet/solution/TokenWars)
 
-  python register_custom_model.py --deployment bytecart-ft                       # base_url/key env copied from `frontier`
+  python register_custom_model.py --deployment bytecart-ft                       # base_url/key env copied from `premium`
   python register_custom_model.py --deployment bytecart-ft --resource my-foundry --hourly-cost 0.65 --write-pricing
   python register_custom_model.py --remove                                       # after the demo
 
@@ -33,7 +33,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--deployment", help="deployment name of the fine-tuned model (required unless --remove)")
     p.add_argument("--base-url", help="OpenAI v1 base URL, e.g. https://<acct>.services.ai.azure.com/openai/v1/")
     p.add_argument("--resource", help="Foundry account name; builds https://<resource>.services.ai.azure.com/openai/v1/")
-    p.add_argument("--api-key-env", help="env var holding the key (default: frontier's api_key_env or AZURE_AI_API_KEY)")
+    p.add_argument("--api-key-env", help="env var holding the key (default: premium's api_key_env or AZURE_AI_API_KEY)")
     p.add_argument("--pricing-key", default=DEFAULT_PRICING_KEY)
     p.add_argument("--hourly-cost", type=float, default=DEFAULT_PRICES["hourly"],
                    help="hosting fee USD/hour (informational; shown by compare as 'hosting $/h'), default 0.65")
@@ -87,15 +87,15 @@ def main(argv: list[str] | None = None) -> int:
         print("❌ --deployment is required", file=sys.stderr)
         return 2
 
-    frontier = models.get("frontier") or {}
+    premium = models.get("premium") or {}
     if args.base_url:
         base_url = args.base_url
     elif args.resource:
         base_url = f"https://{args.resource}.services.ai.azure.com/openai/v1/"
-    elif frontier.get("base_url") and "<" not in frontier["base_url"]:
-        base_url = frontier["base_url"]
+    elif premium.get("base_url") and "<" not in premium["base_url"]:
+        base_url = premium["base_url"]
     else:
-        print("❌ No usable base_url: pass --base-url or --resource (frontier's base_url is missing or a placeholder).",
+        print("❌ No usable base_url: pass --base-url or --resource (premium's base_url is missing or a placeholder).",
               file=sys.stderr)
         return 2
     if not base_url.endswith("/"):
@@ -104,7 +104,7 @@ def main(argv: list[str] | None = None) -> int:
     entry = {
         "deployment": args.deployment,
         "base_url": base_url,
-        "api_key_env": args.api_key_env or frontier.get("api_key_env") or "AZURE_AI_API_KEY",
+        "api_key_env": args.api_key_env or premium.get("api_key_env") or "AZURE_AI_API_KEY",
         "pricing_key": args.pricing_key,
         "type": "chat",
         "via_gateway": False,

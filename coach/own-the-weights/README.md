@@ -3,9 +3,9 @@
 > **Coach-only.** Teams do **not** run this. It uses the coach's own Azure subscription, takes hours of wall-clock
 > time and has an hourly hosting fee. Everything here is **pay-per-token + hourly hosting**. No PTU is used anywhere.
 
-**Story for the room:** *"What if ByteCart owned a small specialist model instead of renting the frontier model?"*
-You distil the frontier model into a small open-weight model (**Ministral-3B (2411)** by default) with Microsoft Foundry
-**serverless supervised fine-tuning (SFT)**. Then you compare it live against `mini` and `frontier` with the workshop's own
+**Story for the room:** *"What if ByteCart owned a small specialist model instead of renting the premium model?"*
+You distil the premium model into a small open-weight model (**Ministral-3B (2411)** by default) with Microsoft Foundry
+**serverless supervised fine-tuning (SFT)**. Then you compare it live against `balanced` and `premium` with the workshop's own
 `compare` command, and you discuss **when the hourly hosting fee pays off** with `breakeven.py`.
 
 Facts below were checked on Microsoft Learn and the Azure pricing page on **2026-10-09**. Items marked **VALIDATE** could
@@ -63,10 +63,10 @@ Data Zone (US) prices are about 10 % higher. `breakeven.py` has these as presets
 
 | File | Purpose |
 |---|---|
-| `generate_dataset.py` | Builds `train.jsonl` / `validation.jsonl` (90/10) **from the knowledge-base sections only**. The teacher is the `frontier` model in `models.json`; `--mock` runs offline and deterministic. Drops duplicates and anything with **token Jaccard ≥ 0.6** to a `workload.jsonl` question (evaluation leakage). Writes `dropped.jsonl` and `manifest.json`. |
+| `generate_dataset.py` | Builds `train.jsonl` / `validation.jsonl` (90/10) **from the knowledge-base sections only**. The teacher is the `premium` model in `models.json`; `--mock` runs offline and deterministic. Drops duplicates and anything with **token Jaccard ≥ 0.6** to a `workload.jsonl` question (evaluation leakage). Writes `dropped.jsonl` and `manifest.json`. |
 | `finetune.sh` / `finetune.ps1` | `preflight → upload → create → wait → deploy → test`, plus `status`, `delete` and `cleanup-files`. Uses the OpenAI v1 data plane (`/files`, `/fine_tuning/jobs`) and an ARM PUT for the Global Standard deployment. Both scripts share the state file `data/.finetune-state`. |
 | `register_custom_model.py` | Adds or updates the `custom` key in `shared/config/models.json` (with `hourly_cost_usd`). With `--write-pricing` it also adds `custom-finetuned` to your **local** `pricing.json`. `--remove` cleans up. |
-| `breakeven.py` | Monthly cost table: frontier vs mini vs the fine-tuned model (per-token + hosting × 730 h) vs optional Fireworks per-token. Prints the break-even volume. PTU appears only as a reference line. |
+| `breakeven.py` | Monthly cost table: premium vs balanced vs the fine-tuned model (per-token + hosting × 730 h) vs optional Fireworks per-token. Prints the break-even volume. PTU appears only as a reference line. |
 | `kit_common.py` | Shared stdlib helpers: compact prompt, keyword retrieval and `.env` parsing, copied from the SPEC so the kit never imports the app. |
 
 Requirements: Python 3.10+, `requests` (real teacher mode only), Azure CLI, and `curl` (bash) or PowerShell 7+.
@@ -103,14 +103,14 @@ The biggest risk is a deployment you forget to delete: $0.65 × 730 h ≈ **$475
 |---|---|
 | **T-7 days** | Confirm the coach subscription, region (`swedencentral`), roles (Foundry Owner), and fine-tuned Global Standard quota. Re-check section 2 and the VALIDATE list. Deploy the Token Wars infra in the coach subscription (`team_name = "coach"`), which gives you `.env` and `models.json`. |
 | **T-2 days** | Run `generate_dataset.py --mock` (plumbing check), then the real teacher run. Review `manifest.json`, spot-check ~10 examples and read the `leakage` rows in `dropped.jsonl`. |
-| **T-1 day** | `finetune all` (train + deploy). Run `register_custom_model.py --write-pricing`, then `doctor` and a dry-run `compare --models mini,frontier,custom`. Save the compare JSON as a backup slide. |
-| **Event** (≈10 min in "Final Showdown & Debrief", or after Challenge 2) | Live `compare --models mini,frontier,custom`, then `breakeven.py` at 100k and 1M requests/month. Use the debrief talking points (section 11). |
+| **T-1 day** | `finetune all` (train + deploy). Run `register_custom_model.py --write-pricing`, then `doctor` and a dry-run `compare --models balanced,premium,custom`. Save the compare JSON as a backup slide. |
+| **Event** (≈10 min in "Final Showdown & Debrief", or after Challenge 2) | Live `compare --models balanced,premium,custom`, then `breakeven.py` at 100k and 1M requests/month. Use the debrief talking points (section 11). |
 | **After the event** | `finetune delete` (stops the hosting fee), `register_custom_model.py --remove --write-pricing`, `git checkout shared/config/pricing.json`, optionally `finetune cleanup-files`. |
 
 ## 6. Step by step
 
 Prerequisite: the coach subscription has the Token Wars infra deployed, so `ROOT/.env` (`AZURE_AI_API_KEY`) and
-`shared/config/models.json` (with `frontier`) exist. Run everything from `coach/own-the-weights/`.
+`shared/config/models.json` (with `premium`) exist. Run everything from `coach/own-the-weights/`.
 
 ### 6.1 Generate the dataset (T-2)
 
@@ -118,7 +118,7 @@ Prerequisite: the coach subscription has the Token Wars infra deployed, so `ROOT
 # bash
 cd coach/own-the-weights
 python3 generate_dataset.py --mock --out ./data-mock          # offline plumbing check, no network
-python3 generate_dataset.py --n 400 --seed 42 --out ./data    # real: teacher = models.json "frontier"
+python3 generate_dataset.py --n 400 --seed 42 --out ./data    # real: teacher = models.json "premium"
 cat data/manifest.json
 ```
 ```powershell
@@ -159,12 +159,12 @@ because job and file ids live in `data/.finetune-state`. If `deploy` fails on th
 
 ```bash
 python3 register_custom_model.py --deployment bytecart-ft --resource "$FOUNDRY_ACCOUNT" --hourly-cost 0.65 --write-pricing
-cd ../../python/solution && python -m tokenwars doctor && python -m tokenwars compare --models mini,frontier,custom
-# .NET: cd dotnet/solution/TokenWars && dotnet run -- compare --models mini,frontier,custom
+cd ../../python/solution && python -m tokenwars doctor && python -m tokenwars compare --models balanced,premium,custom
+# .NET: cd dotnet/solution/TokenWars && dotnet run -- compare --models balanced,premium,custom
 ```
 ```powershell
 python register_custom_model.py --deployment bytecart-ft --resource $env:FOUNDRY_ACCOUNT --hourly-cost 0.65 --write-pricing
-cd ../../python/solution; python -m tokenwars doctor; python -m tokenwars compare --models mini,frontier,custom
+cd ../../python/solution; python -m tokenwars doctor; python -m tokenwars compare --models balanced,premium,custom
 ```
 
 `--write-pricing` edits the tracked `pricing.json` in **your checkout only**. Don't commit it. Without it, the apps count
@@ -196,7 +196,7 @@ from `results/compare-*.json` into the flags.
 
 ## 7. Sample output
 
-`python3 breakeven.py --frontier-key gpt-5.6-sol --mini-key gpt-5.6-terra`
+`python3 breakeven.py --premium-key gpt-5.6-sol --balanced-key gpt-5.6-terra`
 (repo `pricing.json` on 2026-10-09; explicit keys also work before Terraform updates an existing deployment):
 
 ```text
@@ -205,21 +205,21 @@ Prices: shared/config/pricing.json; fine-tuned: preset ministral-3b. List prices
 
 Option                                                $/1M in  $/1M out  tokens $/mo  hosting $/mo  TOTAL $/mo  $/1k req
 ------------------------------------------------------------------------------------------------------------------------
-frontier + retrieval (gpt-5.6-sol)                      4.000    20.000       $7,200             -      $7,200    7.2000
-mini + retrieval (gpt-5.6-terra)                        2.000    12.000       $3,840             -      $3,840    3.8400
+premium + retrieval (gpt-5.6-sol)                      4.000    20.000       $7,200             -      $7,200    7.2000
+balanced + retrieval (gpt-5.6-terra)                        2.000    12.000       $3,840             -      $3,840    3.8400
 Ministral-3B (2411) FT, short prompt                    0.050     0.150       $58.00          $474        $532    0.0580
 Fireworks per-token (fw-deepseek-v4-flash-0731)         0.150     0.310         $217             -        $217    0.2172 ◀ cheapest
 ------------------------------------------------------------------------------------------------------------------------
 ⚠️  Fireworks per-token (fw-deepseek-v4-flash-0731): price not verified (pricing.json verified=false).
-Break-even vs mini: 125,463 requests/month (≈ 4,182/day). Above that the fine-tuned model wins; below it the hosting fee dominates.
-  vs frontier + retrieval (gpt-5.6-sol): 66,438 requests/month
+Break-even vs balanced: 125,463 requests/month (≈ 4,182/day). Above that the fine-tuned model wins; below it the hosting fee dominates.
+  vs premium + retrieval (gpt-5.6-sol): 66,438 requests/month
   vs Fireworks per-token (fw-deepseek-v4-flash-0731): 2,980,528 requests/month
 One-off training: 250,000 tokens × 3 epochs × $1.0/1M ≈ $0.75 (plus teacher-generation tokens).
 Hosting is billed per hour while the deployment EXISTS, even with zero traffic – delete it after the demo.
 PTU (for reference, not recommended for this workshop): 15 PTU × $1.0/PTU-h × 730 h ≈ $10,950/month regardless of volume (illustrative rate – VALIDATE).
 ```
 
-At `--requests 100000` (with the same GPT-5.6 keys) the order flips. Mini costs $384/month and the fine-tuned model costs $480/month, which is almost
+At `--requests 100000` (with the same GPT-5.6 keys) the order flips. Balanced costs $384/month and the fine-tuned model costs $480/month, which is almost
 all hosting fee.
 
 `python3 generate_dataset.py --mock --out <dir>` (deterministic):
@@ -243,7 +243,7 @@ all hosting fee.
 - [ ] Deployment SKU is **GlobalStandard** (`finetune status`). No PTU anywhere.
 - [ ] `finetune test` returns a sensible answer.
 - [ ] `register_custom_model.py --write-pricing` done. `doctor` shows `custom` reachable.
-- [ ] Dry-run `compare --models mini,frontier,custom` finished. Results JSON saved as a backup slide.
+- [ ] Dry-run `compare --models balanced,premium,custom` finished. Results JSON saved as a backup slide.
 - [ ] Calendar reminder: **delete the deployment** right after the session. `finetune status` confirms it.
 - [ ] `pricing.json` reverted (`git status` clean), `custom` removed from `models.json`.
 
@@ -264,7 +264,7 @@ Show this in the Foundry portal (≈2 min) to close the loop with Challenge 2.4 
 * **Knowledge is frozen at training time.** The training data comes from the KB as of T-2. If a policy changes, you have to retrain.
   That's why the examples keep the retrieved context in the prompt.
 * KB-only data: the model never saw order JSON in training. `order_status` questions rely on its general ability to read context.
-* A 3B model is weaker at multi-rule reasoning (`policy_reasoning`). Expect a lower pass rate there than `frontier`.
+* A 3B model is weaker at multi-rule reasoning (`policy_reasoning`). Expect a lower pass rate there than `premium`.
 * The teacher's mistakes get distilled too. The mock mode only exercises the plumbing; its answers are extractive.
 * Leakage filtering is lexical (token Jaccard ≥ 0.6). It catches close paraphrases, not semantic ones.
   `compare` items are a **test set**: never train on them.
@@ -276,9 +276,9 @@ Show this in the Foundry portal (≈2 min) to close the loop with Challenge 2.4 
 1. **Fine-tuning doesn't replace retrieval for changing facts.** It teaches *behaviour* (tone, format, brevity, reading the
    context). Facts that change (return windows, fees) stay in retrieval. Microsoft's own guidance: fine-tuning *"doesn't replace
    retrieval for current information or application-level safety controls"*.
-2. **Hosting fee vs volume.** Per request, the fine-tuned 3B model is about 25× cheaper than mini. But $0.65/h × 730 h = $474/month
-   is a fixed fee that runs even at zero traffic. Break-even vs mini ≈ **343k requests/month** at the defaults. Below that,
-   per-token models (mini, nano, Fireworks) win. Ask the room: *"How many requests does your copilot really do per month?"*
+2. **Hosting fee vs volume.** Per request, the fine-tuned 3B model is about 25× cheaper than balanced. But $0.65/h × 730 h = $474/month
+   is a fixed fee that runs even at zero traffic. Break-even vs balanced ≈ **343k requests/month** at the defaults. Below that,
+   per-token models (balanced, economy, Fireworks) win. Ask the room: *"How many requests does your copilot really do per month?"*
 3. **Evaluation leakage.** We generated the training questions from the KB and dropped anything ≥ 0.6 Jaccard to the
    workload questions. If you train on your test set, your leaderboard numbers stop meaning anything. Keep a held-out set, and
    remember the judge's reference answers come from the same KB.

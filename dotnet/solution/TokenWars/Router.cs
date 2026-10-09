@@ -2,15 +2,15 @@ using System.Text.RegularExpressions;
 
 namespace TokenWars;
 
-/// <summary>Model routing: none (default_model), rules (TODO 3.1) or a nano classifier (TODO 3.2).</summary>
+/// <summary>Model routing: none (default_model), rules (TODO 3.1) or an economy classifier (TODO 3.2).</summary>
 public sealed class Router
 {
     /// <summary>Challenge 2.2: after `compare`, you may change which model serves each tier.</summary>
     public static readonly Dictionary<string, string> TierModels = new(StringComparer.Ordinal)
     {
-        ["SIMPLE"] = "nano",
-        ["STANDARD"] = "mini",
-        ["COMPLEX"] = "frontier",
+        ["SIMPLE"] = "economy",
+        ["STANDARD"] = "balanced",
+        ["COMPLEX"] = "premium",
     };
 
     public static readonly string[] ComplexityMarkers =
@@ -56,7 +56,7 @@ public sealed class Router
         return TierModels["SIMPLE"];
     }
 
-    // SOLUTION 3.2 – classifier router: ask nano for SIMPLE / STANDARD / COMPLEX (its tokens are costed).
+    // SOLUTION 3.2 – classifier router: ask economy for SIMPLE / STANDARD / COMPLEX (its tokens are costed).
     public async Task<string> RouteClassifierAsync(string question, List<CallRecord> calls, CancellationToken ct = default)
     {
         var messages = new List<ChatMessage>
@@ -64,7 +64,7 @@ public sealed class Router
             new ChatMessage("system", Prompts.ClassifierSystemPrompt),
             new ChatMessage("user", question),
         };
-        var result = await _client.ChatAsync("nano", messages, temperature: 0, maxTokens: 5, purpose: "classifier", ct: ct);
+        var result = await _client.ChatAsync("economy", messages, temperature: 0, maxTokens: 5, purpose: "classifier", ct: ct);
         calls.Add(result.Call);
 
         var words = result.Text.Trim().ToUpperInvariant()

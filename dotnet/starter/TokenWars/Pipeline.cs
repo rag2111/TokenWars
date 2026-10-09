@@ -56,14 +56,14 @@ public sealed class Pipeline
 {
     /// <summary>
     /// Next model tier when a cheaper model answers ESCALATE (TODO 3.3).
-    /// Any other non-frontier key (fw_fast, fw_pro, custom, ...) escalates straight to "frontier".
+    /// Any other non-premium key (fw_fast, fw_pro, custom, ...) escalates straight to "premium".
     /// </summary>
     public static readonly Dictionary<string, string> EscalationNext = new(StringComparer.Ordinal)
     {
-        ["nano"] = "mini",
-        ["mini"] = "frontier",
-        ["open"] = "frontier",
-        ["selfhosted"] = "frontier",
+        ["economy"] = "balanced",
+        ["balanced"] = "premium",
+        ["open"] = "premium",
+        ["selfhosted"] = "premium",
     };
 
     private readonly AppConfig _cfg;
@@ -193,11 +193,11 @@ public sealed class Pipeline
         var answer = await CallModelAsync(modelKey, question, customerId, orderSpecific, calls, QuestionVector, ct);
 
         // 8. TODO 3.3 – Escalation on ESCALATE (Challenge 3 "Route & Rule")
-        // With escalation=true, non-frontier models are told to reply with the single word ESCALATE when unsure
+        // With escalation=true, non-premium models are told to reply with the single word ESCALATE when unsure
         // (see Prompts.EscalateInstruction). Implement the safety net:
-        //   while modelKey != "frontier" and answer.Trim() starts with "ESCALATE" (upper-cased):
-        //       next = EscalationNext.TryGetValue(modelKey, out var mapped) ? mapped : "frontier";
-        //              // keys not in the map (fw_fast, fw_pro, custom, ...) escalate straight to frontier
+        //   while modelKey != "premium" and answer.Trim() starts with "ESCALATE" (upper-cased):
+        //       next = EscalationNext.TryGetValue(modelKey, out var mapped) ? mapped : "premium";
+        //              // keys not in the map (fw_fast, fw_pro, custom, ...) escalate straight to premium
         //       if next is not configured (not in _cfg.Models): break;
         //       modelKey = next; result.ModelPath.Add(modelKey);
         //       answer = await CallModelAsync(modelKey, question, customerId, orderSpecific, calls, QuestionVector, ct);

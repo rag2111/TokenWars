@@ -12,8 +12,8 @@ from .prompts import build_messages, load_baseline_template
 from .router import TIER_MODELS, Router
 
 # Next model tier when a cheaper model answers ESCALATE (TODO 3.3).
-# Any other non-frontier key (fw_fast, fw_pro, custom, ...) escalates straight to "frontier".
-ESCALATION_NEXT = {"nano": "mini", "mini": "frontier", "open": "frontier", "selfhosted": "frontier"}
+# Any other non-premium key (fw_fast, fw_pro, custom, ...) escalates straight to "premium".
+ESCALATION_NEXT = {"economy": "balanced", "balanced": "premium", "open": "premium", "selfhosted": "premium"}
 
 
 @dataclass
@@ -144,11 +144,11 @@ class Pipeline:
         answer = self._call_model(model_key, question, customer_id, order_specific, calls, question_vector)
 
         # 8. TODO 3.3 – Escalation on ESCALATE (Challenge 3 "Route & Rule")
-        # With escalation=true, non-frontier models are told to reply with the single word ESCALATE when unsure
+        # With escalation=true, non-premium models are told to reply with the single word ESCALATE when unsure
         # (see ESCALATE_INSTRUCTION in prompts.py). Implement the safety net:
-        #   while model_key != "frontier" and answer.strip().upper() starts with "ESCALATE":
-        #       next_key = ESCALATION_NEXT.get(model_key, "frontier")   # keys not in the map (fw_fast, fw_pro,
-        #                                                               # custom, ...) escalate straight to frontier
+        #   while model_key != "premium" and answer.strip().upper() starts with "ESCALATE":
+        #       next_key = ESCALATION_NEXT.get(model_key, "premium")   # keys not in the map (fw_fast, fw_pro,
+        #                                                               # custom, ...) escalate straight to premium
         #       if next_key is not configured (not in self.config.models): break
         #       model_key = next_key; result.model_path.append(model_key)
         #       answer = self._call_model(model_key, question, customer_id, order_specific, calls, question_vector)

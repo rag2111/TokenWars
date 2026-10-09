@@ -1,7 +1,7 @@
 # Token Wars – Python starter
 
 This is the **expensive baseline** of ByteCart's Support Copilot. It works end to end out of the box, and it is
-wasteful on purpose. It always calls the frontier model, puts the whole knowledge base and the whole orders
+wasteful on purpose. It always calls the premium model, puts the whole knowledge base and the whole orders
 database into every prompt, starts the system prompt with a timestamp (so prompt caching never works), sets no
 output limit and does no caching.
 
@@ -33,7 +33,7 @@ override this with `TOKENWARS_ROOT`. It reads `ROOT/.env` and `ROOT/shared/confi
 | Submit to leaderboard | `python -m tokenwars run --submit` |
 | Skip judging | `python -m tokenwars run --no-judge` |
 | Ask one question | `python -m tokenwars ask "Can I return shoes?" --customer C1001` |
-| Compare models (Ch.2) | `python -m tokenwars compare --models frontier,mini,nano,open` |
+| Compare models (Ch.2) | `python -m tokenwars compare --models premium,balanced,economy,open` |
 | Offline mock mode | add `--mock` or set `TOKENWARS_MOCK=1` |
 | Check setup | `python -m tokenwars doctor` |
 
@@ -53,9 +53,9 @@ offline and to compare token counts. Mock runs cannot go on the leaderboard.
 
 | Key | Default deployment | Used for |
 |---|---|---|
-| `frontier` | `gpt-5.6-sol` | the most capable (and most expensive) tier |
-| `mini` | `gpt-5.6-terra` | the standard tier |
-| `nano` | `gpt-5.6-luna` | the cheapest tier and the routing classifier |
+| `premium` | `gpt-5.6-sol` | the most capable (and most expensive) tier |
+| `balanced` | `gpt-5.6-terra` | the standard tier |
+| `economy` | `gpt-5.6-luna` | the cheapest tier and the routing classifier |
 | `open` | `Llama-3.3-70B-Instruct` | open-weight model (Challenge 2) |
 | `selfhosted` | e.g. `llama3.2:3b` on Ollama | optional self-hosted model (Challenge 2) |
 | `embedding` | `text-embedding-3-small` | semantic cache / embedding retrieval |
@@ -94,9 +94,9 @@ still have access to those.
 `fw_pro` (Fireworks models on Microsoft Foundry – see the website section
 [Challenge 2.4 Fireworks Arena](../../docs/index.html#step-2-4)), and the coach may add a `custom` entry (a fine-tuned
 model from the "Own the Weights" demo). Any key in `models.json` works everywhere: `compare --models
-mini,frontier,fw_fast,fw_pro`, `default_model` and `TIER_MODELS` in `tokenwars/router.py`. A key that is not configured fails before any spend.
-With escalation on, keys outside the explicit `nano → mini → frontier` chain (`open`, `selfhosted`, `fw_*`,
-`custom`, …) escalate straight to `frontier`.
+balanced,premium,fw_fast,fw_pro`, `default_model` and `TIER_MODELS` in `tokenwars/router.py`. A key that is not configured fails before any spend.
+With escalation on, keys outside the explicit `economy → balanced → premium` chain (`open`, `selfhosted`, `fw_*`,
+`custom`, …) escalate straight to `premium`.
 
 ## Where the TODOs live
 
@@ -116,7 +116,7 @@ spending anything, with `NotImplementedError: TODO x.y not implemented yet – s
 | 2.2 | BYOM | Run `compare`, pick a model per tier | `strategy.json` (`default_model`), `TIER_MODELS` in `tokenwars/router.py` | `"default_model"` |
 | 2.3 | BYOM | Extra instruction for non-OpenAI models (`open`, `selfhosted`, `custom`, `fw_*`) | `tokenwars/prompts.py` | – (always active once implemented) |
 | 3.1 | Route & Rule | Rules router | `tokenwars/router.py` | `"routing": "rules"` |
-| 3.2 | Route & Rule | Classifier router (nano) | `tokenwars/router.py` | `"routing": "classifier"` |
+| 3.2 | Route & Rule | Classifier router (economy) | `tokenwars/router.py` | `"routing": "classifier"` |
 | 3.3 | Route & Rule | Escalation on `ESCALATE` | `tokenwars/pipeline.py` | `"escalation": true` |
 | 3.4 | Route & Rule | Throttle-aware retry (429 + Retry-After) | `tokenwars/llm_client.py` | `"retry_on_throttle": true` |
 | 3.5 | Route & Rule | AI gateway policy, then route through APIM | `infra/policies/ai-gateway-starter.xml` | `"use_gateway": true` |
@@ -133,8 +133,8 @@ workload is ground truth for the judge, and using it for routing means disqualif
 2. Exact cache, then semantic cache (semantic only for questions that are not about orders).
 3. Route to a model: `default_model`, rules or the classifier.
 4. Build the context (KB retrieval and orders), build the messages and call the model.
-5. Escalate to the next tier (`nano → mini → frontier`; any other key, e.g. `open`, `selfhosted`, `fw_fast`, `custom`
-   `→ frontier`) when the model answers `ESCALATE`.
+5. Escalate to the next tier (`economy → balanced → premium`; any other key, e.g. `open`, `selfhosted`, `fw_fast`, `custom`
+   `→ premium`) when the model answers `ESCALATE`.
 6. Store the answer in the caches. Every call's tokens are priced with `shared/config/pricing.json`.
 
 ## Files

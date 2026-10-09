@@ -8,9 +8,9 @@ locals {
   repo_root = abspath("${path.module}/..")
 
   azure_model_specs = {
-    frontier  = { deployment = azurerm_cognitive_deployment.frontier.name, spec = var.frontier_model, type = "chat", via_gateway = true }
-    mini      = { deployment = azurerm_cognitive_deployment.mini.name, spec = var.mini_model, type = "chat", via_gateway = true }
-    nano      = { deployment = azurerm_cognitive_deployment.nano.name, spec = var.nano_model, type = "chat", via_gateway = true }
+    premium   = { deployment = azurerm_cognitive_deployment.premium.name, spec = var.premium_model, type = "chat", via_gateway = true }
+    balanced  = { deployment = azurerm_cognitive_deployment.balanced.name, spec = var.balanced_model, type = "chat", via_gateway = true }
+    economy   = { deployment = azurerm_cognitive_deployment.economy.name, spec = var.economy_model, type = "chat", via_gateway = true }
     embedding = { deployment = azurerm_cognitive_deployment.embedding.name, spec = var.embedding_model, type = "embedding", via_gateway = true }
     # the judge bypasses the gateway: it is not part of the team score and must not be throttled by the team's token limit
     judge = { deployment = azurerm_cognitive_deployment.judge.name, spec = var.judge_model, type = "chat", via_gateway = false }

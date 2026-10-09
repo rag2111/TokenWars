@@ -2,7 +2,7 @@
 
 This is ByteCart's **Support Copilot** – the expensive baseline you will optimise during the
 **Token Wars: Build, Route & Optimize Your AI Stack** microhack. It works end-to-end out of the box, but it always calls
-the frontier model, stuffs the whole knowledge base and the whole orders database into every prompt, puts dynamic data
+the premium model, stuffs the whole knowledge base and the whole orders database into every prompt, puts dynamic data
 at the top of the system prompt (defeating prompt caching), has no output limit and no caching.
 
 Your goal: cut the **cost per successful answer** while keeping the pass rate at or above the bar (85 %).
@@ -27,7 +27,7 @@ Run everything from `dotnet/starter/TokenWars/` (the folder that contains `strat
 | Submit to leaderboard | `dotnet run -- run --submit` |
 | Skip judging | `dotnet run -- run --no-judge` |
 | Ask one question | `dotnet run -- ask "Can I return shoes?" --customer C1001` |
-| Compare models (Ch.2) | `dotnet run -- compare --models frontier,mini,nano,open` |
+| Compare models (Ch.2) | `dotnet run -- compare --models premium,balanced,economy,open` |
 | Offline mock mode | add `--mock` or set `TOKENWARS_MOCK=1` |
 | Check setup | `dotnet run -- doctor` |
 
@@ -61,9 +61,9 @@ scores are not directly comparable. Terraform updates the generated registry onl
 - **More model keys can appear.** With Challenge 2.4 `models.json` can also contain `fw_fast` and `fw_pro` (Fireworks
   models on Microsoft Foundry – see the website section [Challenge 2.4 Fireworks Arena](../../docs/index.html#step-2-4)),
   and the coach may add a `custom` entry (a fine-tuned model from the "Own the Weights" demo). Any key in
-  `models.json` works for `compare --models mini,frontier,fw_fast,fw_pro`, `default_model` and `Router.TierModels`;
+  `models.json` works for `compare --models balanced,premium,fw_fast,fw_pro`, `default_model` and `Router.TierModels`;
   a key that is not configured fails before any spend. With escalation on, keys outside the explicit
-  `nano → mini → frontier` chain (`open`, `selfhosted`, `fw_*`, `custom`, …) escalate straight to `frontier`.
+  `economy → balanced → premium` chain (`open`, `selfhosted`, `fw_*`, `custom`, …) escalate straight to `premium`.
 
 ## How to work
 
@@ -89,7 +89,7 @@ If you switch on a flag whose TODO is not implemented yet, the app stops **befor
 | 2.2 | BYOM | Run `compare`, pick a model per tier | `TokenWars/strategy.json` (`default_model`), `Router.TierModels` | `"default_model"` |
 | 2.3 | BYOM | Model-specific prompt adaptation | `TokenWars/Prompts.cs` (`ModelSpecificInstructions`) | – (automatic for `open`, `selfhosted`, `custom`, `fw_*`) |
 | 3.1 | Route & Rule | Rules router | `TokenWars/Router.cs` (`RouteRules`) | `"routing": "rules"` |
-| 3.2 | Route & Rule | Classifier router (nano) | `TokenWars/Router.cs` (`RouteClassifierAsync`) | `"routing": "classifier"` |
+| 3.2 | Route & Rule | Classifier router (economy) | `TokenWars/Router.cs` (`RouteClassifierAsync`) | `"routing": "classifier"` |
 | 3.3 | Route & Rule | Escalation on `ESCALATE` | `TokenWars/Pipeline.cs` (`AnswerCoreAsync`, step 8) | `"escalation": true` |
 | 3.4 | Route & Rule | Throttle-aware retry (429 + Retry-After) | `TokenWars/LlmClient.cs` (`SendWithRetryAsync`) | `"retry_on_throttle": true` |
 | 3.5 | Route & Rule | AI gateway policy (token limit, metrics, failover) | `infra/policies/ai-gateway-starter.xml` | `"use_gateway": true` |

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate a supervised fine-tuning (SFT) dataset for the coach demo "Own the Weights".
 
-Teacher = the `frontier` model from shared/config/models.json (distillation via teacher-generated SFT data).
+Teacher = the `premium` model from shared/config/models.json (distillation via teacher-generated SFT data).
 Questions and answers come FROM THE KNOWLEDGE BASE SECTIONS ONLY (no orders, no workload items).
 Every example uses the exact message layout the apps send at inference time (SPEC 4.3, compact + cache-friendly):
 
@@ -13,7 +13,7 @@ Filters: exact/near duplicates and evaluation leakage (token Jaccard >= 0.6 agai
 Output (in --out): train.jsonl, validation.jsonl (90/10), dropped.jsonl (audit), manifest.json.
 
   python generate_dataset.py --mock --out ./data            # offline, deterministic, no network
-  python generate_dataset.py --n 400 --out ./data           # real: calls the frontier deployment
+  python generate_dataset.py --n 400 --out ./data           # real: calls the premium deployment
 """
 from __future__ import annotations
 
@@ -245,7 +245,7 @@ def main(argv: list[str] | None = None) -> int:
                    help="output folder (default: coach/own-the-weights/data, git-ignored)")
     p.add_argument("--mock", action="store_true", help="offline + deterministic: template questions, extractive answers")
     p.add_argument("--root", help="repo root (default: TOKENWARS_ROOT or auto-detect)")
-    p.add_argument("--teacher", default="frontier", help="models.json key of the teacher (default frontier)")
+    p.add_argument("--teacher", default="premium", help="models.json key of the teacher (default premium)")
     p.add_argument("--top-k", type=int, default=3, help="keyword-retrieved sections per example (SPEC 4.5), default 3")
     p.add_argument("--leak-threshold", type=float, default=0.6, help="drop if token Jaccard vs a workload question >= this")
     p.add_argument("--near-dup-threshold", type=float, default=0.85, help="drop near-duplicates among generated questions")

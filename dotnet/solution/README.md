@@ -24,7 +24,7 @@ Run everything from `dotnet/solution/TokenWars/` (the folder that contains `stra
 | Submit to leaderboard | `dotnet run -- run --submit` |
 | Skip judging | `dotnet run -- run --no-judge` |
 | Ask one question | `dotnet run -- ask "Can I return shoes?" --customer C1001` |
-| Compare models (Ch.2) | `dotnet run -- compare --models frontier,mini,nano,open` |
+| Compare models (Ch.2) | `dotnet run -- compare --models premium,balanced,economy,open` |
 | Offline mock mode | add `--mock` or set `TOKENWARS_MOCK=1` |
 | Check setup | `dotnet run -- doctor` |
 
@@ -58,9 +58,9 @@ scores are not directly comparable. Terraform updates the generated registry onl
 - **More model keys can appear.** With Challenge 2.4 `models.json` can also contain `fw_fast` and `fw_pro` (Fireworks
   models on Microsoft Foundry – see the website section [Challenge 2.4 Fireworks Arena](../../docs/index.html#step-2-4)),
   and the coach may add a `custom` entry (a fine-tuned model from the "Own the Weights" demo). Any key in
-  `models.json` works for `compare --models mini,frontier,fw_fast,fw_pro`, `default_model` and `Router.TierModels`;
+  `models.json` works for `compare --models balanced,premium,fw_fast,fw_pro`, `default_model` and `Router.TierModels`;
   a key that is not configured fails before any spend. With escalation on, keys outside the explicit
-  `nano → mini → frontier` chain (`open`, `selfhosted`, `fw_*`, `custom`, …) escalate straight to `frontier`.
+  `economy → balanced → premium` chain (`open`, `selfhosted`, `fw_*`, `custom`, …) escalate straight to `premium`.
 
 ## Solution strategy (`TokenWars/strategy.json`)
 
@@ -68,7 +68,7 @@ scores are not directly comparable. Terraform updates the generated registry onl
 {
   "compact_prompt": true, "prompt_cache_friendly": true, "retrieval": "keyword", "top_k": 3,
   "order_lookup": true, "max_output_tokens": 350, "exact_cache": true, "semantic_cache": true,
-  "semantic_cache_threshold": 0.92, "default_model": "mini", "routing": "classifier", "escalation": true,
+  "semantic_cache_threshold": 0.92, "default_model": "balanced", "routing": "classifier", "escalation": true,
   "use_gateway": false, "retry_on_throttle": true, "concurrency": 8
 }
 ```
@@ -88,7 +88,7 @@ scores are not directly comparable. Terraform updates the generated registry onl
 | 2.2 | BYOM | Pick a model per tier after `compare` | `TokenWars/strategy.json` (`default_model`), `Router.TierModels` |
 | 2.3 | BYOM | Model-specific prompt adaptation (`open`, `selfhosted`, `custom`, `fw_*`) | `TokenWars/Prompts.cs` (`ModelSpecificInstructions`) |
 | 3.1 | Route & Rule | Rules router | `TokenWars/Router.cs` (`RouteRules`) |
-| 3.2 | Route & Rule | Classifier router (nano) | `TokenWars/Router.cs` (`RouteClassifierAsync`) |
+| 3.2 | Route & Rule | Classifier router (economy) | `TokenWars/Router.cs` (`RouteClassifierAsync`) |
 | 3.3 | Route & Rule | Escalation on `ESCALATE` | `TokenWars/Pipeline.cs` (`AnswerCoreAsync`, step 8) |
 | 3.4 | Route & Rule | Throttle-aware retry (429 + Retry-After) | `TokenWars/LlmClient.cs` (`SendWithRetryAsync`) |
 | 3.5 | Route & Rule | AI gateway policy, then `"use_gateway": true` | `infra/policies/ai-gateway-starter.xml` |

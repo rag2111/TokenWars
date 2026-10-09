@@ -3,7 +3,7 @@
 A 4-hour Azure GenAI **cost-optimisation microhack** for digital-native teams.
 
 **ByteCart** is a fictional, fast-growing EU e-commerce marketplace. Its GenAI *Support Copilot* answers customer
-questions — and it works, but it is **expensive**: it always calls the frontier model, stuffs the whole knowledge base and
+questions — and it works, but it is **expensive**: it always calls the premium model, stuffs the whole knowledge base and
 the whole orders database into every prompt, puts dynamic data at the top of the system prompt (so prompt caching never
 kicks in), has no output limits and no caching.
 
@@ -33,6 +33,35 @@ Before the event, every team works through [`coach/pre-event-checklist.md`](coac
   ("Own the Weights" fine-tuning).
 - **Optional extras stay optional.** Fireworks on Foundry (Challenge 2.4) and multi-provider failover (Challenge 3.6)
   are off by default (`deploy_fireworks = false`); the core challenges work without them.
+
+## Provider-neutral model tiers
+
+| Tier | App key | Terraform variable | Current default |
+|---|---|---|---|
+| Premium | `premium` | `premium_model` | GPT-5.6 Sol |
+| Balanced | `balanced` | `balanced_model` | GPT-5.6 Terra |
+| Economy | `economy` | `economy_model` | GPT-5.6 Luna |
+
+These are capability/cost roles, not provider or product names. Routing uses Economy for SIMPLE, Balanced for
+STANDARD and Premium for COMPLEX; the classifier uses Economy and escalation follows
+`economy → balanced → premium`. Keep the independent GPT-5.5 `judge` unchanged.
+
+To substitute a model, configure its real catalog name, publisher `format`, `pricing_key` and request settings in
+the corresponding Terraform variable. For another OpenAI-compatible endpoint, keep these app keys in
+`models.json` and configure its `base_url`, `api_key_env`, token parameter, temperature support and extra body/headers.
+Set `via_gateway: false` for endpoints that the current Azure-backed APIM policy does not serve. Update pricing
+with your coach and re-measure quality; the tier name does not guarantee capability or price.
+
+**Existing checkouts:** rename `frontier_model`, `mini_model` and `nano_model` overrides to
+`premium_model`, `balanced_model` and `economy_model` in your own tfvars/automation, and use the new app keys in
+custom strategies, compare commands and registries. This update expects a fresh infrastructure deployment, not an
+in-place state migration. Destroy an existing stack using its original configuration before deploying the updated
+stack, and review `terraform plan` before applying. Physical model/deployment names, prices and capacity 800 remain
+unchanged by the tier rename. Applying regenerates `models.json`; for a local registry migration, rename only its
+tier keys and preserve every model entry's settings. Historical result files keep the keys used at the time and
+must not be rewritten.
+Coach automation should also use `--premium-key` / `--balanced-key` for the break-even calculator and read its
+`breakeven_vs_balanced_requests_per_month` JSON field.
 
 ## Repository map
 
@@ -124,8 +153,8 @@ your **cost per successful answer** drop. The `solution/` folders contain the re
 | Submit to leaderboard | `python -m tokenwars run --submit` | `dotnet run -- run --submit` |
 | Skip judging | `python -m tokenwars run --no-judge` | `dotnet run -- run --no-judge` |
 | Ask one question | `python -m tokenwars ask "Can I return shoes?" --customer C1001` | `dotnet run -- ask "Can I return shoes?" --customer C1001` |
-| Compare models (Ch. 2) | `python -m tokenwars compare --models frontier,mini,nano,open` | `dotnet run -- compare --models frontier,mini,nano,open` |
-| Fireworks Arena (Ch. 2.4, optional) | `python -m tokenwars compare --models mini,frontier,fw_fast,fw_pro` | `dotnet run -- compare --models mini,frontier,fw_fast,fw_pro` |
+| Compare models (Ch. 2) | `python -m tokenwars compare --models premium,balanced,economy,open` | `dotnet run -- compare --models premium,balanced,economy,open` |
+| Fireworks Arena (Ch. 2.4, optional) | `python -m tokenwars compare --models balanced,premium,fw_fast,fw_pro` | `dotnet run -- compare --models balanced,premium,fw_fast,fw_pro` |
 | Check setup | `python -m tokenwars doctor` | `dotnet run -- doctor` |
 
 ## Microsoft Foundry
@@ -164,7 +193,7 @@ prints what to run next.
 | `deploy_fireworks` | `false` | Challenge 2.4: second Foundry resource + project in `fireworks_location` (default `eastus2`, US Data Zone only) with the `fireworks_models` deployments → models.json keys `fw_fast`, `fw_pro`, `.env` `FIREWORKS_AI_API_KEY` |
 | `fireworks_models` | `fw_fast` = `FW-DeepSeek-V4-Flash-0731`, `fw_pro` = `FW-DeepSeek-V4-Pro` | DataZoneStandard / GlobalStandard only (no PTU); alternatives listed in `terraform.tfvars.example` |
 | `fireworks_grant_deployer_role` | `false` | assigns `fireworks_deployer_role` (`Foundry Owner`) on the Fireworks project if deployment fails with Forbidden |
-| `fireworks_backend_auth` / `failover_model_map` | `api_key` / mini→fw_fast, frontier→fw_pro | Challenge 3.6 failover backend auth and model mapping |
+| `fireworks_backend_auth` / `failover_model_map` | `api_key` / balanced→fw_fast, premium→fw_pro | Challenge 3.6 failover backend auth and model mapping |
 | `*_model` | GPT-5.6 answer tiers, GPT-5.5 judge, text-embedding-3-small, Llama 3.3 70B | model name / version / SKU / capacity (TPM ×1000) / pricing key / `max_tokens_param` / `supports_temperature` / `extra_body` / `extra_headers` |
 
 Re-run `terraform apply` after every change; it regenerates `.env` and `shared/config/models.json`.
@@ -173,22 +202,22 @@ Re-run `terraform apply` after every change; it regenerates `.env` and `shared/c
 
 | Key | Default deployment | Notes |
 |---|---|---|
-| `frontier` | `gpt-5.6-sol` (2026-07-09) | reasoning-capable; written with `max_completion_tokens`, no `temperature`, `reasoning_effort: none` |
-| `mini` | `gpt-5.6-terra` (2026-07-09) | same settings |
-| `nano` | `gpt-5.6-luna` (2026-07-09) | same settings; also the classifier router |
+| `premium` | `gpt-5.6-sol` (2026-07-09) | reasoning-capable; written with `max_completion_tokens`, no `temperature`, `reasoning_effort: none` |
+| `balanced` | `gpt-5.6-terra` (2026-07-09) | same settings |
+| `economy` | `gpt-5.6-luna` (2026-07-09) | same settings; also the classifier router |
 | `judge` | `judge` → `gpt-5.5` (2026-04-24) | independent evaluator; not part of the score; bypasses the gateway |
 | `embedding` | `text-embedding-3-small` | semantic cache / embedding retrieval |
 | `open` | `Llama-3.3-70B-Instruct` | serverless open-weight model, `max_tokens`, temperature supported |
 | `selfhosted` | `llama3.2:3b` (Ollama) | optional, CPU on Container Apps |
 | `fw_fast` | `FW-DeepSeek-V4-Flash-0731` | optional (Challenge 2.4), Fireworks on Foundry, Data Zone Standard pay-per-token, direct call (`via_gateway: false`), `prompt_cache_key` in `extra_body` |
-| `fw_pro` | `FW-DeepSeek-V4-Pro` | same; open frontier model vs `frontier` |
+| `fw_pro` | `FW-DeepSeek-V4-Pro` | same; open premium model vs `premium` |
 | `custom` | fine-tuned model | coach demo only ("Own the Weights", coach subscription); has an informational `hourly_cost_usd` |
 
 The three GPT-5.6 answer deployments and the independent GPT-5.5 `judge` default to capacity **800** (800K TPM each).
 The optional secondary region uses capacity **800** per chat deployment too; embeddings and open-weight models
-keep their existing capacities. Terra needs 800K TPM for `mini`; GPT-5.5 needs a separate 800K TPM allocation for `judge`.
+keep their existing capacities. Terra needs 800K TPM for `balanced`; GPT-5.5 needs a separate 800K TPM allocation for `judge`.
 
-**Why GPT-5.5 for the judge:** the challenges optimise GPT-5.6 answer tiers, so a separate frontier evaluator
+**Why GPT-5.5 for the judge:** the challenges optimise GPT-5.6 answer tiers, so a separate premium evaluator
 avoids using Terra to grade Terra's own answers. GPT-5.5 fits the existing short reference-answer/JSON grading
 flow; GPT-6.1 Sol is an alternative to evaluate, not a requirement for these challenges. A different model does
 not guarantee unbiased grading: coaches must calibrate it against a few human-reviewed answers in the dry run.
@@ -218,11 +247,11 @@ Reasoning tokens are billed as **output** tokens and count against `max_completi
 `none`/`low` for cheap tiers (per-model `extra_body` in `terraform.tfvars`).
 
 Any key in `models.json` works with `compare`, `default_model` and the router's tier mapping; keys outside the
-`nano → mini → frontier` chain (`open`, `selfhosted`, `fw_*`, `custom`) escalate straight to `frontier`.
+`economy → balanced → premium` chain (`open`, `selfhosted`, `fw_*`, `custom`) escalate straight to `premium`.
 
 ### Optional: Fireworks Arena (Challenge 2.4) and Multi-Provider Failover (Challenge 3.6)
 
-Fireworks on Foundry lets you put **open frontier** models (DeepSeek V4 Flash / Pro) next to the closed frontier
+Fireworks on Foundry lets you put **open premium** models (DeepSeek V4 Flash / Pro) next to the closed premium
 models — pay-per-token only.
 
 ```bash

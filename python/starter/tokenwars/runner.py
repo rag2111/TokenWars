@@ -405,7 +405,7 @@ def cmd_doctor(config: AppConfig, strategy: Strategy) -> int:
             if model.hourly_cost_usd > 0:
                 details += f", hosting ${model.hourly_cost_usd:.2f}/h"
             _say(f"      {'':<11} {details}")
-    missing = [k for k in ("frontier", "mini", "nano", "embedding", "judge") if k not in config.models]
+    missing = [k for k in ("premium", "balanced", "economy", "embedding", "judge") if k not in config.models]
     if missing:
         _say(f"    ⚠️  not configured: {', '.join(missing)}")
     if config.gateway:

@@ -103,7 +103,7 @@ public sealed class Strategy
     public bool ExactCache { get; set; }
     public bool SemanticCache { get; set; }
     public double SemanticCacheThreshold { get; set; } = 0.92;
-    public string DefaultModel { get; set; } = "frontier";
+    public string DefaultModel { get; set; } = "premium";
     public string Routing { get; set; } = "none";
     public bool Escalation { get; set; }
     public bool UseGateway { get; set; }
@@ -137,7 +137,7 @@ public sealed class Strategy
             ExactCache = JsonUtil.Bool(o["exact_cache"]) ?? false,
             SemanticCache = JsonUtil.Bool(o["semantic_cache"]) ?? false,
             SemanticCacheThreshold = JsonUtil.Dbl(o["semantic_cache_threshold"]) ?? 0.92,
-            DefaultModel = (JsonUtil.Str(o["default_model"]) ?? "frontier").Trim(),
+            DefaultModel = (JsonUtil.Str(o["default_model"]) ?? "premium").Trim(),
             Routing = (JsonUtil.Str(o["routing"]) ?? "none").Trim().ToLowerInvariant(),
             Escalation = JsonUtil.Bool(o["escalation"]) ?? false,
             UseGateway = JsonUtil.Bool(o["use_gateway"]) ?? false,
@@ -551,9 +551,9 @@ public sealed class AppConfig
     private const string BuiltInMockModels = """
     {
       "models": {
-        "frontier":  {"deployment": "gpt-5.6-sol", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.6-sol", "type": "chat", "via_gateway": true, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}},
-        "mini":      {"deployment": "gpt-5.6-terra", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.6-terra", "type": "chat", "via_gateway": true, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}},
-        "nano":      {"deployment": "gpt-5.6-luna", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.6-luna", "type": "chat", "via_gateway": true, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}},
+        "premium":  {"deployment": "gpt-5.6-sol", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.6-sol", "type": "chat", "via_gateway": true, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}},
+        "balanced":      {"deployment": "gpt-5.6-terra", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.6-terra", "type": "chat", "via_gateway": true, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}},
+        "economy":      {"deployment": "gpt-5.6-luna", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.6-luna", "type": "chat", "via_gateway": true, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}},
         "open":      {"deployment": "Llama-3.3-70B-Instruct", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "llama-3.3-70b-instruct", "type": "chat", "via_gateway": true, "max_tokens_param": "max_tokens", "supports_temperature": true, "extra_body": {}},
         "embedding": {"deployment": "text-embedding-3-small", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "text-embedding-3-small", "type": "embedding", "via_gateway": false, "max_tokens_param": "max_tokens", "supports_temperature": true, "extra_body": {}},
         "judge":     {"deployment": "judge", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.5", "type": "chat", "via_gateway": false, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}}

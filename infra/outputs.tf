@@ -134,7 +134,7 @@ output "next_steps" {
     Python : cd ../python/starter && python -m tokenwars doctor && python -m tokenwars run --limit 20
     .NET   : cd ../dotnet/starter/TokenWars && dotnet run -- doctor && dotnet run -- run --limit 20
     Portal : https://ai.azure.com -> project ${azurerm_cognitive_account_project.ai.name}%{if local.fireworks_enabled}
-    Arena  : python -m tokenwars compare --models mini,frontier,fw_fast,fw_pro   (Challenge 2.4)%{endif}
+    Arena  : python -m tokenwars compare --models balanced,premium,fw_fast,fw_pro   (Challenge 2.4)%{endif}
     Cleanup: terraform destroy
   EOT
 }

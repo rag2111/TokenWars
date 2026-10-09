@@ -2,15 +2,15 @@ using System.Text.RegularExpressions;
 
 namespace TokenWars;
 
-/// <summary>Model routing: none (default_model), rules (TODO 3.1) or a nano classifier (TODO 3.2).</summary>
+/// <summary>Model routing: none (default_model), rules (TODO 3.1) or an economy classifier (TODO 3.2).</summary>
 public sealed class Router
 {
     /// <summary>Challenge 2.2: after `compare`, you may change which model serves each tier.</summary>
     public static readonly Dictionary<string, string> TierModels = new(StringComparer.Ordinal)
     {
-        ["SIMPLE"] = "nano",
-        ["STANDARD"] = "mini",
-        ["COMPLEX"] = "frontier",
+        ["SIMPLE"] = "economy",
+        ["STANDARD"] = "balanced",
+        ["COMPLEX"] = "premium",
     };
 
     public static readonly string[] ComplexityMarkers =
@@ -47,12 +47,12 @@ public sealed class Router
     }
 
     // TODO 3.1 – Rules router (Challenge 3 "Route & Rule")
-    // Most questions do not need the frontier model. Route deterministically, in this order:
-    //   - orderSpecific                                                           -> TierModels["STANDARD"] (mini)
+    // Most questions do not need the premium model. Route deterministically, in this order:
+    //   - orderSpecific                                                           -> TierModels["STANDARD"] (balanced)
     //   - question.Trim() longer than LongQuestionChars (use TextUtil.CodePointCount)
-    //     or >= 2 ComplexityMarkers                                               -> TierModels["COMPLEX"]  (frontier)
-    //   - any ComplaintWords                                                      -> TierModels["STANDARD"] (mini)
-    //   - otherwise                                                               -> TierModels["SIMPLE"]   (nano)
+    //     or >= 2 ComplexityMarkers                                               -> TierModels["COMPLEX"]  (premium)
+    //   - any ComplaintWords                                                      -> TierModels["STANDARD"] (balanced)
+    //   - otherwise                                                               -> TierModels["SIMPLE"]   (economy)
     // Match markers/words on `normalized` with ContainsPhrase() so "but" does not match "button".
     // Then set "routing": "rules" in strategy.json.
     public string RouteRules(string question, string normalized, bool orderSpecific)
@@ -62,7 +62,7 @@ public sealed class Router
 
     // TODO 3.2 – Classifier router (Challenge 3 "Route & Rule")
     // Let the cheapest model decide: make this method `async` and call
-    //   await _client.ChatAsync("nano", messages, temperature: 0, maxTokens: 5, purpose: "classifier", ct: ct)
+    //   await _client.ChatAsync("economy", messages, temperature: 0, maxTokens: 5, purpose: "classifier", ct: ct)
     // with system = Prompts.ClassifierSystemPrompt and user = question.
     // Add result.Call to `calls` (the classifier tokens are part of your bill!), take the first word of result.Text
     // (upper-case, without punctuation such as . , : ; ! " ' ` *) and map it with TierModels;

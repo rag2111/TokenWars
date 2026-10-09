@@ -29,8 +29,8 @@ def build_parser() -> argparse.ArgumentParser:
     ask.add_argument("--customer", default="C1001", help="customer id (default C1001)")
 
     compare = sub.add_parser("compare", parents=[common], help="compare models on the 30 compare:true items")
-    compare.add_argument("--models", default="frontier,mini,nano,open",
-                         help="comma-separated model keys (default frontier,mini,nano,open)")
+    compare.add_argument("--models", default="premium,balanced,economy,open",
+                         help="comma-separated model keys (default premium,balanced,economy,open)")
     compare.add_argument("--no-judge", action="store_true", help="skip judging")
     compare.add_argument("--limit", type=int, default=None, help="only the first N compare items")
 

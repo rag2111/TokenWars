@@ -17,7 +17,7 @@ APP_DIR = Path(__file__).resolve().parent.parent  # python/<variant>/
 # "Today" for the ByteCart scenario (used in the prompt-cache-friendly layout).
 SCENARIO_DATE = "2026-09-15"
 
-MODEL_KEYS = ["frontier", "mini", "nano", "open", "selfhosted", "embedding", "judge"]
+MODEL_KEYS = ["premium", "balanced", "economy", "open", "selfhosted", "embedding", "judge"]
 
 _MODEL_DEFAULTS = {
     "base_url": "",
@@ -38,9 +38,9 @@ _GPT56 = {"via_gateway": True, "max_tokens_param": "max_completion_tokens", "sup
 # Used only in mock mode when neither models.json nor models.example.json exists.
 _BUILTIN_MODELS = {
     "models": {
-        "frontier": {"deployment": "gpt-5.6-sol", "pricing_key": "gpt-5.6-sol", **_GPT56},
-        "mini": {"deployment": "gpt-5.6-terra", "pricing_key": "gpt-5.6-terra", **_GPT56},
-        "nano": {"deployment": "gpt-5.6-luna", "pricing_key": "gpt-5.6-luna", **_GPT56},
+        "premium": {"deployment": "gpt-5.6-sol", "pricing_key": "gpt-5.6-sol", **_GPT56},
+        "balanced": {"deployment": "gpt-5.6-terra", "pricing_key": "gpt-5.6-terra", **_GPT56},
+        "economy": {"deployment": "gpt-5.6-luna", "pricing_key": "gpt-5.6-luna", **_GPT56},
         "open": {"deployment": "Llama-3.3-70B-Instruct", "pricing_key": "llama-3.3-70b-instruct", "via_gateway": True},
         "embedding": {"deployment": "text-embedding-3-small", "pricing_key": "text-embedding-3-small", "type": "embedding"},
         "judge": {"deployment": "judge", "pricing_key": "gpt-5.5", "via_gateway": False,
@@ -91,7 +91,7 @@ class Strategy:
     exact_cache: bool = False
     semantic_cache: bool = False
     semantic_cache_threshold: float = 0.92
-    default_model: str = "frontier"
+    default_model: str = "premium"
     routing: str = "none"  # none | rules | classifier
     escalation: bool = False
     use_gateway: bool = False

@@ -53,7 +53,7 @@ class Judge:
         self.client = client
         self.model_key = config.scoring.get("judge_model", "judge")
         if self.model_key not in config.models:
-            fallback = "mini" if "mini" in config.models else config.chat_models()[0]
+            fallback = "balanced" if "balanced" in config.models else config.chat_models()[0]
             print(f'⚠️  Judge model "{self.model_key}" not configured – judging with "{fallback}".', file=sys.stderr)
             self.model_key = fallback
         path = Path(config.root) / "shared" / "prompts" / "judge.md"

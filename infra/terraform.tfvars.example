@@ -28,24 +28,24 @@ leaderboard_key = "tokenwars"
 # Verify availability/quota in your region first:
 #   az cognitiveservices model list --location swedencentral --query "[].{name:model.name, version:model.version, format:model.format}" -o table
 #   az cognitiveservices usage list --location swedencentral -o table
-# Capacity = thousands of tokens per minute (TPM). The baseline is token-hungry: keep the frontier capacity high
+# Capacity = thousands of tokens per minute (TPM). The baseline is token-hungry: keep the premium capacity high
 # (or lower "concurrency" in strategy.json if your quota is small).
-# frontier_model  = { capacity = 800 }
-# mini_model      = { capacity = 800 }
-# nano_model      = { capacity = 800 }
-# judge_model     = { capacity = 800 }   # separate GPT-5.5 deployment; not the mini answer model
+# premium_model   = { capacity = 800 }
+# balanced_model  = { capacity = 800 }
+# economy_model   = { capacity = 800 }
+# judge_model     = { capacity = 800 }   # separate GPT-5.5 deployment; not the balanced answer model
 # embedding_model = { sku = "Standard", capacity = 150 }   # if GlobalStandard is not offered for embeddings
 # open_model      = { name = "Llama-3.3-70B-Instruct", format = "Meta", capacity = 100 }
 # deploy_open_model = true
 #
 # Reasoning effort per tier (reasoning tokens are billed as OUTPUT tokens - keep "none"/"low" for cheap tiers):
-# frontier_model = { extra_body = { reasoning_effort = "low" } }
+# premium_model = { extra_body = { reasoning_effort = "low" } }
 #
 # ALTERNATIVE: GPT-4.1 family (only if your subscription still has access - deprecated for new customers in 2026,
 # gpt-4.1-nano retires 2026-10-14). pricing.json still contains the gpt-4.1* keys.
-# frontier_model = { name = "gpt-4.1",      version = "2025-04-14", pricing_key = "gpt-4.1",      max_tokens_param = "max_tokens", supports_temperature = true, extra_body = {} }
-# mini_model     = { name = "gpt-4.1-mini", version = "2025-04-14", pricing_key = "gpt-4.1-mini", max_tokens_param = "max_tokens", supports_temperature = true, extra_body = {} }
-# nano_model     = { name = "gpt-4.1-nano", version = "2025-04-14", pricing_key = "gpt-4.1-nano", max_tokens_param = "max_tokens", supports_temperature = true, extra_body = {} }
+# premium_model   = { name = "gpt-4.1",      version = "2025-04-14", pricing_key = "gpt-4.1",      max_tokens_param = "max_tokens", supports_temperature = true, extra_body = {} }
+# balanced_model  = { name = "gpt-4.1-mini", version = "2025-04-14", pricing_key = "gpt-4.1-mini", max_tokens_param = "max_tokens", supports_temperature = true, extra_body = {} }
+# economy_model   = { name = "gpt-4.1-nano", version = "2025-04-14", pricing_key = "gpt-4.1-nano", max_tokens_param = "max_tokens", supports_temperature = true, extra_body = {} }
 # Keep judge_model on the pinned GPT-5.5 default even when changing answer tiers.
 
 # --- Challenge 3: AI gateway --------------------------------------------------

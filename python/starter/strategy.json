@@ -8,7 +8,7 @@
   "exact_cache": false,
   "semantic_cache": false,
   "semantic_cache_threshold": 0.92,
-  "default_model": "frontier",
+  "default_model": "premium",
   "routing": "none",
   "escalation": false,
   "use_gateway": false,

@@ -17,7 +17,7 @@ Full per-team and coach checklist: [pre-event-checklist.md](pre-event-checklist.
 | When | What |
 |---|---|
 | T-14 d | Send every team [pre-event-checklist.md](pre-event-checklist.md): own subscription, roles, quota, tool versions, optional Fireworks registration. |
-| T-7 d | Confirm every team has its **own subscription** and **model quota** in the chosen region (default `swedencentral`): gpt-5.6-sol / gpt-5.6-terra / gpt-5.6-luna for answers, gpt-5.5 (2026-04-24) for the independent judge, text-embedding-3-small, Llama-3.3-70B-Instruct (GlobalStandard). Defaults request 800K TPM for each of frontier, mini, nano and judge, 150K (embedding), 100K (Llama) per team — if a team has less quota, lower `capacity`. Terra and GPT-5.5 each need their own 800K TPM allocation. Optional secondary chat deployments request 800K TPM each in their region. GPT-4.1 is *deprecated* for new customers in 2026 (commented fallback in `terraform.tfvars.example`). |
+| T-7 d | Confirm every team has its **own subscription** and **model quota** in the chosen region (default `swedencentral`): gpt-5.6-sol / gpt-5.6-terra / gpt-5.6-luna for answers, gpt-5.5 (2026-04-24) for the independent judge, text-embedding-3-small, Llama-3.3-70B-Instruct (GlobalStandard). Defaults request 800K TPM for each of premium, balanced, economy and judge, 150K (embedding), 100K (Llama) per team — if a team has less quota, lower `capacity`. Terra and GPT-5.5 each need their own 800K TPM allocation. Optional secondary chat deployments request 800K TPM each in their region. GPT-4.1 is *deprecated* for new customers in 2026 (commented fallback in `terraform.tfvars.example`). |
 | T-7 d | Check that Azure Policy does not force `disableLocalAuth` on Foundry resources (the apps use API keys), that allowed regions include `swedencentral` (and a US region if the team wants the Fireworks Arena) and that users can create role assignments (APIM managed identity). |
 | T-7 d | **Dry run in a fresh subscription** (section 11): `terraform init -upgrade` + `apply` (azurerm 5.x), `doctor`, baseline, solution, `compare`, APIM solution policy, Fireworks Arena and the 3.6 failover policy. Work through the VALIDATE list. |
 | T-7 d | **Confirm the Fireworks per-token model list and prices** (offers can retire with 15 days' notice): `infra/scripts/check-fireworks-prereqs.sh` output, Foundry model catalog, Azure pricing calculator. Update `fireworks_models` / `shared/config/pricing.json`; set `"verified": true` only for confirmed prices. Update the other prices too. |
@@ -25,7 +25,7 @@ Full per-team and coach checklist: [pre-event-checklist.md](pre-event-checklist.
 | T-2 d | "Own the Weights": generate and review the dataset. |
 | T-1 d | Deploy the leaderboard (section 8), note URL + submit key, submit one real test run, then reset the board. |
 | T-1 d | Teams run `terraform apply` (incl. `deploy_fireworks = true` if they want the Arena) and `doctor` the day before — APIM, quota and Fireworks opt-in/deployment times (up to 30 + 30 min) are the #1 time sink. |
-| T-1 d | "Own the Weights": train + deploy, `register_custom_model.py --write-pricing`, dry-run `compare --models mini,frontier,custom`, save the result as a backup slide. |
+| T-1 d | "Own the Weights": train + deploy, `register_custom_model.py --write-pricing`, dry-run `compare --models balanced,premium,custom`, save the result as a backup slide. |
 | T-1 h | Leaderboard on the big screen, slides ready, `coach/` docs open, solution folders known, `custom` model answers in `doctor`. |
 
 Hand out per team: team name, `leaderboard_url`, `leaderboard_key` (go into `terraform.tfvars`). The subscription is
@@ -39,8 +39,8 @@ the team's own.
 |---|---|---|---|
 | **0:00–0:30** | **Kickoff — "Enter the Arena"** | Story (ByteCart, expensive copilot), metric, rules, agenda, leaderboard. Live demo of `run --limit 20` scorecard. | `az login`, `terraform apply` (if not done), `doctor`, first baseline `run --limit 20`, then full baseline `run --submit`. |
 | **0:30–1:30** | **Challenge 1 — "The Token Diet"** | Walk the room, unblock infra, push teams to measure after each change. 0:55 mini-checkpoint: "who has keyword retrieval working?" | TODO 1.1–1.7: compact prompt, keyword retrieval, order lookup, output control, exact + semantic cache, cache-friendly layout. Submit. |
-| **1:30–1:40** | **Break** | Read leaderboard aloud, praise biggest improvement. Option B for "Own the Weights": start the `compare --models mini,frontier,custom` run on the big screen (section 5). | — |
-| **1:40–2:40** | **Challenge 2 — "Bring Your Own Model"** | 5-min intro to model tiers, open-weight vs self-hosted TCO, open vs closed frontier (2.4). | TODO 2.1–2.3: open/self-hosted model, `compare`, pick model per tier, prompt adaptation. Optional 2.4 *Fireworks Arena* (split below). Submit. |
+| **1:30–1:40** | **Break** | Read leaderboard aloud, praise biggest improvement. Option B for "Own the Weights": start the `compare --models balanced,premium,custom` run on the big screen (section 5). | — |
+| **1:40–2:40** | **Challenge 2 — "Bring Your Own Model"** | 5-min intro to model tiers, open-weight vs self-hosted TCO, open vs closed premium (2.4). | TODO 2.1–2.3: open/self-hosted model, `compare`, pick model per tier, prompt adaptation. Optional 2.4 *Fireworks Arena* (split below). Submit. |
 | **2:40–3:30** | **Challenge 3 — "Route & Rule"** | 5-min intro to routing + AI gateway. Demo the APIM token limit (429) with two consumers. | TODO 3.1–3.5: rules/classifier router, escalation, retry, APIM policy, `use_gateway`. Teams done by ~3:05 with APIM + Fireworks: stretch 3.6 *Multi-Provider Failover*. Final submissions by **3:25**. |
 | **3:30–4:00** | **Final Showdown & Debrief** | Freeze board, top-3 teams explain their strategy (3 min each), "Own the Weights" demo (~8 min, section 5), debrief (section 9), cleanup reminder. | `terraform destroy` (unless they want to keep exploring). |
 
@@ -51,9 +51,9 @@ the fun is in the trade-offs, not in typing tokenisers.
 
 | Time | Step |
 |---|---|
-| 1:40–1:45 | Coach intro: model tiers, open-weight vs self-hosted TCO, open vs closed frontier |
+| 1:40–1:45 | Coach intro: model tiers, open-weight vs self-hosted TCO, open vs closed premium |
 | 1:45–1:55 | 2.1 open / self-hosted model, `doctor` |
-| 1:55–2:10 | 2.2 `compare --models frontier,mini,nano,open` (teams with Fireworks add `fw_fast,fw_pro` here and save a `compare` run), pick a model per tier |
+| 1:55–2:10 | 2.2 `compare --models premium,balanced,economy,open` (teams with Fireworks add `fw_fast,fw_pro` here and save a `compare` run), pick a model per tier |
 | 2:10–2:20 | 2.3 prompt adaptation (also applies to `fw_*`) |
 | 2:20–2:35 | 2.4 *Fireworks Arena*: decide which tier `fw_fast` / `fw_pro` replaces by cost per success + p95, edit `TIER_MODELS` / `Router.TierModels` or `default_model`, quick run. Teams without Fireworks: tune the tier mapping instead. |
 | 2:35–2:40 | Full run + submit |
@@ -64,7 +64,7 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
 **Own the Weights demo — where to put it** (~8–10 min, coach subscription, details in section 5):
 - **Option A (recommended): 3:30 debrief**, right after the top-3 presentations — it closes the "what else could we
   do?" question: 3:30–3:40 top-3, 3:40–3:48 Own the Weights, 3:48–3:58 debrief, 3:58 cleanup reminder.
-- **Option B: the 1:30 break** — run `compare --models mini,frontier,custom` live on the big screen while teams take a
+- **Option B: the 1:30 break** — run `compare --models balanced,premium,custom` live on the big screen while teams take a
   break, then show only `breakeven.py` and the talking points in the debrief (~4 min).
 
 ---
@@ -93,7 +93,7 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
 - **1.3 Order lookup**: only the order(s) in the question or the customer's 3 most recent orders. Mention data
   minimisation (GDPR) as a free side benefit.
 - **1.4 Output control**: `max_output_tokens` (350, sent as `max_completion_tokens` for GPT-5.6) + concise style. Output tokens are **5× the input price** on gpt-5.6-sol at the current promotion ($20 vs $4 per 1M) — the verbose baseline answers hurt.
-- **Reasoning tokens** (teaching point): GPT-5.6 models can "think" before answering. Reasoning tokens are invisible in the answer but **billed as output tokens** (`usage.completion_tokens_details.reasoning_tokens`) and they **count against `max_completion_tokens`** — with a low cap and higher effort the model can spend the whole budget thinking and return an **empty answer**. Terraform sets `reasoning_effort: "none"` via `extra_body`; raising it to `low` only for the frontier/COMPLEX tier is a legitimate quality-vs-cost lever. Temperature is not supported by these models (`supports_temperature: false` → the apps omit it).
+- **Reasoning tokens** (teaching point): GPT-5.6 models can "think" before answering. Reasoning tokens are invisible in the answer but **billed as output tokens** (`usage.completion_tokens_details.reasoning_tokens`) and they **count against `max_completion_tokens`** — with a low cap and higher effort the model can spend the whole budget thinking and return an **empty answer**. Terraform sets `reasoning_effort: "none"` via `extra_body`; raising it to `low` only for the premium/COMPLEX tier is a legitimate quality-vs-cost lever. Temperature is not supported by these models (`supports_temperature: false` → the apps omit it).
 - **1.5 Exact cache**: ~9 of the 25 FAQ repeats are literal (after normalisation). Key must include `customer_id` for
   order-specific questions — the workload contains **trap pairs** ("When will my last order arrive?" asked by two
   different customers).
@@ -107,8 +107,8 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
 ### Challenge 2 — "Bring Your Own Model" (TODO 2.1–2.3)
 - **2.1** Open-weight model via Foundry (Llama-3.3-70B, serverless pay-per-token) and optionally a self-hosted
   `llama3.2:3b` on Container Apps (`deploy_selfhosted_model = true`, ~5 min to pull).
-- **2.2** `compare` on the 30 `compare:true` items: frontier vs mini vs nano vs open. Typical insight: **mini is the
-  sweet spot** for quality; nano is great for FAQs but weaker on multi-rule reasoning. Llama-3.3-70B ($0.71 in / $0.71
+- **2.2** `compare` on the 30 `compare:true` items: premium vs balanced vs economy vs open. Typical insight: **balanced is the
+  sweet spot** for quality; economy is great for FAQs but weaker on multi-rule reasoning. Llama-3.3-70B ($0.71 in / $0.71
   out) is cheaper than gpt-5.6-terra on input ($2) and about **17× cheaper on output** ($12) — for short answers it
   can be the cheapest capable option *if* its pass rate holds. Price per token is only half the story: compare
   cost per *success*.
@@ -118,29 +118,29 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
   `open`, `selfhosted`, `custom` and `fw_*`.
 
 ### Challenge 2.4 — "Fireworks Arena" (optional)
-- Fireworks on Microsoft Foundry: open-weight **frontier** models (default `fw_fast` = `FW-DeepSeek-V4-Flash-0731`,
+- Fireworks on Microsoft Foundry: open-weight **premium** models (default `fw_fast` = `FW-DeepSeek-V4-Flash-0731`,
   `fw_pro` = `FW-DeepSeek-V4-Pro`) served pay-per-token (Data Zone Standard) from a second Foundry resource in a US
   region. Deployed during setup (`deploy_fireworks = true`); during the challenge it is pure measurement.
-- Flow: `doctor` (shows `fw_fast` / `fw_pro`) → `compare --models mini,frontier,fw_fast,fw_pro` → decide which tier each
+- Flow: `doctor` (shows `fw_fast` / `fw_pro`) → `compare --models balanced,premium,fw_fast,fw_pro` → decide which tier each
   Fireworks model replaces by **cost per success + p95** → edit `TIER_MODELS` (Python, `tokenwars/router.py`) /
   `Router.TierModels` (.NET) or `default_model` → full run → submit.
 - Price lens (`pricing.json`, **`verified: false`** — illustrative): `fw_fast` $0.15 in / $0.03 cached / $0.31 out
-  vs nano $0.20 / $1.20 and mini $2 / $12; `fw_pro` $1.93 / $0.165 / $3.83 vs frontier $4 / $20. On paper
-  `fw_fast` undercuts nano on output by 4× — but the judge decides, and p95 from the US region matters too.
+  vs economy $0.20 / $1.20 and balanced $2 / $12; `fw_pro` $1.93 / $0.165 / $3.83 vs premium $4 / $20. On paper
+  `fw_fast` undercuts economy on output by 4× — but the judge decides, and p95 from the US region matters too.
 - `fw_*` are called directly (`via_gateway: false`, key `FIREWORKS_AI_API_KEY` in `.env`). Escalation from a `fw_*`
-  answer goes straight to `frontier`.
+  answer goes straight to `premium`.
 - Prompt caching: Terraform sets `extra_body = { prompt_cache_key = "bytecart-support" }`; `user` or an
   `x-session-affinity` header (`extra_headers`) also help routing to a warm cache. Stretch: compare `cached_tokens`
   with and without `prompt_cache_key` (remove it from `extra_body` in `models.json` for one run).
 - Adaptive rate limits → expect some 429s: TODO 3.4 retry pays off here. Default quota is 10M TPM per region per pool,
   shared by all Fireworks models.
 - Small open models (Llama 3.1 8B, Qwen3.5 9B, gpt-oss-20b, Ministral 3B) are **PTU-only** on Fireworks, so the
-  Arena is *open frontier vs closed frontier*, not "tiny vs big".
+  Arena is *open premium vs closed premium*, not "tiny vs big".
 
 ### Challenge 3 — "Route & Rule" (TODO 3.1–3.5)
-- **3.1 Rules router**: deterministic, free, explainable; order questions → mini, long/multi-clause → frontier,
-  complaints → mini, rest → nano.
-- **3.2 Classifier router**: nano with 5 max tokens costs ~$0.00003 per question; usually beats rules on hard items.
+- **3.1 Rules router**: deterministic, free, explainable; order questions → balanced, long/multi-clause → premium,
+  complaints → balanced, rest → economy.
+- **3.2 Classifier router**: economy with 5 max tokens costs ~$0.00003 per question; usually beats rules on hard items.
   With reasoning models the 5-token cap only works with `reasoning_effort: none` — any reasoning would eat the budget
   and return an empty label (→ falls back to `default_model`).
   Remind: routing on `category`/`difficulty` from the workload = disqualification.
@@ -167,10 +167,10 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
   `max_completion_tokens` → `max_tokens`.
 - Response headers `x-tokenwars-provider` (`azure-openai` | `fireworks`), `x-tokenwars-model`, `x-tokenwars-backend`;
   token metrics carry a **Provider** dimension (`llm-emit-token-metric` + outbound `emit-metric` "Provider Tokens").
-- Unmapped models (nano, Llama, embeddings, judge) never fail over. A 429 from `llm-token-limit` is produced by APIM
+- Unmapped models (economy, Llama, embeddings, judge) never fail over. A 429 from `llm-token-limit` is produced by APIM
   itself before any backend call, so it does **not** fail over — that is the consumer budget working as designed.
 - To provoke a backend 429 for the demo: keep `deploy_secondary_region = false`, temporarily lower the mapped
-  deployment's TPM (e.g. `mini_model = { capacity = 1 }`), raise `tokens_per_minute_per_consumer`, and watch the header:
+  deployment's TPM (e.g. `balanced_model = { capacity = 1 }`), raise `tokens_per_minute_per_consumer`, and watch the header:
   ```bash
   cd infra
   GW=$(terraform output -raw apim_gateway_url)        # ends with /openai/v1/
@@ -198,7 +198,7 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
 | **Adaptive rate limits** → 429s | TODO 3.4 retry handles them; default quota 10M TPM per region per pool, shared by all Fireworks models. More: aka.ms/fireworks-quota. |
 | **Chat completions only** (no embeddings) | Embeddings and the semantic cache stay on `text-embedding-3-small`. |
 | Per-token models can **retire with 15 days' notice** | The coach confirms the model list and prices **one week before** the event and updates `fireworks_models` / `pricing.json`. |
-| Small open models (Llama 3.1 8B, Qwen3.5 9B, gpt-oss-20b, Ministral 3B) are **PTU-only** | Not used; the Arena is *open frontier vs closed frontier*. |
+| Small open models (Llama 3.1 8B, Qwen3.5 9B, gpt-oss-20b, Ministral 3B) are **PTU-only** | Not used; the Arena is *open premium vs closed premium*. |
 | Bring-your-own-weights / custom models on Fireworks are **PTU-only** | Shown only as a portal walkthrough in the "Own the Weights" demo — never deployed. |
 | Prices could not be verified on the official page (`"verified": false`) | Announce that Fireworks prices are illustrative; they are the same for every team, so the ranking stays fair. |
 | Deploying needs **Foundry Owner** (formerly Azure AI Owner) on the project | Owner/Contributor usually works; on Forbidden set `fireworks_grant_deployer_role = true` and re-apply. |
@@ -209,20 +209,20 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
 
 Full kit and run-of-show: [own-the-weights/README.md](own-the-weights/README.md). Teams never run this.
 
-- **Story:** "What if ByteCart owned a small specialist instead of renting the frontier model?" A **Ministral-3B**
-  model distilled from `frontier` with Foundry **serverless SFT** (Global training, Global Standard deployment —
+- **Story:** "What if ByteCart owned a small specialist instead of renting the premium model?" A **Ministral-3B**
+  model distilled from `premium` with Foundry **serverless SFT** (Global training, Global Standard deployment —
   pay-per-token plus an hourly hosting fee, no PTU) answers with a **short prompt**.
 - **When:** recommended in the 3:30 debrief (~8 min, after the top-3 presentations); alternatively start the live
   `compare` during the 1:30 break and show only `breakeven.py` in the debrief (section 2).
-- **Live steps:** `compare --models mini,frontier,custom` (the *hosting $/h* column appears because `custom` has
+- **Live steps:** `compare --models balanced,premium,custom` (the *hosting $/h* column appears because `custom` has
   `hourly_cost_usd`), then `python3 breakeven.py --requests 100000` and `python3 breakeven.py` (1M requests/month).
   Keep the T-1 compare JSON as a backup slide. Optionally a 2-min portal walkthrough of *Deploy → Fireworks (preview)*:
   custom weights on Fireworks are PTU-only, so nothing is deployed.
 - **Talking points:**
   1. Fine-tuning teaches *behaviour* (tone, brevity, reading context), not changing facts — retrieval stays.
-  2. Hosting fee vs volume: per request the 3B model is ~25× cheaper than mini, but $0.65/h × 730 h ≈ $474/month runs
-     even at zero traffic. Break-even vs mini ≈ 343k requests/month at the defaults; below that, per-token models
-     (mini, nano, Fireworks) win. Ask: "How many requests does your copilot really do per month?"
+  2. Hosting fee vs volume: per request the 3B model is ~25× cheaper than balanced, but $0.65/h × 730 h ≈ $474/month runs
+     even at zero traffic. Break-even vs balanced ≈ 343k requests/month at the defaults; below that, per-token models
+     (balanced, economy, Fireworks) win. Ask: "How many requests does your copilot really do per month?"
   3. Evaluation leakage: training questions were generated from the KB and filtered against the workload (Jaccard ≥ 0.6).
   4. TCO: teacher tokens + training + evaluation + hosting + retraining when the KB or base model changes.
   5. Challenges 1–3 (prompt, retrieval, caching, routing) usually capture most of the savings without owning weights.
@@ -246,12 +246,12 @@ $4 input / $20 output promotion through at least 2026-11-30. Cache/routing resul
 | Baseline (starter defaults, gpt-5.6-sol) | ~15,000 | $6.80–8.00 | measure | measure | measure |
 | + compact prompt, keyword top-3, order lookup, max 350 tokens (gpt-5.6-sol) | ~900–1,400 | $0.56–1.26 | measure | measure | measure |
 | + exact & semantic cache (gpt-5.6-sol) | same | measure | measure | measure | measure |
-| Same on `mini` only (gpt-5.6-terra) | ~900–1,400 | $0.30–0.70 | measure | measure | measure |
+| Same on `balanced` only (gpt-5.6-terra) | ~900–1,400 | $0.30–0.70 | measure | measure | measure |
 | Same on `open` only (Llama-3.3-70B) | ~900–1,400 | $0.06–0.11 | $0.0007–0.0014 if valid | 80–90 % | 3–10 s |
-| Same on `nano` only (gpt-5.6-luna) | ~900–1,400 | $0.03–0.07 | measure | measure | measure |
+| Same on `economy` only (gpt-5.6-luna) | ~900–1,400 | $0.03–0.07 | measure | measure | measure |
 | Same on `fw_fast` only (FW-DeepSeek-V4-Flash, optional) | ~900–1,400 | $0.02–0.05 ¹ | measure in the dry run | measure | measure (US region) |
 | Same on `fw_pro` only (FW-DeepSeek-V4-Pro, optional) | ~900–1,400 | $0.20–0.35 ¹ | measure in the dry run | measure | measure (US region) |
-| Solution (classifier + escalation + caches, mini default) | ~1,000 | measure | measure | measure | measure |
+| Solution (classifier + escalation + caches, balanced default) | ~1,000 | measure | measure | measure | measure |
 
 ¹ Token cost only, from the unverified `pricing.json` values (`verified: false`); pass rate and latency are not known
 yet — record them during the T-7 dry run. If a Fireworks model emits reasoning tokens, output cost rises.
@@ -278,11 +278,11 @@ yet — record them during the T-7 dry run. If a Fireworks model emits reasoning
 | 1.6 | "Repeats with different wording?" | Embed, cosine vs cached non-order entries, threshold 0.92; count embedding cost. | `cache` (SOLUTION 1.6) |
 | 1.7 | "What changes between two calls — and where is it in the prompt?" | Static system message, dynamic user message (`Customer ID`, `Today`, `Context`, `Question`). | `prompts` (SOLUTION 1.7) |
 | 2.1 | "Which models are in models.json?" | `deploy_open_model` / `deploy_selfhosted_model` → `terraform apply` → `doctor`. | infra README / tfvars example |
-| 2.2 | "Which model is good enough for which question type?" | `compare --models frontier,mini,nano,open`, set `default_model` + router mapping. | solution `strategy.json` |
+| 2.2 | "Which model is good enough for which question type?" | `compare --models premium,balanced,economy,open`, set `default_model` + router mapping. | solution `strategy.json` |
 | 2.3 | "Is the open model answering in another language or inventing rules?" | Append the extra instruction for `open`/`selfhosted`/`custom`/`fw_*`. | `prompts` (SOLUTION 2.3) |
-| 2.4 | "Which tier could an open frontier model replace?" | `compare --models mini,frontier,fw_fast,fw_pro`; compare cost per success **and** p95; put the winner into `TIER_MODELS` / `Router.TierModels` or `default_model`. | solution `strategy.json` + router mapping |
+| 2.4 | "Which tier could an open premium model replace?" | `compare --models balanced,premium,fw_fast,fw_pro`; compare cost per success **and** p95; put the winner into `TIER_MODELS` / `Router.TierModels` or `default_model`. | solution `strategy.json` + router mapping |
 | 3.1 | "Which questions are obviously easy?" | Implement the 4 rules in order (order-specific first). | `router` (SOLUTION 3.1) |
-| 3.2 | "Let the cheapest model decide." | nano, temperature 0 (omitted when `supports_temperature` is false), max 5 tokens, map SIMPLE/STANDARD/COMPLEX. | `router` (SOLUTION 3.2) |
+| 3.2 | "Let the cheapest model decide." | economy, temperature 0 (omitted when `supports_temperature` is false), max 5 tokens, map SIMPLE/STANDARD/COMPLEX. | `router` (SOLUTION 3.2) |
 | 3.3 | "What if the cheap model isn't sure?" | Add the ESCALATE instruction; on `ESCALATE` re-run with next tier; cost every call. | `pipeline` (SOLUTION 3.3) |
 | 3.4 | "What does a 429 response tell you?" | Retry 429/5xx up to 4×, `retry-after-ms` → `retry-after` → 1/2/4/8 s + jitter. | `llm_client` / `LlmClient.cs` (SOLUTION 3.4) |
 | 3.5 | "Which policy limits tokens per consumer?" | `llm-token-limit` counter-key subscription, `llm-emit-token-metric`, retry around `forward-request`, pool backend. | `infra/policies/ai-gateway-solution.xml` |
@@ -311,7 +311,7 @@ az containerapp update --name tokenwars-leaderboard --resource-group <rg> --min-
 ## 9. Debrief (10–15 min)
 
 1. What moved the needle most? (Usually: context size → model choice → caching → routing.)
-2. Where did quality break? (nano on policy reasoning, semantic cache threshold, retrieval misses on 2-doc questions.)
+2. Where did quality break? (economy on policy reasoning, semantic cache threshold, retrieval misses on 2-doc questions.)
 3. What would you do in production? Evals in CI, token budgets per team at the gateway, prompt-cache-friendly
    layout by default, model routing with escalation, observability of tokens per feature/customer.
 4. Hidden costs: self-hosting infra, engineering time, latency SLOs, data residency (Global vs DataZone deployments;
@@ -380,7 +380,7 @@ Fix the defaults or add a note to [troubleshooting.md](troubleshooting.md) for a
 - [ ] **Deployer role**: does Owner/Contributor alone deploy, or is `fireworks_grant_deployer_role = true` needed? Does the
       tenant show "Foundry Owner" or still "Azure AI Owner" (`fireworks_deployer_role`)?
 - [ ] **Base URL host** `https://<fw-subdomain>.services.ai.azure.com/openai/v1/` for `fw_*`: `doctor` green, then
-      `compare --models mini,frontier,fw_fast,fw_pro`; record pass rate, cost per success and p95 for section 6.
+      `compare --models balanced,premium,fw_fast,fw_pro`; record pass rate, cost per success and p95 for section 6.
 - [ ] **Prices**: confirm the `fw-*` prices in the Azure pricing calculator; update `pricing.json` and set `"verified": true`
       only for confirmed values.
 - [ ] Stretch check: `cached_tokens` with and without `prompt_cache_key`.

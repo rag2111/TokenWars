@@ -5,65 +5,65 @@
 
 locals {
   deployment_names = {
-    frontier  = var.frontier_model.name
-    mini      = var.mini_model.name
-    nano      = var.nano_model.name
+    premium   = var.premium_model.name
+    balanced  = var.balanced_model.name
+    economy   = var.economy_model.name
     judge     = "judge"
     embedding = var.embedding_model.name
     open      = var.open_model.name
   }
 }
 
-resource "azurerm_cognitive_deployment" "frontier" {
-  name                 = local.deployment_names.frontier
+resource "azurerm_cognitive_deployment" "premium" {
+  name                 = local.deployment_names.premium
   cognitive_account_id = azurerm_cognitive_account.ai.id
 
   model {
-    format  = var.frontier_model.format
-    name    = var.frontier_model.name
-    version = var.frontier_model.version
+    format  = var.premium_model.format
+    name    = var.premium_model.name
+    version = var.premium_model.version
   }
 
   sku {
-    name     = var.frontier_model.sku
-    capacity = var.frontier_model.capacity
+    name     = var.premium_model.sku
+    capacity = var.premium_model.capacity
   }
 }
 
-resource "azurerm_cognitive_deployment" "mini" {
-  name                 = local.deployment_names.mini
+resource "azurerm_cognitive_deployment" "balanced" {
+  name                 = local.deployment_names.balanced
   cognitive_account_id = azurerm_cognitive_account.ai.id
 
   model {
-    format  = var.mini_model.format
-    name    = var.mini_model.name
-    version = var.mini_model.version
+    format  = var.balanced_model.format
+    name    = var.balanced_model.name
+    version = var.balanced_model.version
   }
 
   sku {
-    name     = var.mini_model.sku
-    capacity = var.mini_model.capacity
+    name     = var.balanced_model.sku
+    capacity = var.balanced_model.capacity
   }
 
-  depends_on = [azurerm_cognitive_deployment.frontier]
+  depends_on = [azurerm_cognitive_deployment.premium]
 }
 
-resource "azurerm_cognitive_deployment" "nano" {
-  name                 = local.deployment_names.nano
+resource "azurerm_cognitive_deployment" "economy" {
+  name                 = local.deployment_names.economy
   cognitive_account_id = azurerm_cognitive_account.ai.id
 
   model {
-    format  = var.nano_model.format
-    name    = var.nano_model.name
-    version = var.nano_model.version
+    format  = var.economy_model.format
+    name    = var.economy_model.name
+    version = var.economy_model.version
   }
 
   sku {
-    name     = var.nano_model.sku
-    capacity = var.nano_model.capacity
+    name     = var.economy_model.sku
+    capacity = var.economy_model.capacity
   }
 
-  depends_on = [azurerm_cognitive_deployment.mini]
+  depends_on = [azurerm_cognitive_deployment.balanced]
 }
 
 resource "azurerm_cognitive_deployment" "judge" {
@@ -81,7 +81,7 @@ resource "azurerm_cognitive_deployment" "judge" {
     capacity = var.judge_model.capacity
   }
 
-  depends_on = [azurerm_cognitive_deployment.nano]
+  depends_on = [azurerm_cognitive_deployment.economy]
 }
 
 resource "azurerm_cognitive_deployment" "embedding" {
@@ -126,60 +126,60 @@ resource "azurerm_cognitive_deployment" "open" {
 # Secondary region: same deployment NAMES as the primary so the APIM backend pool can fail over transparently.
 # Only the chat tiers are replicated (the judge, embedding and open model stay in the primary region).
 # -----------------------------------------------------------------------------
-resource "azurerm_cognitive_deployment" "frontier_secondary" {
+resource "azurerm_cognitive_deployment" "premium_secondary" {
   count = local.secondary_enabled ? 1 : 0
 
-  name                 = local.deployment_names.frontier
+  name                 = local.deployment_names.premium
   cognitive_account_id = azurerm_cognitive_account.ai_secondary[0].id
 
   model {
-    format  = var.frontier_model.format
-    name    = var.frontier_model.name
-    version = var.frontier_model.version
+    format  = var.premium_model.format
+    name    = var.premium_model.name
+    version = var.premium_model.version
   }
 
   sku {
-    name     = var.frontier_model.sku
+    name     = var.premium_model.sku
     capacity = var.secondary_capacity
   }
 }
 
-resource "azurerm_cognitive_deployment" "mini_secondary" {
+resource "azurerm_cognitive_deployment" "balanced_secondary" {
   count = local.secondary_enabled ? 1 : 0
 
-  name                 = local.deployment_names.mini
+  name                 = local.deployment_names.balanced
   cognitive_account_id = azurerm_cognitive_account.ai_secondary[0].id
 
   model {
-    format  = var.mini_model.format
-    name    = var.mini_model.name
-    version = var.mini_model.version
+    format  = var.balanced_model.format
+    name    = var.balanced_model.name
+    version = var.balanced_model.version
   }
 
   sku {
-    name     = var.mini_model.sku
+    name     = var.balanced_model.sku
     capacity = var.secondary_capacity
   }
 
-  depends_on = [azurerm_cognitive_deployment.frontier_secondary]
+  depends_on = [azurerm_cognitive_deployment.premium_secondary]
 }
 
-resource "azurerm_cognitive_deployment" "nano_secondary" {
+resource "azurerm_cognitive_deployment" "economy_secondary" {
   count = local.secondary_enabled ? 1 : 0
 
-  name                 = local.deployment_names.nano
+  name                 = local.deployment_names.economy
   cognitive_account_id = azurerm_cognitive_account.ai_secondary[0].id
 
   model {
-    format  = var.nano_model.format
-    name    = var.nano_model.name
-    version = var.nano_model.version
+    format  = var.economy_model.format
+    name    = var.economy_model.name
+    version = var.economy_model.version
   }
 
   sku {
-    name     = var.nano_model.sku
+    name     = var.economy_model.sku
     capacity = var.secondary_capacity
   }
 
-  depends_on = [azurerm_cognitive_deployment.mini_secondary]
+  depends_on = [azurerm_cognitive_deployment.balanced_secondary]
 }

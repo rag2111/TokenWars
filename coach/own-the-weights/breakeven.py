@@ -2,11 +2,11 @@
 """Break-even calculator: per-token models vs a fine-tuned small model with an hourly hosting fee.
 
 Monthly cost table for
-  * frontier with retrieval      (pricing.json, key from models.json `frontier` or gpt-5.6-sol)
-  * mini with retrieval          (pricing.json, key from models.json `mini` or gpt-5.6-terra)
+  * premium with retrieval   (pricing.json, key from models.json `premium` or gpt-5.6-sol)
+  * balanced with retrieval  (pricing.json, key from models.json `balanced` or gpt-5.6-terra)
   * fine-tuned small model, short prompt  (per-token + hourly hosting fee × hours/month)
   * optional Fireworks per-token model (if its key is in pricing.json or --fireworks-price is given)
-and the monthly volume above which the fine-tuned model beats mini. PTU is printed ONLY as a reference line.
+and the monthly volume above which the fine-tuned model beats balanced. PTU is printed ONLY as a reference line.
 
   python breakeven.py                                   # 1M requests/month, 1,200 in / 120 out
   python breakeven.py --requests 100000                 # small volume: hosting fee dominates
@@ -72,8 +72,8 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--output-tokens", type=float, default=120, help="avg output tokens (default 120)")
     p.add_argument("--cached-share", type=float, default=0.0,
                    help="share of input tokens served from the prompt cache for per-token models (0..1, default 0)")
-    p.add_argument("--frontier-key", help="pricing.json key for frontier (default: models.json frontier.pricing_key or gpt-5.6-sol)")
-    p.add_argument("--mini-key", help="pricing.json key for mini (default: models.json mini.pricing_key or gpt-5.6-terra)")
+    p.add_argument("--premium-key", help="pricing.json key for premium (default: models.json premium.pricing_key or gpt-5.6-sol)")
+    p.add_argument("--balanced-key", help="pricing.json key for balanced (default: models.json balanced.pricing_key or gpt-5.6-terra)")
     p.add_argument("--ft-base", choices=sorted(FT_PRESETS), default="ministral-3b", help="fine-tuning price preset")
     p.add_argument("--ft-input-tokens", type=float, default=800,
                    help="avg input tokens of the fine-tuned model's SHORT prompt (default 800)")
@@ -111,11 +111,11 @@ def main(argv: list[str] | None = None) -> int:
     except KitError as exc:
         print(f"⚠️  {exc} – using built-in prices.", file=sys.stderr)
 
-    frontier_key = args.frontier_key or (models.get("frontier") or {}).get("pricing_key") or "gpt-5.6-sol"
-    mini_key = args.mini_key or (models.get("mini") or {}).get("pricing_key") or "gpt-5.6-terra"
-    frontier, mini = _prices(pricing, frontier_key), _prices(pricing, mini_key)
-    if frontier is None or mini is None:
-        print(f"❌ No price for {frontier_key if frontier is None else mini_key} in {source}", file=sys.stderr)
+    premium_key = args.premium_key or (models.get("premium") or {}).get("pricing_key") or "gpt-5.6-sol"
+    balanced_key = args.balanced_key or (models.get("balanced") or {}).get("pricing_key") or "gpt-5.6-terra"
+    premium, balanced = _prices(pricing, premium_key), _prices(pricing, balanced_key)
+    if premium is None or balanced is None:
+        print(f"❌ No price for {premium_key if premium is None else balanced_key} in {source}", file=sys.stderr)
         return 2
 
     preset = dict(FT_PRESETS[args.ft_base])
@@ -152,8 +152,8 @@ def main(argv: list[str] | None = None) -> int:
         rows.append(row)
         return row
 
-    add(f"frontier + retrieval ({frontier_key})", frontier, args.input_tokens, args.output_tokens, 0.0, args.cached_share)
-    mini_row = add(f"mini + retrieval ({mini_key})", mini, args.input_tokens, args.output_tokens, 0.0, args.cached_share)
+    add(f"premium + retrieval ({premium_key})", premium, args.input_tokens, args.output_tokens, 0.0, args.cached_share)
+    balanced_row = add(f"balanced + retrieval ({balanced_key})", balanced, args.input_tokens, args.output_tokens, 0.0, args.cached_share)
     hosting = preset["hourly"] * args.hours
     ft_row = add(f"{preset['label']}, short prompt", ft_prices, args.ft_input_tokens, ft_out, hosting, 0.0,
                  f"hosting ${preset['hourly']}/h × {args.hours:g} h")
@@ -183,14 +183,14 @@ def main(argv: list[str] | None = None) -> int:
         saving = row["per_request_usd"] - ft_row["per_request_usd"]
         return hosting / saving if saving > 0 else None
 
-    breakeven = breakeven_vs(mini_row)
+    breakeven = breakeven_vs(balanced_row)
     breakevens = {r["option"]: breakeven_vs(r) for r in rows if r is not ft_row}
     training_cost = args.training_tokens * args.epochs * preset["training_per_1m"] / 1_000_000
     ptu = args.ptu_units * args.ptu_hourly * args.hours
 
     if args.json:
         print(json.dumps({"requests_per_month": args.requests, "pricing_source": source, "ft_price_source": ft_source,
-                          "rows": rows, "breakeven_vs_mini_requests_per_month": breakeven,
+                          "rows": rows, "breakeven_vs_balanced_requests_per_month": breakeven,
                           "breakeven_requests_per_month": breakevens,
                           "training_one_off_usd": training_cost,
                           "ptu_reference_usd": None if args.no_ptu else ptu}, indent=2))
@@ -217,12 +217,12 @@ def main(argv: list[str] | None = None) -> int:
         if "not verified" in r["note"]:
             print(f"⚠️  {r['option']}: price not verified (pricing.json verified=false).")
     if breakeven is None:
-        print("Break-even vs mini: never – the fine-tuned model is not cheaper per request.")
+        print("Break-even vs balanced: never – the fine-tuned model is not cheaper per request.")
     else:
-        print(f"Break-even vs mini: {breakeven:,.0f} requests/month (≈ {breakeven / 30:,.0f}/day). "
+        print(f"Break-even vs balanced: {breakeven:,.0f} requests/month (≈ {breakeven / 30:,.0f}/day). "
               "Above that the fine-tuned model wins; below it the hosting fee dominates.")
     for name, value in breakevens.items():
-        if name != mini_row["option"]:
+        if name != balanced_row["option"]:
             print(f"  vs {name}: " + ("never" if value is None else f"{value:,.0f} requests/month"))
     print(f"One-off training: {args.training_tokens:,.0f} tokens × {args.epochs} epochs × ${preset['training_per_1m']}/1M "
           f"≈ {money(training_cost)} (plus teacher-generation tokens).")

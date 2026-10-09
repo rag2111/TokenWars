@@ -8,7 +8,7 @@
   "exact_cache": true,
   "semantic_cache": true,
   "semantic_cache_threshold": 0.92,
-  "default_model": "mini",
+  "default_model": "balanced",
   "routing": "classifier",
   "escalation": true,
   "use_gateway": false,
