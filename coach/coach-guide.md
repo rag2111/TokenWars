@@ -17,7 +17,7 @@ Full per-team and coach checklist: [pre-event-checklist.md](pre-event-checklist.
 | When | What |
 |---|---|
 | T-14 d | Send every team [pre-event-checklist.md](pre-event-checklist.md): own subscription, roles, quota, tool versions, optional Fireworks registration. |
-| T-7 d | Confirm every team has its **own subscription** and **model quota** in the chosen region (default `swedencentral`): gpt-5.6-sol / gpt-5.6-terra / gpt-5.6-luna, text-embedding-3-small, Llama-3.3-70B-Instruct (GlobalStandard). Defaults request 300K TPM (frontier), 300K (mini), 200K (nano), 150K (judge), 150K (embedding), 100K (Llama) per team — if a team has less quota, lower `capacity`. GPT-4.1 is *deprecated* for new customers in 2026 (commented fallback in `terraform.tfvars.example`). |
+| T-7 d | Confirm every team has its **own subscription** and **model quota** in the chosen region (default `swedencentral`): gpt-5.6-sol / gpt-5.6-terra / gpt-5.6-luna, text-embedding-3-small, Llama-3.3-70B-Instruct (GlobalStandard). Defaults request 800K TPM for each of frontier, mini, nano and judge, 150K (embedding), 100K (Llama) per team — if a team has less quota, lower `capacity`. Terra needs 1.6M TPM across mini and judge. Optional secondary chat deployments request 800K TPM each in their region. GPT-4.1 is *deprecated* for new customers in 2026 (commented fallback in `terraform.tfvars.example`). |
 | T-7 d | Check that Azure Policy does not force `disableLocalAuth` on Foundry resources (the apps use API keys), that allowed regions include `swedencentral` (and a US region if the team wants the Fireworks Arena) and that users can create role assignments (APIM managed identity). |
 | T-7 d | **Dry run in a fresh subscription** (section 11): `terraform init -upgrade` + `apply` (azurerm 5.x), `doctor`, baseline, solution, `compare`, APIM solution policy, Fireworks Arena and the 3.6 failover policy. Work through the VALIDATE list. |
 | T-7 d | **Confirm the Fireworks per-token model list and prices** (offers can retire with 15 days' notice): `infra/scripts/check-fireworks-prereqs.sh` output, Foundry model catalog, Azure pricing calculator. Update `fireworks_models` / `shared/config/pricing.json`; set `"verified": true` only for confirmed prices. Update the other prices too. |
@@ -85,7 +85,7 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
   vector DB needed. Discuss recall risk: policy questions spanning 2 docs need `top_k` 3–4.
 - **1.3 Order lookup**: only the order(s) in the question or the customer's 3 most recent orders. Mention data
   minimisation (GDPR) as a free side benefit.
-- **1.4 Output control**: `max_output_tokens` (350, sent as `max_completion_tokens` for GPT-5.6) + concise style. Output tokens are **6× the input price** on gpt-5.6-sol ($15 vs $2.50 per 1M) — the verbose baseline answers hurt.
+- **1.4 Output control**: `max_output_tokens` (350, sent as `max_completion_tokens` for GPT-5.6) + concise style. Output tokens are **5× the input price** on gpt-5.6-sol at the current promotion ($20 vs $4 per 1M) — the verbose baseline answers hurt.
 - **Reasoning tokens** (teaching point): GPT-5.6 models can "think" before answering. Reasoning tokens are invisible in the answer but **billed as output tokens** (`usage.completion_tokens_details.reasoning_tokens`) and they **count against `max_completion_tokens`** — with a low cap and higher effort the model can spend the whole budget thinking and return an **empty answer**. Terraform sets `reasoning_effort: "none"` via `extra_body`; raising it to `low` only for the frontier/COMPLEX tier is a legitimate quality-vs-cost lever. Temperature is not supported by these models (`supports_temperature: false` → the apps omit it).
 - **1.5 Exact cache**: ~9 of the 25 FAQ repeats are literal (after normalisation). Key must include `customer_id` for
   order-specific questions — the workload contains **trap pairs** ("When will my last order arrive?" asked by two
@@ -93,7 +93,7 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
 - **1.6 Semantic cache**: embeddings + cosine ≥ 0.92, **never** for order-specific questions. Discuss threshold
   tuning: too low → wrong answers (quality drops), too high → no hits.
 - **1.7 Cache-friendly layout**: static system prompt first, dynamic data in the user message → the provider's
-  automatic prompt caching discounts cached input tokens (90 % cheaper on the GPT-5.6 family: $0.25 vs $2.50). Works best with
+  automatic prompt caching discounts cached input tokens (87.5 % cheaper on Sol at the current promotion: $0.50 vs $4; 90 % cheaper on Terra/Luna). Works best with
   `retrieval: "all"` (big static prefix); with top-k retrieval the static prefix is short, so the win is smaller —
   a nice trade-off discussion.
 
@@ -102,7 +102,7 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
   `llama3.2:3b` on Container Apps (`deploy_selfhosted_model = true`, ~5 min to pull).
 - **2.2** `compare` on the 30 `compare:true` items: frontier vs mini vs nano vs open. Typical insight: **mini is the
   sweet spot** for quality; nano is great for FAQs but weaker on multi-rule reasoning. Llama-3.3-70B ($0.71 in / $0.71
-  out) is about the same as gpt-5.6-terra on input ($0.75) but **6× cheaper on output** ($4.50) — for short answers it
+  out) is cheaper than gpt-5.6-terra on input ($2) and about **17× cheaper on output** ($12) — for short answers it
   can be the cheapest capable option *if* its pass rate holds. Price per token is only half the story: compare
   cost per *success*.
 - Self-hosted shows **$0 token cost** on the scorecard but: slow on CPU (p95 of tens of seconds), weaker quality,
@@ -118,7 +118,7 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
   Fireworks model replaces by **cost per success + p95** → edit `TIER_MODELS` (Python, `tokenwars/router.py`) /
   `Router.TierModels` (.NET) or `default_model` → full run → submit.
 - Price lens (`pricing.json`, **`verified: false`** — illustrative): `fw_fast` $0.15 in / $0.03 cached / $0.31 out
-  vs nano $0.20 / $1.25 and mini $0.75 / $4.50; `fw_pro` $1.93 / $0.165 / $3.83 vs frontier $2.50 / $15. On paper
+  vs nano $0.20 / $1.20 and mini $2 / $12; `fw_pro` $1.93 / $0.165 / $3.83 vs frontier $4 / $20. On paper
   `fw_fast` undercuts nano on output by 4× — but the judge decides, and p95 from the US region matters too.
 - `fw_*` are called directly (`via_gateway: false`, key `FIREWORKS_AI_API_KEY` in `.env`). Escalation from a `fw_*`
   answer goes straight to `frontier`.
@@ -221,7 +221,7 @@ Full kit and run-of-show: [own-the-weights/README.md](own-the-weights/README.md)
   5. Challenges 1–3 (prompt, retrieval, caching, routing) usually capture most of the savings without owning weights.
   6. PTU is a different conversation (steady, high, predictable load) — not used in this workshop.
 - **Scoring:** the `custom` model is a coach demo and is **not eligible** for the leaderboard; do not submit demo runs.
-- **Cost:** ≈ $20 per demo (teacher ≈ $2, training ≈ $0.75, hosting $0.65/h × ~26 h ≈ $17). The hosting fee bills
+- **Cost:** ≈ $21 per demo (teacher ≈ $3, training ≈ $0.75, hosting $0.65/h × ~26 h ≈ $17). The hosting fee bills
   **only while the deployment exists** — run `finetune delete` right after the session and confirm with
   `finetune status` (a forgotten deployment costs ≈ $475/month).
 
@@ -229,29 +229,32 @@ Full kit and run-of-show: [own-the-weights/README.md](own-the-weights/README.md)
 
 ## 6. Expected numbers (rough ranges, full 100-item run)
 
-Values depend on model versions, region and the judge's mood; use them to spot outliers, not as targets.
+GPT-5.6 quality and latency have not yet been benchmarked for this workload: measure them during the dry run.
+Token-only cost estimates below assume 100 calls, uncached input, reasoning disabled, 400–1,000 output tokens
+per baseline call and 100–350 per compact call. They use Standard Global short-context pricing, including Sol's
+$4 input / $20 output promotion through at least 2026-11-30. Cache/routing results require measurement.
 
 | Configuration | Input tok/call | Total cost / run | Cost / success | Pass rate | p95 latency |
 |---|---|---|---|---|---|
-| Baseline (starter defaults, gpt-5.6-sol) | ~15,000 | $4.40–5.50 (≈ $3.80 input + $0.60–1.50 output) | $0.045–0.060 | 88–96 % | 10–30 s |
-| + compact prompt, keyword top-3, order lookup, max 350 tokens (gpt-5.6-sol) | ~900–1,400 | $0.40–0.65 | $0.0045–0.0075 | 86–94 % | 3–8 s |
-| + exact & semantic cache (gpt-5.6-sol) | same | $0.32–0.52 | $0.0035–0.006 | 86–94 % | 3–8 s |
-| Same on `mini` only (gpt-5.6-terra) | ~900–1,400 | $0.10–0.20 | $0.0012–0.0024 | 84–92 % | 2–5 s |
+| Baseline (starter defaults, gpt-5.6-sol) | ~15,000 | $6.80–8.00 | measure | measure | measure |
+| + compact prompt, keyword top-3, order lookup, max 350 tokens (gpt-5.6-sol) | ~900–1,400 | $0.56–1.26 | measure | measure | measure |
+| + exact & semantic cache (gpt-5.6-sol) | same | measure | measure | measure | measure |
+| Same on `mini` only (gpt-5.6-terra) | ~900–1,400 | $0.30–0.70 | measure | measure | measure |
 | Same on `open` only (Llama-3.3-70B) | ~900–1,400 | $0.06–0.11 | $0.0007–0.0014 if valid | 80–90 % | 3–10 s |
-| Same on `nano` only (gpt-5.6-luna) | ~900–1,400 | $0.03–0.06 | invalid (< 85 %) likely | 70–84 % | 1–3 s |
+| Same on `nano` only (gpt-5.6-luna) | ~900–1,400 | $0.03–0.07 | measure | measure | measure |
 | Same on `fw_fast` only (FW-DeepSeek-V4-Flash, optional) | ~900–1,400 | $0.02–0.05 ¹ | measure in the dry run | measure | measure (US region) |
 | Same on `fw_pro` only (FW-DeepSeek-V4-Pro, optional) | ~900–1,400 | $0.20–0.35 ¹ | measure in the dry run | measure | measure (US region) |
-| Solution (classifier + escalation + caches, mini default) | ~1,000 | $0.15–0.30 | $0.0017–0.0035 | 86–93 % | 2–6 s |
+| Solution (classifier + escalation + caches, mini default) | ~1,000 | measure | measure | measure | measure |
 
 ¹ Token cost only, from the unverified `pricing.json` values (`verified: false`); pass rate and latency are not known
 yet — record them during the T-7 dry run. If a Fireworks model emits reasoning tokens, output cost rises.
 
-- Improvement vs baseline for good teams: **90–97 %** lower cost per success. Anything claiming > 99 % with a pass
+- Record cost-per-success improvements against the new baseline. Anything claiming > 99 % with a pass
   rate ≥ 85 % deserves a look at the code (see scoring.md, disqualification).
-- Judge cost (gpt-5.6-terra): ~$0.08–0.12 per full run (excluded from the score).
+- Judge cost (gpt-5.6-terra): measure in the dry run (excluded from the score).
 - If a team raises `reasoning_effort` above `none`, expect higher output token counts (and latency) — check
   `output_tokens` in the scorecard.
-- Runtime: baseline 3–6 min per full run (concurrency 8), optimised runs 1–3 min.
+- Runtime: measure baseline and optimised runs at concurrency 8 and capacity 800.
 
 ---
 
@@ -316,10 +319,10 @@ az containerapp update --name tokenwars-leaderboard --resource-group <rg> --min-
 
 | Item | Per team | 10 teams |
 |---|---|---|
-| Baseline runs (3 × ~$5 on gpt-5.6-sol) | ~$15 | ~$150 |
-| Optimised runs, `ask`, experiments (~20 runs × $0.10–0.60) | ~$3–10 | ~$30–100 |
+| Baseline runs (3 × ~$7–8 on gpt-5.6-sol) | ~$21–24 | ~$210–240 |
+| Optimised runs, `ask`, experiments (~20 runs, routing-dependent) | budget ~$6–20 | budget ~$60–200 |
 | `compare` runs (30 items × 4 models, compact prompt; ~$2–4 more with the baseline prompt) | ~$0.5–4 | ~$5–40 |
-| Judge (~$0.10 per full run) | ~$2–3 | ~$20–30 |
+| Judge (Terra; measure during dry run) | budget ~$5–10 | budget ~$50–100 |
 | APIM StandardV2_1 (~$0.96/h × ~6 h) | ~$6 | ~$60 |
 | Ollama on ACA, 4 vCPU/8 GiB (~$0.45/h × ~3 h, optional) | ~$1.5 | ~$15 |
 | Fireworks Arena, optional: `compare` 30 items × `fw_fast` + `fw_pro` (~$0.01 + ~$0.08 compact prompt; up to ~$1 with the baseline prompt) + 2–4 full runs (~$0.02 `fw_fast` / ~$0.30 `fw_pro` each) ¹ | ~$0.5–3 | ~$5–30 |
@@ -327,7 +330,7 @@ az containerapp update --name tokenwars-leaderboard --resource-group <rg> --min-
 | Fireworks Foundry resource + pay-per-token deployments (no hourly fee) | $0 idle | $0 idle |
 | Log Analytics / App Insights | < $1 | < $10 |
 | Leaderboard (Container App, shared) | — | < $2 |
-| **Total** | **~$20–50** | **~$200–500** |
+| **Total (planning allowance; recheck after dry run)** | **~$40–75** | **~$400–750** |
 
 ¹ From `pricing.json` Fireworks values, which are **`verified: false`** (third-party tracker, Oct 2026) — re-check at T-7.
 

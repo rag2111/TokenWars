@@ -21,7 +21,7 @@ public sealed class PricingTable
 
     public static PricingTable Empty() => new("USD", new Dictionary<string, PriceEntry>());
 
-    /// <summary>Illustrative list prices, used only when shared/config/pricing.json is missing.</summary>
+    /// <summary>Short-context prices used when pricing.json is missing; Sol's input/output promotion runs through at least 2026-11-30.</summary>
     public static PricingTable BuiltIn() => new("USD", new Dictionary<string, PriceEntry>(StringComparer.Ordinal)
     {
         ["gpt-5.6-sol"] = new PriceEntry(4.00, 0.50, 20.00),

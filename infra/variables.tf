@@ -73,7 +73,7 @@ variable "ai_endpoint_style" {
 #
 # Defaults use the GPT-5.6 family: Sol (frontier), Terra (mini/judge), Luna (nano).
 # The GPT-4.1 family is deprecated for new customers in 2026;
-# its values are kept as a commented alternative in terraform.tfvars.example).
+# its values are kept as a commented alternative in terraform.tfvars.example.
 # The baseline sends ~15k prompt tokens per call with 8 parallel workers, so the frontier deployment needs a
 # generous TPM capacity. Quota is per subscription + region + model + deployment type: check it in the Foundry
 # portal > Quota (or az cognitiveservices usage list --location <region> -o table) before the event.

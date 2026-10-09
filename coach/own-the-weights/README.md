@@ -89,11 +89,11 @@ app version doesn't add the line.
 
 | Item | Estimate |
 |---|---|
-| Teacher generation (68 question calls + ~400 answers on gpt-5.6-sol, ~1k in / 120 out) | ≈ $2 |
+| Teacher generation (68 question calls + ~400 answers on gpt-5.6-sol, ~1k in / 120 out) | ≈ $3 |
 | Training (~250k tokens × 3 epochs × $1/1M) | ≈ $0.75 |
 | Hosting $0.65/h × ~26 h (deploy T-1 afternoon → delete after the event) | ≈ $17 |
 | Inference during `compare` (30 items) | < $0.05 |
-| **Total** | **≈ $20** (Qwen3-32B: training ≈ $2.40, hosting $0.30/h) |
+| **Total** | **≈ $21** (Qwen3-32B: training ≈ $2.40, hosting $0.30/h) |
 
 The biggest risk is a deployment you forget to delete: $0.65 × 730 h ≈ **$475/month**.
 
@@ -196,7 +196,8 @@ from `results/compare-*.json` into the flags.
 
 ## 7. Sample output
 
-`python3 breakeven.py` (defaults, repo `pricing.json` on 2026-10-09):
+`python3 breakeven.py --frontier-key gpt-5.6-sol --mini-key gpt-5.6-terra`
+(repo `pricing.json` on 2026-10-09; explicit keys also work before Terraform updates an existing deployment):
 
 ```text
 Token Wars – Own the Weights break-even · 1,000,000 requests/month · 1,200 in / 120 out tokens (fine-tuned: 800 / 120)
@@ -204,21 +205,21 @@ Prices: shared/config/pricing.json; fine-tuned: preset ministral-3b. List prices
 
 Option                                                $/1M in  $/1M out  tokens $/mo  hosting $/mo  TOTAL $/mo  $/1k req
 ------------------------------------------------------------------------------------------------------------------------
-frontier + retrieval (gpt-5.6-sol)                          2.500    15.000       $4,800             -      $4,800    4.8000
-mini + retrieval (gpt-5.6-terra)                         0.750     4.500       $1,440             -      $1,440    1.4400
+frontier + retrieval (gpt-5.6-sol)                      4.000    20.000       $7,200             -      $7,200    7.2000
+mini + retrieval (gpt-5.6-terra)                        2.000    12.000       $3,840             -      $3,840    3.8400
 Ministral-3B (2411) FT, short prompt                    0.050     0.150       $58.00          $474        $532    0.0580
 Fireworks per-token (fw-deepseek-v4-flash-0731)         0.150     0.310         $217             -        $217    0.2172 ◀ cheapest
 ------------------------------------------------------------------------------------------------------------------------
 ⚠️  Fireworks per-token (fw-deepseek-v4-flash-0731): price not verified (pricing.json verified=false).
-Break-even vs mini: 343,343 requests/month (≈ 11,445/day). Above that the fine-tuned model wins; below it the hosting fee dominates.
-  vs frontier + retrieval (gpt-5.6-sol): 100,063 requests/month
+Break-even vs mini: 125,463 requests/month (≈ 4,182/day). Above that the fine-tuned model wins; below it the hosting fee dominates.
+  vs frontier + retrieval (gpt-5.6-sol): 66,438 requests/month
   vs Fireworks per-token (fw-deepseek-v4-flash-0731): 2,980,528 requests/month
 One-off training: 250,000 tokens × 3 epochs × $1.0/1M ≈ $0.75 (plus teacher-generation tokens).
 Hosting is billed per hour while the deployment EXISTS, even with zero traffic – delete it after the demo.
 PTU (for reference, not recommended for this workshop): 15 PTU × $1.0/PTU-h × 730 h ≈ $10,950/month regardless of volume (illustrative rate – VALIDATE).
 ```
 
-At `--requests 100000` the order flips. Mini costs $144/month and the fine-tuned model costs $480/month, which is almost
+At `--requests 100000` (with the same GPT-5.6 keys) the order flips. Mini costs $384/month and the fine-tuned model costs $480/month, which is almost
 all hosting fee.
 
 `python3 generate_dataset.py --mock --out <dir>` (deterministic):

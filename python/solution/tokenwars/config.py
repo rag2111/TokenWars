@@ -48,6 +48,7 @@ _BUILTIN_MODELS = {
     "gateway": None,
 }
 
+# Standard Global short-context snapshot; Sol input/output promotion runs through at least 2026-11-30.
 _BUILTIN_PRICING = {
     "currency": "USD",
     "models": {

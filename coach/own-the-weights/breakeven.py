@@ -37,6 +37,7 @@ FT_PRESETS: dict[str, dict[str, Any]] = {
     "gpt-oss-20b": {"label": "gpt-oss-20b FT (illustrative)", "training_per_1m": 1.50, "hourly": 1.70,
                     "input_per_1m": 0.07, "output_per_1m": 0.30, "verified": False},
 }
+# Standard Global short-context snapshot; Sol input/output promotion runs through at least 2026-11-30.
 FALLBACK_PRICES = {
     "gpt-5.6-sol": {"input_per_1m": 4.00, "cached_input_per_1m": 0.50, "output_per_1m": 20.00},
     "gpt-5.6-terra": {"input_per_1m": 2.00, "cached_input_per_1m": 0.20, "output_per_1m": 12.00},
