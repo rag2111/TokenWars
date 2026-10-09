@@ -1,0 +1,67 @@
+<policies>
+  <!--
+    Token Wars - AI gateway policy (STARTER) for the "openai" API.
+
+    This is a Terraform template (templatefile). Available template variables
+    (written with a double $ in this comment so they are not substituted here):
+      $${backend_id}          primary backend (Foundry resource in the primary region)
+      $${pool_backend_id}     failover backend: the backend pool if deploy_secondary_region = true, otherwise the primary
+      $${tokens_per_minute}   var.tokens_per_minute_per_consumer
+
+    What it does today: a working pass-through.
+      * callers authenticate with their APIM subscription key in the "api-key" header
+      * APIM calls Azure AI with its managed identity (no model API keys leave the gateway)
+
+    Challenge 3 / TODO 3.5: complete 3.5a, 3.5b and 3.5c below, run `terraform apply`,
+    then set "use_gateway": true in strategy.json and run again.
+    Docs: https://learn.microsoft.com/azure/api-management/llm-token-limit-policy
+          https://learn.microsoft.com/azure/api-management/llm-emit-token-metric-policy
+          https://learn.microsoft.com/azure/api-management/backends (load-balanced pools, circuit breaker)
+          https://learn.microsoft.com/azure/api-management/retry-policy
+  -->
+  <inbound>
+    <base />
+
+    <!-- TODO 3.5a: Token limit per consumer.
+         Add an llm-token-limit policy so that EACH APIM subscription (checkout-squad, support-squad)
+         gets its own budget of ${tokens_per_minute} tokens per minute.
+         Hints: counter-key="@(context.Subscription.Id)", tokens-per-minute="${tokens_per_minute}",
+                estimate-prompt-tokens="false", and expose the remaining budget in a response header
+                (remaining-tokens-header-name="x-ratelimit-remaining-tokens").
+         Callers over the limit get HTTP 429 + Retry-After: that is what TODO 3.4 (retry) handles. -->
+
+    <!-- TODO 3.5b: Token metrics.
+         Add an llm-emit-token-metric policy (namespace="tokenwars") that emits prompt/completion/total tokens
+         to Application Insights with dimensions to answer "who uses how many tokens on which model?":
+           <dimension name="Subscription ID" />  <dimension name="API ID" />
+           plus a custom "Model" dimension read from the request body "model" field (policy expression). -->
+
+    <!-- Route to the primary Foundry resource.
+         TODO 3.5c (part 1): switch backend-id to "${pool_backend_id}" to use the failover pool. -->
+    <set-backend-service backend-id="${backend_id}" />
+
+    <!-- Keyless backend auth: APIM's managed identity gets a token for Azure AI (sets the Authorization header). -->
+    <authentication-managed-identity resource="https://cognitiveservices.azure.com" />
+
+    <!-- Never forward the caller's APIM subscription key to the model endpoint. -->
+    <set-header name="api-key" exists-action="delete" />
+  </inbound>
+
+  <backend>
+    <!-- TODO 3.5c (part 2): Resilience.
+         Wrap forward-request in a retry policy that retries on 429 and 5xx, e.g.
+           condition="@(context.Response.StatusCode == 429 || context.Response.StatusCode >= 500)"
+           count="2" interval="1" first-fast-retry="true"
+         With the pool backend, a retried request is sent to the next healthy backend once the primary's
+         circuit breaker trips (the breaker honours Retry-After). -->
+    <forward-request buffer-request-body="true" timeout="120" />
+  </backend>
+
+  <outbound>
+    <base />
+  </outbound>
+
+  <on-error>
+    <base />
+  </on-error>
+</policies>
