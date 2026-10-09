@@ -55,7 +55,7 @@ output "deployments" {
 }
 
 output "apim_gateway_url" {
-  description = "AI gateway base URL (null if APIM is not deployed)."
+  description = "Required AI gateway base URL for all inference except the judge."
   value       = local.apim_enabled ? local.gateway.base_url : null
 }
 
@@ -105,7 +105,7 @@ output "fireworks_project_endpoint" {
 }
 
 output "apim_failover_model_map" {
-  description = "Model rewrite used by policies/ai-gateway-multiprovider.xml (null unless APIM and Fireworks are deployed)."
+  description = "Model rewrite for Challenge 3.6 failover (null unless Fireworks is deployed; APIM is required)."
   value       = local.apim_fireworks_enabled ? local.failover_model_map : null
 }
 

@@ -61,13 +61,20 @@ input / cached input / output tokens are tracked in `judge_cost_usd`, outside th
 and the ≥85% quality bar are unchanged. Keep the same pinned judge for every team; repeat baselines and
 comparisons after migration rather than comparing against scores from the former Terra judge.
 
+**APIM is required for all real inference**, including Azure, Fireworks, Ollama and embeddings. Keep
+`use_gateway: true` and every non-judge entry's `via_gateway: true`. All policies route by physical deployment
+name; only the independent judge is direct. Missing gateway/key or disabled flags fail explicitly, without
+direct fallback. Offline `--mock` still needs no gateway. External/custom resources need an APIM backend and
+routing rule; changing `base_url` alone is insufficient. See [gateway and provider telemetry](../../README.md#required-gateway-and-provider-telemetry).
+
 Each model can also set these optional fields:
 
 - `supports_temperature` (default `true`). When it is `false`, the app leaves `temperature` out of every chat request.
 - `extra_body` (default `{}`). This object is merged into every chat request for that model.
 - `extra_headers` (default `{}`). A string → string map of HTTP headers added to every chat **and** embedding request
-  for that model, e.g. `{"x-session-affinity": "bytecart"}`. Headers can replace `api-key` / `Authorization`, but not
-  `Content-Type`. Mock mode ignores them. `doctor` shows the header names only, not the values.
+  for that model, e.g. `{"x-session-affinity": "bytecart"}`. Gateway credential overrides (`api-key`,
+  `Authorization`, `Ocp-Apim-Subscription-Key`) are rejected; `Content-Type` is ignored.
+  Mock mode ignores them. `doctor` shows the header names only, not the values.
 - `hourly_cost_usd` (default `0`). A fixed hosting fee, e.g. for a fine-tuned deployment. It is informational only:
   when any model in a `compare` run has a value above 0, the table gets an extra `hosting $/h` column and each entry
   in the compare JSON gets an `hourly_cost_usd` field. It is never added to the costs or the score.
@@ -109,7 +116,7 @@ With escalation on, keys outside the explicit `economy → balanced → premium`
 | 3.2 | Classifier router (economy) | `tokenwars/router.py` (`route_classifier`) | `routing: "classifier"` |
 | 3.3 | Escalation on `ESCALATE` (unmapped keys such as `fw_*` / `custom` → `premium`) | `tokenwars/pipeline.py` | `escalation` |
 | 3.4 | Throttle-aware retry | `tokenwars/llm_client.py` (`_send_with_retry`) | `retry_on_throttle` |
-| 3.5 | AI gateway policy | `infra/policies/ai-gateway-solution.xml` | `use_gateway` |
+| 3.5 | Chat budgets, provider telemetry enrichment, pool/retry resilience | `infra/policies/ai-gateway-solution.xml` | gateway already required |
 | stretch | Embedding retrieval | `tokenwars/context.py` (`embedding_retrieval`) | `retrieval: "embedding"` |
 
 ## Notes
@@ -118,4 +125,5 @@ With escalation on, keys outside the explicit `economy → balanced → premium`
   happen. Use a real run to see the full routing mix.
 - The judge retries throttled calls by itself, so your score never depends on TODO 3.4. Judge cost is reported
   separately and is not part of the team score.
-- `compare` runs each model directly with the current prompt strategy, with no routing, caching or escalation.
+- `compare` runs each chosen inference model through APIM with the current prompt strategy, without tier routing,
+  caching or escalation. Provider routing remains built into the gateway; only the judge is direct.

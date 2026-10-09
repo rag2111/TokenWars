@@ -72,6 +72,16 @@ Data Zone (US) prices are about 10 % higher. `breakeven.py` has these as presets
 Requirements: Python 3.10+, `requests` (real teacher mode only), Azure CLI, and `curl` (bash) or PowerShell 7+.
 Generated data goes to `coach/own-the-weights/data/`, which is git-ignored.
 
+**Required inference gateway:** the real teacher and registered `custom` model use the coach's APIM gateway
+and subscription key (`via_gateway: true`). Deploy the fine-tuned model on the primary Foundry resource so
+the built-in Azure route can serve it. For another resource/provider, configure its APIM backend, routing
+rule and credentials first; changing only `base_url` is not sufficient. Only the independent judge is direct.
+Affinity headers are supported, but inference `extra_headers` must not override gateway credentials.
+`finetune test` also uses APIM and loads its credentials from the generated registry and `.env`.
+Fine-tuning management operations (`/files`, `/fine_tuning/jobs`, ARM deployment) remain direct;
+they are not inference calls. The scripts' `test` command needs Python and gateway configuration,
+but does not acquire an Azure management token.
+
 ### Training example format (same layout the apps send: compact + cache-friendly, SPEC 4.3)
 
 ```json
@@ -109,7 +119,7 @@ The biggest risk is a deployment you forget to delete: $0.65 × 730 h ≈ **$475
 
 ## 6. Step by step
 
-Prerequisite: the coach subscription has the Token Wars infra deployed, so `ROOT/.env` (`AZURE_AI_API_KEY`) and
+Prerequisite: the coach subscription has the Token Wars infra deployed, so `ROOT/.env` (`APIM_SUBSCRIPTION_KEY`) and
 `shared/config/models.json` (with `premium`) exist. Run everything from `coach/own-the-weights/`.
 
 ### 6.1 Generate the dataset (T-2)
@@ -269,7 +279,8 @@ Show this in the Foundry portal (≈2 min) to close the loop with Challenge 2.4 
 * Leakage filtering is lexical (token Jaccard ≥ 0.6). It catches close paraphrases, not semantic ones.
   `compare` items are a **test set**: never train on them.
 * Hosting is billed per hour while the deployment exists. Quotas, model ids and regions change, so see the VALIDATE list.
-* Fine-tuned deployments don't go through the APIM gateway in this kit (`via_gateway: false`).
+* Fine-tuned inference goes through required APIM (`via_gateway: true`), including the teacher and smoke probe.
+  Use the primary Foundry resource or configure an explicit gateway backend/model route for another resource.
 
 ## 11. Debrief talking points
 

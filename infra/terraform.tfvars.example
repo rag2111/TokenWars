@@ -48,7 +48,7 @@ leaderboard_key = "tokenwars"
 # economy_model   = { name = "gpt-4.1-nano", version = "2025-04-14", pricing_key = "gpt-4.1-nano", max_tokens_param = "max_tokens", supports_temperature = true, extra_body = {} }
 # Keep judge_model on the pinned GPT-5.5 default even when changing answer tiers.
 
-# --- Challenge 3: AI gateway --------------------------------------------------
+# --- Required AI gateway (Challenge 3 adds governance and failover) ------------
 deploy_apim = true
 apim_sku    = "StandardV2_1" # v2 tiers support llm-token-limit + llm-emit-token-metric
 # apim_policy_file               = "policies/ai-gateway-solution.xml"       # coach / reference solution
@@ -97,7 +97,7 @@ deploy_fireworks = false
 # fireworks_grant_deployer_role = true             # if the deployment fails with Forbidden
 # fireworks_deployer_role       = "Foundry Owner"  # or "Azure AI Owner" (old name, same role)
 #
-# Challenge 3.6 (stretch): multi-provider failover through APIM (needs deploy_apim + deploy_fireworks)
+# Challenge 3.6 (stretch): failover only; provider routing is built in (needs deploy_fireworks)
 # apim_policy_file       = "policies/ai-gateway-multiprovider.xml"
 # fireworks_backend_auth = "api_key"                # or "managed_identity"
 # failover_model_map     = { "gpt-5.6-terra" = "FW-DeepSeek-V4-Flash-0731", "gpt-5.6-sol" = "FW-DeepSeek-V4-Pro" }   # default

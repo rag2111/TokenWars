@@ -202,9 +202,14 @@ variable "deploy_open_model" {
 # AI gateway (Azure API Management)
 # -----------------------------------------------------------------------------
 variable "deploy_apim" {
-  description = "Deploy Azure API Management as AI gateway (Challenge 3). Provisioning a v2 tier takes ~5-15 minutes."
+  description = "Required AI gateway for all inference except the judge. Provisioning a v2 tier takes ~5-15 minutes; false is not supported."
   type        = bool
   default     = true
+
+  validation {
+    condition     = var.deploy_apim
+    error_message = "APIM is required. Keep deploy_apim = true; only the judge calls its model directly."
+  }
 }
 
 variable "apim_sku" {
@@ -393,7 +398,7 @@ variable "fireworks_deployer_role" {
 }
 
 variable "fireworks_backend_auth" {
-  description = "How APIM authenticates to the Fireworks Foundry resource in the multi-provider policy: \"api_key\" (documented, key stored as secret named value) or \"managed_identity\" (APIM identity; VALIDATE for Fireworks deployments)."
+  description = "How all gateway policies authenticate to Fireworks: \"api_key\" (key stored as secret named value) or \"managed_identity\" (APIM identity; VALIDATE for Fireworks deployments)."
   type        = string
   default     = "api_key"
 

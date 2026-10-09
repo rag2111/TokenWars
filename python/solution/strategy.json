@@ -11,7 +11,7 @@
   "default_model": "balanced",
   "routing": "classifier",
   "escalation": true,
-  "use_gateway": false,
+  "use_gateway": true,
   "retry_on_throttle": true,
   "concurrency": 8
 }

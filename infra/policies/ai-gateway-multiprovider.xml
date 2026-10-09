@@ -1,87 +1,91 @@
 <policies>
   <!--
-    Token Wars - AI gateway policy, Challenge 3.6 (stretch) "Multi-Provider Failover" for the "openai" API.
-    Everything from the SOLUTION policy (token limit per consumer, token metrics, Azure failover pool) PLUS:
-    when the Azure OpenAI backend answers 429 or 5xx, the request is retried ONCE against the Fireworks on Foundry
-    backend, with the "model" field rewritten to the mapped Fireworks deployment (failover_model_map).
+    Token Wars - Challenge 3.6: failover only (provider routing already works in every policy).
+    An Azure 429/5xx for a mapped chat model retries ONCE on Fireworks.
+    Explicit Fireworks / Ollama requests never enter that failover path.
+    Apply: terraform apply -var 'deploy_fireworks=true' -var 'apim_policy_file=policies/ai-gateway-multiprovider.xml'
 
-    Apply with (needs deploy_fireworks = true):
-      terraform apply -var 'deploy_fireworks=true' -var 'apim_policy_file=policies/ai-gateway-multiprovider.xml'
-
-    Template variables (double $ so they are not substituted here):
-      $${backend_id}            primary Azure backend
-      $${pool_backend_id}       Azure failover pool (or the primary if no secondary region)
-      $${fireworks_backend_id}  APIM backend "fireworks" (US Foundry resource, /openai/v1)
-      $${fireworks_auth}        "api_key" (backend injects the key from a secret named value) | "managed_identity"
-      $${tokens_per_minute}     var.tokens_per_minute_per_consumer
-      failover_model_map        Azure deployment name -> Fireworks deployment name (rendered as a lookup below)
-
-    Response headers: x-tokenwars-provider: azure-openai | fireworks, x-tokenwars-model (model that answered).
-    Debrief: a DIFFERENT model silently answers during failover (quality drift!), and llm-token-limit counts the
-    tokens of both providers against the same consumer budget.
-
-    VALIDATE (not yet tested end-to-end on a live gateway):
-      * llm-emit-token-metric: whether the custom "Provider" dimension is evaluated after the backend call
-        (otherwise it always reports azure-openai; the outbound emit-metric "Provider Tokens" is exact).
-      * when the pool/primary circuit breaker is OPEN the gateway may raise an error instead of returning a 503
-        response -> on-error runs and no Fireworks retry happens (keep deploy_secondary_region = false for the demo).
-      * Fireworks models may reject GPT-5.x-only parameters: reasoning_effort is removed and max_completion_tokens is
-        renamed to max_tokens before the retry.
+    llm metrics describe the requested route. Use outbound "Provider Tokens" for final-provider consumption:
+    inbound expressions must not be relied on to observe variables changed during backend retry.
+    Failed attempts without a usage object cannot be counted. Circuit-breaker errors can enter on-error
+    before a retryable response exists; use deploy_secondary_region = false for the cross-provider demo.
   -->
   <inbound>
     <base />
-
-    <!-- Token budget per consumer (APIM subscription); applies to Azure AND Fireworks tokens. -->
-    <llm-token-limit counter-key="@(context.Subscription.Id)"
-                     tokens-per-minute="${tokens_per_minute}"
-                     estimate-prompt-tokens="false"
-                     remaining-tokens-header-name="x-ratelimit-remaining-tokens"
-                     tokens-consumed-header-name="x-tokens-consumed" />
-
-    <!-- Requested model (= Azure deployment name) and its Fireworks failover target ("" = no failover). -->
     <set-variable name="tw-model" value="@{
+        if (context.Operation.Id == &quot;list-models&quot;) { return &quot;unknown&quot;; }
         var body = context.Request.Body?.As&lt;Newtonsoft.Json.Linq.JObject&gt;(preserveContent: true);
-        var model = body?[&quot;model&quot;]?.ToString();
-        return string.IsNullOrEmpty(model) ? &quot;unknown&quot; : model;
+        return body?[&quot;model&quot;]?.ToString() ?? &quot;unknown&quot;;
     }" />
+    <set-variable name="tw-requested-model" value="@((string)context.Variables[&quot;tw-model&quot;])" />
+    <set-variable name="tw-provider" value="@{
+        var model = (string)context.Variables[&quot;tw-model&quot;];%{ for model in fireworks_models }
+        if (model == ${replace(jsonencode(model), "\"", "&quot;")}) { return &quot;fireworks&quot;; }%{ endfor }%{ if selfhosted_enabled }
+        if (model == ${replace(jsonencode(selfhosted_model), "\"", "&quot;")}) { return &quot;selfhosted&quot;; }%{ endif }
+        return &quot;azure-openai&quot;;
+    }" />
+    <set-variable name="tw-azure-backend" value="@{
+        var model = (string)context.Variables[&quot;tw-model&quot;];%{ for model in pool_models }
+        if (model == ${replace(jsonencode(model), "\"", "&quot;")}) { return &quot;${pool_backend_id}&quot;; }%{ endfor }
+        return &quot;${backend_id}&quot;;
+    }" />
+    <set-variable name="tw-requested-provider" value="@((string)context.Variables[&quot;tw-provider&quot;])" />
     <set-variable name="tw-fw-model" value="@{
         var model = (string)context.Variables[&quot;tw-model&quot;];%{ for azure_model, fw_model in failover_model_map }
-        if (model == &quot;${azure_model}&quot;) { return &quot;${fw_model}&quot;; }%{ endfor }
+        if (model == ${replace(jsonencode(azure_model), "\"", "&quot;")}) { return ${replace(jsonencode(fw_model), "\"", "&quot;")}; }%{ endfor }
         return &quot;&quot;;
     }" />
-    <set-variable name="tw-provider" value="azure-openai" />
     <set-variable name="tw-failover" value="@(false)" />
-
-    <!-- Token metrics to Application Insights (custom metrics, namespace "tokenwars") with a provider dimension. -->
-    <llm-emit-token-metric namespace="tokenwars">
-      <dimension name="Subscription ID" />
-      <dimension name="Backend ID" />
-      <dimension name="Model" value="@((string)context.Variables[&quot;tw-model&quot;])" />
-      <dimension name="Provider" value="@(context.Variables.GetValueOrDefault&lt;string&gt;(&quot;tw-provider&quot;, &quot;azure-openai&quot;))" />
-    </llm-emit-token-metric>
-
-    <!-- First attempt: Azure (failover pool if a secondary region exists, otherwise the primary). -->
-    <set-backend-service backend-id="${pool_backend_id}" />
-
-    <!-- Keyless backend auth with APIM's managed identity (Azure resources). -->
+%{ if length(fireworks_models) > 0 || selfhosted_enabled }
+    <choose>%{ if length(fireworks_models) > 0 }
+      <when condition="@((string)context.Variables[&quot;tw-provider&quot;] == &quot;fireworks&quot;)">
+        <set-backend-service backend-id="${fireworks_backend_id}" />%{ if fireworks_auth == "managed_identity" }
+        <authentication-managed-identity resource="https://cognitiveservices.azure.com" />%{ else }
+        <set-header name="Authorization" exists-action="delete" />%{ endif }
+      </when>%{ endif }%{ if selfhosted_enabled }
+      <when condition="@((string)context.Variables[&quot;tw-provider&quot;] == &quot;selfhosted&quot;)">
+        <set-backend-service backend-id="${selfhosted_backend_id}" />
+        <set-header name="Authorization" exists-action="delete" />
+      </when>%{ endif }
+      <otherwise>
+        <set-backend-service backend-id="@((string)context.Variables[&quot;tw-azure-backend&quot;])" />
+        <authentication-managed-identity resource="https://cognitiveservices.azure.com" />
+      </otherwise>
+    </choose>
+%{ else }
+    <set-backend-service backend-id="@((string)context.Variables[&quot;tw-azure-backend&quot;])" />
     <authentication-managed-identity resource="https://cognitiveservices.azure.com" />
-
-    <!-- Never forward the caller's APIM subscription key to a model endpoint. -->
+%{ endif }
     <set-header name="api-key" exists-action="delete" />
+    <set-query-parameter name="api-key" exists-action="delete" />
+    <choose>
+      <when condition="@(context.Operation.Id == &quot;chat-completions&quot;)">
+        <llm-token-limit counter-key="@(context.Subscription.Id)"
+                         tokens-per-minute="${tokens_per_minute}"
+                         estimate-prompt-tokens="false"
+                         remaining-tokens-header-name="x-ratelimit-remaining-tokens"
+                         tokens-consumed-header-name="x-tokens-consumed" />
+        <llm-emit-token-metric namespace="tokenwars">
+          <dimension name="Subscription ID" />
+          <dimension name="team" value="@(context.Subscription.Name)" />
+          <dimension name="provider" value="@((string)context.Variables[&quot;tw-requested-provider&quot;])" />
+          <dimension name="API ID" />
+          <dimension name="Model" value="@((string)context.Variables[&quot;tw-requested-model&quot;])" />
+        </llm-emit-token-metric>
+      </when>
+    </choose>
   </inbound>
-
   <backend>
-    <!-- Runs once; retried ONCE (count=1) only if tw-failover was set after the Azure attempt. -->
     <retry condition="@(context.Variables.GetValueOrDefault&lt;bool&gt;(&quot;tw-failover&quot;, false))"
            count="1" interval="1" first-fast-retry="true">
       <choose>
         <when condition="@(context.Variables.GetValueOrDefault&lt;bool&gt;(&quot;tw-failover&quot;, false))">
-          <!-- Second attempt: Fireworks on Foundry with the mapped deployment name. -->
           <set-variable name="tw-provider" value="fireworks" />
+          <set-variable name="tw-model" value="@((string)context.Variables[&quot;tw-fw-model&quot;])" />
           <set-backend-service backend-id="${fireworks_backend_id}" />
           <set-body>@{
               var body = context.Request.Body.As&lt;Newtonsoft.Json.Linq.JObject&gt;(preserveContent: true);
-              body[&quot;model&quot;] = (string)context.Variables[&quot;tw-fw-model&quot;];
+              body[&quot;model&quot;] = (string)context.Variables[&quot;tw-model&quot;];
               body.Remove(&quot;reasoning_effort&quot;);
               if (body[&quot;max_completion_tokens&quot;] != null) {
                   if (body[&quot;max_tokens&quot;] == null) {
@@ -91,44 +95,47 @@
               }
               return body.ToString();
           }</set-body>%{ if fireworks_auth == "api_key" }
-          <!-- The fireworks backend adds the api-key header itself; drop the Azure bearer token. -->
           <set-header name="Authorization" exists-action="delete" />%{ endif }
         </when>
       </choose>
       <forward-request buffer-request-body="true" timeout="120" />
-      <!-- Fail over only from Azure, only for mapped models, only on throttling / server errors. -->
       <set-variable name="tw-failover" value="@(
-          context.Variables.GetValueOrDefault&lt;string&gt;(&quot;tw-provider&quot;, &quot;azure-openai&quot;) == &quot;azure-openai&quot;
-          &amp;&amp; context.Variables.GetValueOrDefault&lt;string&gt;(&quot;tw-fw-model&quot;, &quot;&quot;) != &quot;&quot;
+          (string)context.Variables[&quot;tw-provider&quot;] == &quot;azure-openai&quot;
+          &amp;&amp; context.Operation.Id == &quot;chat-completions&quot;
+          &amp;&amp; (string)context.Variables[&quot;tw-fw-model&quot;] != &quot;&quot;
           &amp;&amp; context.Response != null
           &amp;&amp; (context.Response.StatusCode == 429 || context.Response.StatusCode &gt;= 500))" />
     </retry>
   </backend>
-
   <outbound>
     <base />
     <set-header name="x-tokenwars-provider" exists-action="override">
-      <value>@(context.Variables.GetValueOrDefault&lt;string&gt;("tw-provider", "azure-openai"))</value>
+      <value>@((string)context.Variables["tw-provider"])</value>
     </set-header>
     <set-header name="x-tokenwars-model" exists-action="override">
-      <value>@(context.Variables.GetValueOrDefault&lt;string&gt;("tw-provider", "azure-openai") == "fireworks" ? context.Variables.GetValueOrDefault&lt;string&gt;("tw-fw-model", "") : context.Variables.GetValueOrDefault&lt;string&gt;("tw-model", "unknown"))</value>
+      <value>@((string)context.Variables["tw-model"])</value>
     </set-header>
     <set-header name="x-tokenwars-backend" exists-action="override">
       <value>@(context.Request.Url.Host)</value>
     </set-header>
-    <!-- Exact per-provider token counter (non-streaming JSON responses), evaluated after the final attempt. -->
-    <emit-metric name="Provider Tokens" namespace="tokenwars" value="@{
+    <!-- Count actual returned usage under the final provider and rewritten model, not the requested Azure route. -->
+    <set-variable name="tw-total-tokens" value="@{
         var contentType = context.Response.Headers.GetValueOrDefault(&quot;Content-Type&quot;, &quot;&quot;);
-        if (!contentType.Contains(&quot;json&quot;)) { return 0d; }
+        if (!contentType.Contains(&quot;json&quot;)) { return -1d; }
         var body = context.Response.Body?.As&lt;Newtonsoft.Json.Linq.JObject&gt;(preserveContent: true);
-        return (double)((double?)body?[&quot;usage&quot;]?[&quot;total_tokens&quot;] ?? 0d);
-    }">
-      <dimension name="Subscription ID" />
-      <dimension name="Provider" value="@(context.Variables.GetValueOrDefault&lt;string&gt;(&quot;tw-provider&quot;, &quot;azure-openai&quot;))" />
-      <dimension name="Model" value="@((string)context.Variables[&quot;tw-model&quot;])" />
-    </emit-metric>
+        return (double)((double?)body?[&quot;usage&quot;]?[&quot;total_tokens&quot;] ?? -1d);
+    }" />
+    <choose>
+      <when condition="@((double)context.Variables[&quot;tw-total-tokens&quot;] &gt;= 0)">
+        <emit-metric name="Provider Tokens" namespace="tokenwars" value="@((double)context.Variables[&quot;tw-total-tokens&quot;])">
+          <dimension name="Subscription ID" />
+          <dimension name="team" value="@(context.Subscription.Name)" />
+          <dimension name="provider" value="@((string)context.Variables[&quot;tw-provider&quot;])" />
+          <dimension name="Model" value="@((string)context.Variables[&quot;tw-model&quot;])" />
+        </emit-metric>
+      </when>
+    </choose>
   </outbound>
-
   <on-error>
     <base />
     <set-header name="x-tokenwars-provider" exists-action="override">

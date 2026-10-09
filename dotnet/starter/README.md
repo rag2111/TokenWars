@@ -53,8 +53,9 @@ scores are not directly comparable. Terraform updates the generated registry onl
   `max_completion_tokens` caps them too: if `max_output_tokens` is too low the model may return an **empty answer**
   (`finish_reason: "length"`), which is recorded as `""` (fails the judge) with a one-time warning.
 - `extra_headers` (optional, default `{}`): a string → string map of HTTP headers added to every chat **and** embedding
-  request for that model, e.g. `{"x-session-affinity": "bytecart"}`. Headers can replace `api-key` / `Authorization`,
-  but not `Content-Type`. Mock mode ignores them; `doctor` shows the header names only.
+  request for that model, e.g. `{"x-session-affinity": "bytecart"}`. Gateway credential overrides (`api-key`,
+  `Authorization`, `Ocp-Apim-Subscription-Key`) are rejected; `Content-Type` is ignored.
+  Mock mode ignores them; `doctor` shows the header names only.
 - `hourly_cost_usd` (optional, default `0`): a fixed hosting fee, e.g. for a fine-tuned deployment. Informational only –
   when any model in a `compare` run has a value above 0, the table gets an extra `hosting $/h` column and each entry in
   the compare JSON gets an `hourly_cost_usd` field. It is never added to the costs or the score.
@@ -64,6 +65,12 @@ scores are not directly comparable. Terraform updates the generated registry onl
   `models.json` works for `compare --models balanced,premium,fw_fast,fw_pro`, `default_model` and `Router.TierModels`;
   a key that is not configured fails before any spend. With escalation on, keys outside the explicit
   `economy → balanced → premium` chain (`open`, `selfhosted`, `fw_*`, `custom`, …) escalate straight to `premium`.
+
+**APIM is required for all real inference**, including Azure, Fireworks, Ollama and embeddings. Keep
+`use_gateway: true` and every non-judge entry's `via_gateway: true`. All policies route by physical deployment
+name; only the independent judge is direct. Missing gateway/key or disabled flags fail explicitly, without
+direct fallback. Offline `--mock` still needs no gateway. External/custom resources need an APIM backend and
+routing rule; changing `base_url` alone is insufficient. See [gateway and provider telemetry](../../README.md#required-gateway-and-provider-telemetry).
 
 ## How to work
 
@@ -92,7 +99,7 @@ If you switch on a flag whose TODO is not implemented yet, the app stops **befor
 | 3.2 | Route & Rule | Classifier router (economy) | `TokenWars/Router.cs` (`RouteClassifierAsync`) | `"routing": "classifier"` |
 | 3.3 | Route & Rule | Escalation on `ESCALATE` | `TokenWars/Pipeline.cs` (`AnswerCoreAsync`, step 8) | `"escalation": true` |
 | 3.4 | Route & Rule | Throttle-aware retry (429 + Retry-After) | `TokenWars/LlmClient.cs` (`SendWithRetryAsync`) | `"retry_on_throttle": true` |
-| 3.5 | Route & Rule | AI gateway policy (token limit, metrics, failover) | `infra/policies/ai-gateway-starter.xml` | `"use_gateway": true` |
+| 3.5 | Route & Rule | Chat budgets, provider telemetry enrichment, pool/retry resilience | `infra/policies/ai-gateway-starter.xml` | gateway already required |
 | stretch | Token Diet | Embedding retrieval | `TokenWars/ContextBuilder.cs` (`EmbeddingRetrievalAsync`) | `"retrieval": "embedding"` |
 
 ## Rules of the game

@@ -46,7 +46,7 @@ locals {
         api_key_env          = "SELFHOSTED_API_KEY"
         pricing_key          = "selfhosted"
         type                 = "chat"
-        via_gateway          = false
+        via_gateway          = true
         max_tokens_param     = "max_tokens"
         supports_temperature = true
         extra_body           = {}
@@ -55,8 +55,7 @@ locals {
     } : k => v if var.deploy_selfhosted_model
   }
 
-  # Fireworks on Foundry (Challenge 2.4): direct calls only (via_gateway = false) - the gateway's "openai" API routes
-  # to the Azure resource; Fireworks is only reachable through APIM as the multi-provider failover target.
+  # Fireworks deployment names are routed to their backend by every gateway policy.
   fireworks_model_entries = {
     for k, m in local.fireworks_specs : k => {
       deployment           = try(azurerm_cognitive_deployment.fireworks_first[k].name, azurerm_cognitive_deployment.fireworks_rest[k].name, m.deployment_name)
@@ -64,7 +63,7 @@ locals {
       api_key_env          = "FIREWORKS_AI_API_KEY"
       pricing_key          = m.pricing_key
       type                 = "chat"
-      via_gateway          = false
+      via_gateway          = true
       max_tokens_param     = m.max_tokens_param
       supports_temperature = m.supports_temperature
       extra_body           = m.extra_body

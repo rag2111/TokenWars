@@ -11,6 +11,8 @@ After this, the workshop apps can use it like any other key:
 
 models.json is git-ignored (terraform output). pricing.json is tracked: --write-pricing edits YOUR LOCAL COPY only –
 do not commit the `custom-finetuned` key (revert with `git checkout shared/config/pricing.json`).
+Inference uses required APIM. Deploy on the primary Foundry resource, or configure a gateway backend/model route
+for another resource first; registering a base_url does not configure that route.
 """
 from __future__ import annotations
 
@@ -33,7 +35,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--deployment", help="deployment name of the fine-tuned model (required unless --remove)")
     p.add_argument("--base-url", help="OpenAI v1 base URL, e.g. https://<acct>.services.ai.azure.com/openai/v1/")
     p.add_argument("--resource", help="Foundry account name; builds https://<resource>.services.ai.azure.com/openai/v1/")
-    p.add_argument("--api-key-env", help="env var holding the key (default: premium's api_key_env or AZURE_AI_API_KEY)")
+    p.add_argument("--api-key-env", help="backend key metadata (default: premium's api_key_env); inference uses the APIM key")
     p.add_argument("--pricing-key", default=DEFAULT_PRICING_KEY)
     p.add_argument("--hourly-cost", type=float, default=DEFAULT_PRICES["hourly"],
                    help="hosting fee USD/hour (informational; shown by compare as 'hosting $/h'), default 0.65")
@@ -107,7 +109,7 @@ def main(argv: list[str] | None = None) -> int:
         "api_key_env": args.api_key_env or premium.get("api_key_env") or "AZURE_AI_API_KEY",
         "pricing_key": args.pricing_key,
         "type": "chat",
-        "via_gateway": False,
+        "via_gateway": True,
         "max_tokens_param": args.max_tokens_param,
         "supports_temperature": not args.no_temperature,
         "extra_body": {},

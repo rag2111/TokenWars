@@ -23,7 +23,7 @@ _MODEL_DEFAULTS = {
     "base_url": "",
     "api_key_env": "AZURE_AI_API_KEY",
     "type": "chat",
-    "via_gateway": False,
+    "via_gateway": True,
     "max_tokens_param": "max_tokens",
     "supports_temperature": True,
     "extra_body": {},
@@ -94,7 +94,7 @@ class Strategy:
     default_model: str = "premium"
     routing: str = "none"  # none | rules | classifier
     escalation: bool = False
-    use_gateway: bool = False
+    use_gateway: bool = True
     retry_on_throttle: bool = False
     concurrency: int = 8
 
@@ -119,6 +119,8 @@ def load_strategy(path: Path) -> Strategy:
     if unknown:
         print(f"⚠️  Ignoring unknown strategy.json keys: {', '.join(unknown)}", file=sys.stderr)
     strategy = Strategy(**{k: v for k, v in raw.items() if k in known})
+    if strategy.use_gateway is not True:
+        raise ConfigError("APIM is required: strategy.use_gateway must be true (the judge is the only direct exception).")
     if strategy.retrieval not in ("all", "keyword", "embedding"):
         raise ConfigError(f'strategy.retrieval must be "all", "keyword" or "embedding" (got "{strategy.retrieval}")')
     if strategy.routing not in ("none", "rules", "classifier"):
@@ -191,7 +193,7 @@ class ModelConfig:
     api_key_env: str
     pricing_key: str
     type: str = "chat"
-    via_gateway: bool = False
+    via_gateway: bool = True
     max_tokens_param: str = "max_tokens"
     supports_temperature: bool = True
     extra_body: dict[str, Any] = field(default_factory=dict)
@@ -277,6 +279,8 @@ def _parse_models(raw: dict[str, Any]) -> tuple[dict[str, ModelConfig], GatewayC
     for key, entry in (raw.get("models") or {}).items():
         if not isinstance(entry, dict) or not entry.get("deployment"):
             continue
+        if "via_gateway" in entry and not isinstance(entry["via_gateway"], bool):
+            raise ConfigError(f'Model "{key}": via_gateway must be a JSON boolean.')
         merged = {**_MODEL_DEFAULTS, **entry}
         models[key] = ModelConfig(
             key=key,
@@ -285,7 +289,7 @@ def _parse_models(raw: dict[str, Any]) -> tuple[dict[str, ModelConfig], GatewayC
             api_key_env=str(merged.get("api_key_env") or "AZURE_AI_API_KEY"),
             pricing_key=str(merged.get("pricing_key") or merged["deployment"]),
             type=str(merged.get("type") or "chat"),
-            via_gateway=bool(merged.get("via_gateway", False)),
+            via_gateway=_as_bool(entry.get("via_gateway"), key != "judge"),
             max_tokens_param=str(merged.get("max_tokens_param") or "max_tokens"),
             supports_temperature=_as_bool(merged.get("supports_temperature"), True),
             extra_body=dict(merged.get("extra_body") or {}) if isinstance(merged.get("extra_body"), dict) else {},

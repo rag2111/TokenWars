@@ -27,7 +27,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-from kit_common import (KitError, KnowledgeBase, estimate_tokens, find_root, jaccard, load_env,
+from kit_common import (KitError, KnowledgeBase, estimate_tokens, find_root, gateway_credentials, jaccard,
                         load_workload_questions, normalize_question, read_json, system_prompt, tokenize, user_message)
 
 CUSTOMERS = [f"C{1001 + i}" for i in range(20)]
@@ -79,19 +79,19 @@ class Teacher:
         models_path = root / "shared" / "config" / "models.json"
         if not models_path.exists():
             raise KitError(f"{models_path} not found – deploy the coach infra first or use --mock.")
-        models = (read_json(models_path).get("models") or {})
+        registry = read_json(models_path)
+        models = registry.get("models") or {}
         if model_key not in models:
             raise KitError(f'Teacher model key "{model_key}" is not in {models_path}')
         self.model = models[model_key]
         self.key = model_key
-        env = load_env(root)
-        self.api_key = env.get(self.model.get("api_key_env") or "AZURE_AI_API_KEY", "")
-        if not self.api_key:
-            raise KitError(f"API key env var {self.model.get('api_key_env')} is empty (.env or environment).")
-        base = (self.model.get("base_url") or "").strip()
-        if not base:
-            raise KitError(f'Model "{model_key}" has no base_url')
-        self.url = (base if base.endswith("/") else base + "/") + "chat/completions"
+        if model_key == "judge" or self.model.get("via_gateway", True) is not True:
+            raise KitError("Teacher inference must use APIM; choose a non-judge model with via_gateway=true.")
+        if any(name.lower() in {"api-key", "authorization", "ocp-apim-subscription-key"}
+               for name in (self.model.get("extra_headers") or {})):
+            raise KitError("Teacher extra_headers must not override gateway credentials.")
+        base, self.api_key = gateway_credentials(root, registry)
+        self.url = base + "chat/completions"
         self.max_tokens = max_tokens
         pricing_path = root / "shared" / "config" / "pricing.json"
         prices = read_json(pricing_path).get("models", {}) if pricing_path.exists() else {}

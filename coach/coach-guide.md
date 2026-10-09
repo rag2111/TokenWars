@@ -127,7 +127,8 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
 - Price lens (`pricing.json`, **`verified: false`** — illustrative): `fw_fast` $0.15 in / $0.03 cached / $0.31 out
   vs economy $0.20 / $1.20 and balanced $2 / $12; `fw_pro` $1.93 / $0.165 / $3.83 vs premium $4 / $20. On paper
   `fw_fast` undercuts economy on output by 4× — but the judge decides, and p95 from the US region matters too.
-- `fw_*` are called directly (`via_gateway: false`, key `FIREWORKS_AI_API_KEY` in `.env`). Escalation from a `fw_*`
+- `fw_*` use APIM (`via_gateway: true`, caller key `APIM_SUBSCRIPTION_KEY`) with model-based routing in every policy.
+  The Fireworks backend owns its provider credentials. Escalation from a `fw_*`
   answer goes straight to `premium`.
 - Prompt caching: Terraform sets `extra_body = { prompt_cache_key = "bytecart-support" }`; `user` or an
   `x-session-affinity` header (`extra_headers`) also help routing to a warm cache. Stretch: compare `cached_tokens`
@@ -151,13 +152,16 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
 - **3.5 AI gateway** (`infra/policies/ai-gateway-starter.xml`): `llm-token-limit` per subscription (two consumers:
   checkout-squad, support-squad), `llm-emit-token-metric` with dimensions → App Insights *Metrics* namespace
   `tokenwars`, backend pool + circuit breaker + retry on 429 for failover (`deploy_secondary_region = true`).
-  Then `"use_gateway": true`. Show that the gateway adds governance, not savings — the token limit may *hurt*
+  APIM is already required: all Azure, Fireworks, Ollama and embedding inference uses it; only the judge is direct.
+  The starter already routes by physical model and emits `team`/`provider` token metrics. TODO 3.5b enriches
+  existing metrics with API/model dimensions. Show that the gateway adds governance, not savings — the token limit may *hurt*
   throughput/latency; that is the trade-off.
 - Demo idea: set `tokens_per_minute_per_consumer = 2000`, run `ask` a few times with the support-squad key → 429 +
   `Retry-After`; the checkout-squad key still works.
 
 ### Challenge 3.6 — "Multi-Provider Failover" (stretch)
-- Needs `deploy_apim` **and** `deploy_fireworks`:
+- Adds **failover only**; provider routing and provider telemetry already work in every policy.
+  Needs `deploy_fireworks` (APIM is mandatory):
   `terraform apply -var 'deploy_fireworks=true' -var 'apim_policy_file=policies/ai-gateway-multiprovider.xml'`
   (or set both in tfvars). A precondition blocks the apply without Fireworks.
 - `infra/policies/ai-gateway-multiprovider.xml` = everything from the solution policy, plus: when the **Azure backend**
@@ -166,7 +170,9 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
   backend `fireworks`. The body is rewritten: `model` → Fireworks deployment, `reasoning_effort` removed,
   `max_completion_tokens` → `max_tokens`.
 - Response headers `x-tokenwars-provider` (`azure-openai` | `fireworks`), `x-tokenwars-model`, `x-tokenwars-backend`;
-  token metrics carry a **Provider** dimension (`llm-emit-token-metric` + outbound `emit-metric` "Provider Tokens").
+  token metrics carry lowercase **`provider`** and **`team`** dimensions in all policies.
+  Use outbound **Provider Tokens** for consumption by the final serving provider; native LLM metrics describe
+  the requested route. Do not sum the two families together.
 - Unmapped models (economy, Llama, embeddings, judge) never fail over. A 429 from `llm-token-limit` is produced by APIM
   itself before any backend call, so it does **not** fail over — that is the consumer budget working as designed.
 - To provoke a backend 429 for the demo: keep `deploy_secondary_region = false`, temporarily lower the mapped
@@ -379,7 +385,7 @@ Fix the defaults or add a note to [troubleshooting.md](troubleshooting.md) for a
 - [ ] **Model version**: `null` (= default, catalog shows "Version: 1") deploys.
 - [ ] **Deployer role**: does Owner/Contributor alone deploy, or is `fireworks_grant_deployer_role = true` needed? Does the
       tenant show "Foundry Owner" or still "Azure AI Owner" (`fireworks_deployer_role`)?
-- [ ] **Base URL host** `https://<fw-subdomain>.services.ai.azure.com/openai/v1/` for `fw_*`: `doctor` green, then
+- [ ] **Gateway routing** for `fw_*`: `via_gateway: true`, `doctor` green using the APIM key, then
       `compare --models balanced,premium,fw_fast,fw_pro`; record pass rate, cost per success and p95 for section 6.
 - [ ] **Prices**: confirm the `fw-*` prices in the Azure pricing calculator; update `pricing.json` and set `"verified": true`
       only for confirmed values.
@@ -389,8 +395,9 @@ Fix the defaults or add a note to [troubleshooting.md](troubleshooting.md) for a
 - [ ] Policy expressions compile on save (`terraform apply` with `ai-gateway-multiprovider.xml` fails fast if not).
 - [ ] Backend 429 → Fireworks retry works; `x-tokenwars-provider: fireworks` appears (curl in section 3).
 - [ ] Fireworks models accept the rewritten body (no other GPT-5.x-only parameter rejected).
-- [ ] `llm-emit-token-metric` evaluates the **Provider** dimension after the backend call (otherwise it always shows
-      `azure-openai`; the outbound "Provider Tokens" metric is exact).
+- [ ] All policies emit lowercase `team`/`provider` dimensions. Dashboard **Provider Tokens** is attributed to the
+      final Fireworks provider/model after failover and includes embeddings. Native metrics retain the requested
+      route; do not add them to the outbound counter. Failed attempts without usage remain uncounted.
 - [ ] With an **open circuit breaker** the gateway may raise an error instead of a 503, so `on-error` runs and no
       Fireworks retry happens → keep `deploy_secondary_region = false` for the demo, use a low deployment TPM, expect the
       first few 429s to fail over.

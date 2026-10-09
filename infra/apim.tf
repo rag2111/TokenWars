@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Azure API Management as AI gateway (optional, var.deploy_apim)
+# Azure API Management as required AI gateway (only the judge bypasses it)
 #
 #   client --(api-key: <APIM subscription key>)--> APIM /openai/v1/...  --(managed identity)--> Foundry /openai/v1/...
 #
@@ -13,11 +13,12 @@
 # -----------------------------------------------------------------------------
 
 locals {
-  primary_backend_name   = "aoai-primary"
-  secondary_backend_name = "aoai-secondary"
-  pool_backend_name      = "aoai-pool"
-  fireworks_backend_name = "fireworks"
-  apim_fireworks_enabled = local.apim_enabled && local.fireworks_enabled
+  primary_backend_name    = "aoai-primary"
+  secondary_backend_name  = "aoai-secondary"
+  pool_backend_name       = "aoai-pool"
+  fireworks_backend_name  = "fireworks"
+  selfhosted_backend_name = "selfhosted"
+  apim_fireworks_enabled  = local.apim_enabled && local.fireworks_enabled
   # backend used by the failover part of the policy: the pool if a secondary region exists, otherwise the primary
   failover_backend_name = local.secondary_enabled ? local.pool_backend_name : local.primary_backend_name
   # subscription whose key is written to .env for the apps
@@ -159,8 +160,7 @@ resource "azapi_resource" "backend_pool" {
 }
 
 # -----------------------------------------------------------------------------
-# Fireworks backend (Challenge 3.6 "Multi-Provider Failover"), only when deploy_apim && deploy_fireworks.
-# Used by policies/ai-gateway-multiprovider.xml as the retry target. No circuit breaker: it is the last resort.
+# Fireworks backend, used for model-based routing in every policy and as the optional 3.6 failover target.
 # -----------------------------------------------------------------------------
 resource "azurerm_api_management_named_value" "fireworks_key" {
   count = local.apim_fireworks_enabled && var.fireworks_backend_auth == "api_key" ? 1 : 0
@@ -193,6 +193,23 @@ resource "azapi_resource" "backend_fireworks" {
   depends_on = [azurerm_api_management_named_value.fireworks_key]
 }
 
+resource "azapi_resource" "backend_selfhosted" {
+  count = var.deploy_selfhosted_model ? 1 : 0
+
+  type                      = "Microsoft.ApiManagement/service/backends@2024-05-01"
+  name                      = local.selfhosted_backend_name
+  parent_id                 = azurerm_api_management.apim[0].id
+  schema_validation_enabled = false
+
+  body = {
+    properties = {
+      description = "Ollama on Container Apps (OpenAI-compatible v1 API)"
+      url         = var.deploy_selfhosted_model ? trimsuffix(local.selfhosted_base_url, "/v1/") : null
+      protocol    = "http"
+    }
+  }
+}
+
 # -----------------------------------------------------------------------------
 # API: https://<apim>.azure-api.net/openai/v1/...  (subscription key in the "api-key" header)
 # -----------------------------------------------------------------------------
@@ -203,8 +220,8 @@ resource "azurerm_api_management_api" "openai" {
   resource_group_name   = azurerm_resource_group.rg.name
   api_management_name   = azurerm_api_management.apim[0].name
   revision              = "1"
-  display_name          = "Azure AI - OpenAI v1"
-  description           = "OpenAI-compatible v1 API (chat completions, embeddings) in front of Microsoft Foundry."
+  display_name          = "Token Wars - Model gateway"
+  description           = "Required OpenAI-compatible v1 gateway for Azure, Fireworks and optional Ollama."
   path                  = "openai"
   protocols             = ["https"]
   service_url           = "https://${azurerm_cognitive_account.ai.custom_subdomain_name}.openai.azure.com/openai"
@@ -263,20 +280,36 @@ resource "azurerm_api_management_api_policy" "openai" {
   api_management_name = azurerm_api_management.apim[0].name
   resource_group_name = azurerm_resource_group.rg.name
 
-  # Extra template variables are ignored by templates that do not use them (starter / solution).
   xml_content = templatefile("${path.module}/${var.apim_policy_file}", {
-    backend_id           = local.primary_backend_name
-    pool_backend_id      = local.failover_backend_name
-    tokens_per_minute    = var.tokens_per_minute_per_consumer
-    fireworks_backend_id = local.fireworks_backend_name
-    fireworks_auth       = var.fireworks_backend_auth
-    failover_model_map   = local.failover_model_map
+    backend_id            = local.primary_backend_name
+    pool_backend_id       = local.failover_backend_name
+    pool_models           = [for key in ["premium", "balanced", "economy"] : local.deployment_names[key]]
+    tokens_per_minute     = var.tokens_per_minute_per_consumer
+    fireworks_backend_id  = local.fireworks_backend_name
+    fireworks_auth        = var.fireworks_backend_auth
+    fireworks_models      = local.fireworks_enabled ? sort(values(local.fireworks_deployment_names)) : []
+    selfhosted_enabled    = var.deploy_selfhosted_model
+    selfhosted_model      = var.selfhosted_model
+    selfhosted_backend_id = local.selfhosted_backend_name
+    failover_model_map    = local.failover_model_map
   })
 
   lifecycle {
     precondition {
       condition     = !strcontains(var.apim_policy_file, "multiprovider") || local.fireworks_enabled
       error_message = "policies/ai-gateway-multiprovider.xml needs the Fireworks backend: set deploy_fireworks = true (and complete scripts/check-fireworks-prereqs.sh)."
+    }
+    precondition {
+      condition     = !local.fireworks_enabled || length(setintersection(toset(values(local.fireworks_deployment_names)), toset(values(local.deployment_names)))) == 0
+      error_message = "Azure and Fireworks deployment names must be distinct so the gateway can route by model."
+    }
+    precondition {
+      condition     = !var.deploy_selfhosted_model || (!contains(values(local.deployment_names), var.selfhosted_model) && (!local.fireworks_enabled || !contains(values(local.fireworks_deployment_names), var.selfhosted_model)))
+      error_message = "The Ollama model name must not overlap an Azure or Fireworks deployment name."
+    }
+    precondition {
+      condition     = !strcontains(var.apim_policy_file, "multiprovider") || alltrue([for model in values(local.failover_model_map) : contains(values(local.fireworks_deployment_names), model)])
+      error_message = "Every failover_model_map target must name a configured Fireworks deployment."
     }
   }
 
@@ -285,6 +318,7 @@ resource "azurerm_api_management_api_policy" "openai" {
     azapi_resource.backend_secondary,
     azapi_resource.backend_pool,
     azapi_resource.backend_fireworks,
+    azapi_resource.backend_selfhosted,
     azurerm_role_assignment.apim_ai,
     azurerm_api_management_logger.appi,
   ]

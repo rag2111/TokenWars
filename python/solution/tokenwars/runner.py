@@ -393,7 +393,9 @@ def cmd_doctor(config: AppConfig, strategy: Strategy) -> int:
 
     _say("\n  Models:")
     for key, model in config.models.items():
-        key_state = "key present" if config.get_env(model.api_key_env) else f"key MISSING ({model.api_key_env})"
+        key_env = model.api_key_env if key == config.scoring.get("judge_model", "judge") else (
+            config.gateway.api_key_env if config.gateway else "APIM_SUBSCRIPTION_KEY")
+        key_state = "key present" if config.get_env(key_env) else f"key MISSING ({key_env})"
         _say(f"    - {key:<11} {model.deployment:<26} {model.type:<9} via_gateway={str(model.via_gateway).lower():<5} "
              f"{key_state}")
         if model.type == "chat":
@@ -405,7 +407,8 @@ def cmd_doctor(config: AppConfig, strategy: Strategy) -> int:
             if model.hourly_cost_usd > 0:
                 details += f", hosting ${model.hourly_cost_usd:.2f}/h"
             _say(f"      {'':<11} {details}")
-    missing = [k for k in ("premium", "balanced", "economy", "embedding", "judge") if k not in config.models]
+    missing = [k for k in ("premium", "balanced", "economy", "embedding",
+                          config.scoring.get("judge_model", "judge")) if k not in config.models]
     if missing:
         _say(f"    ⚠️  not configured: {', '.join(missing)}")
     if config.gateway:
@@ -413,7 +416,7 @@ def cmd_doctor(config: AppConfig, strategy: Strategy) -> int:
             f"key MISSING ({config.gateway.api_key_env})"
         _say(f"    - gateway     {config.gateway.base_url}  {gw_key}  (use_gateway={str(strategy.use_gateway).lower()})")
     else:
-        _say("    - gateway     not deployed")
+        _say("    - gateway     REQUIRED (not configured; mock mode can run without it)")
 
     if config.mock:
         _say("\n  🧪 Mock mode – skipping test calls.")

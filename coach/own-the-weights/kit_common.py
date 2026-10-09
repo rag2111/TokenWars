@@ -99,6 +99,17 @@ def write_json(path: Path, data: Any) -> None:
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+def gateway_credentials(root: Path, registry: dict[str, Any]) -> tuple[str, str]:
+    gateway = registry.get("gateway")
+    if not isinstance(gateway, dict) or not gateway.get("base_url"):
+        raise KitError("APIM is required: deploy the coach gateway and regenerate models.json.")
+    key_env = gateway.get("api_key_env") or "APIM_SUBSCRIPTION_KEY"
+    key = load_env(root).get(key_env, "")
+    if not key:
+        raise KitError(f"APIM subscription key {key_env} is empty (.env or environment).")
+    return str(gateway["base_url"]).strip().rstrip("/") + "/", key
+
+
 # --------------------------------------------------------------------------- text / KB (SPEC 3.1, 4.5)
 
 

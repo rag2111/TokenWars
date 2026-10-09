@@ -12,7 +12,7 @@ from typing import Any, Callable
 
 import requests
 
-from .config import AppConfig, ModelConfig
+from .config import AppConfig, ConfigError, ModelConfig
 from .context import tokenize
 
 TIMEOUT_SECONDS = 60
@@ -54,14 +54,13 @@ class EmbeddingResult:
 
 
 class LlmClient:
-    def __init__(self, config: AppConfig, use_gateway: bool = False, retry_on_throttle: bool = False,
+    def __init__(self, config: AppConfig, use_gateway: bool = True, retry_on_throttle: bool = False,
                  mock: bool | None = None):
         self.config = config
         self.use_gateway = use_gateway
         self.retry_on_throttle = retry_on_throttle
         self.mock = config.mock if mock is None else mock
         self._local = threading.local()
-        self._warned_gateway = False
 
     # ------------------------------------------------------------------ public API
 
@@ -119,14 +118,21 @@ class LlmClient:
     # ------------------------------------------------------------------ HTTP
 
     def _endpoint(self, model: ModelConfig) -> tuple[str, str]:
-        gateway = self.config.gateway
-        if self.use_gateway and model.via_gateway:
-            if gateway is not None:
-                return gateway.base_url, self.config.get_env(gateway.api_key_env)
-            if not self._warned_gateway:
-                self._warned_gateway = True
-                print("⚠️  use_gateway=true but no gateway is configured in models.json – calling models directly.",
-                      file=sys.stderr)
+        if model.key != self.config.scoring.get("judge_model", "judge"):
+            if not self.use_gateway or not model.via_gateway:
+                raise ConfigError(f'APIM is required for "{model.key}": use_gateway and via_gateway must be true.')
+            gateway = self.config.gateway
+            if gateway is None or not gateway.base_url:
+                raise ConfigError("APIM is required: deploy the gateway and regenerate models.json.")
+            key = self.config.get_env(gateway.api_key_env)
+            if not key:
+                raise ConfigError(f"APIM subscription key is missing ({gateway.api_key_env}).")
+            if any(name.lower() in {"api-key", "authorization", "ocp-apim-subscription-key"}
+                   for name in model.extra_headers):
+                raise ConfigError(f'Model "{model.key}": extra_headers must not override gateway credentials.')
+            return gateway.base_url, key
+        if model.via_gateway:
+            raise ConfigError('The judge must use via_gateway: false; it is excluded from the team token budget.')
         if not model.base_url:
             raise LlmError(f'Model "{model.key}" has no base_url in models.json')
         return model.base_url, self.config.get_env(model.api_key_env)
@@ -144,7 +150,7 @@ class LlmClient:
         if api_key:
             headers["api-key"] = api_key
             headers["Authorization"] = f"Bearer {api_key}"
-        # models.json "extra_headers" (e.g. x-session-affinity); they may replace api-key/Authorization, not Content-Type.
+        # Gateway credential overrides are rejected by _endpoint; affinity headers remain supported.
         for name, value in (extra_headers or {}).items():
             if name.lower() == "content-type":
                 continue

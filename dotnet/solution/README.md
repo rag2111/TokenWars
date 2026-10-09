@@ -50,8 +50,9 @@ scores are not directly comparable. Terraform updates the generated registry onl
   `max_completion_tokens` caps them too: if `max_output_tokens` is too low the model may return an **empty answer**
   (`finish_reason: "length"`), which is recorded as `""` (fails the judge) with a one-time warning.
 - `extra_headers` (optional, default `{}`): a string → string map of HTTP headers added to every chat **and** embedding
-  request for that model, e.g. `{"x-session-affinity": "bytecart"}`. Headers can replace `api-key` / `Authorization`,
-  but not `Content-Type`. Mock mode ignores them; `doctor` shows the header names only.
+  request for that model, e.g. `{"x-session-affinity": "bytecart"}`. Gateway credential overrides (`api-key`,
+  `Authorization`, `Ocp-Apim-Subscription-Key`) are rejected; `Content-Type` is ignored.
+  Mock mode ignores them; `doctor` shows the header names only.
 - `hourly_cost_usd` (optional, default `0`): a fixed hosting fee, e.g. for a fine-tuned deployment. Informational only –
   when any model in a `compare` run has a value above 0, the table gets an extra `hosting $/h` column and each entry in
   the compare JSON gets an `hourly_cost_usd` field. It is never added to the costs or the score.
@@ -62,6 +63,12 @@ scores are not directly comparable. Terraform updates the generated registry onl
   a key that is not configured fails before any spend. With escalation on, keys outside the explicit
   `economy → balanced → premium` chain (`open`, `selfhosted`, `fw_*`, `custom`, …) escalate straight to `premium`.
 
+**APIM is required for all real inference**, including Azure, Fireworks, Ollama and embeddings. Keep
+`use_gateway: true` and every non-judge entry's `via_gateway: true`. All policies route by physical deployment
+name; only the independent judge is direct. Missing gateway/key or disabled flags fail explicitly, without
+direct fallback. Offline `--mock` still needs no gateway. External/custom resources need an APIM backend and
+routing rule; changing `base_url` alone is insufficient. See [gateway and provider telemetry](../../README.md#required-gateway-and-provider-telemetry).
+
 ## Solution strategy (`TokenWars/strategy.json`)
 
 ```json
@@ -69,7 +76,7 @@ scores are not directly comparable. Terraform updates the generated registry onl
   "compact_prompt": true, "prompt_cache_friendly": true, "retrieval": "keyword", "top_k": 3,
   "order_lookup": true, "max_output_tokens": 350, "exact_cache": true, "semantic_cache": true,
   "semantic_cache_threshold": 0.92, "default_model": "balanced", "routing": "classifier", "escalation": true,
-  "use_gateway": false, "retry_on_throttle": true, "concurrency": 8
+  "use_gateway": true, "retry_on_throttle": true, "concurrency": 8
 }
 ```
 
@@ -91,7 +98,7 @@ scores are not directly comparable. Terraform updates the generated registry onl
 | 3.2 | Route & Rule | Classifier router (economy) | `TokenWars/Router.cs` (`RouteClassifierAsync`) |
 | 3.3 | Route & Rule | Escalation on `ESCALATE` | `TokenWars/Pipeline.cs` (`AnswerCoreAsync`, step 8) |
 | 3.4 | Route & Rule | Throttle-aware retry (429 + Retry-After) | `TokenWars/LlmClient.cs` (`SendWithRetryAsync`) |
-| 3.5 | Route & Rule | AI gateway policy, then `"use_gateway": true` | `infra/policies/ai-gateway-starter.xml` |
+| 3.5 | Route & Rule | Chat budgets, provider telemetry enrichment, pool/retry resilience | `infra/policies/ai-gateway-solution.xml` |
 | stretch | Token Diet | Embedding retrieval (`"retrieval": "embedding"`) | `TokenWars/ContextBuilder.cs` (`EmbeddingRetrievalAsync`) |
 
 ## Files

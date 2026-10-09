@@ -56,7 +56,6 @@ public sealed class LlmClient
     private readonly AppConfig _cfg;
     private readonly bool _useGateway;
     private readonly bool _retryOnThrottle;
-    private int _warnedGateway;
     private static int _lengthWarningShown;
 
     public LlmClient(AppConfig cfg, bool useGateway, bool retryOnThrottle, bool? mock = null)
@@ -188,18 +187,25 @@ public sealed class LlmClient
 
     private (string Url, string Key) Endpoint(ModelConfig model)
     {
-        var gateway = _cfg.Gateway;
-        if (_useGateway && model.ViaGateway)
+        if (model.Key != _cfg.Scoring.JudgeModel)
         {
-            if (gateway != null)
-            {
-                return (gateway.BaseUrl, _cfg.GetEnv(gateway.ApiKeyEnv));
-            }
-            if (Interlocked.Exchange(ref _warnedGateway, 1) == 0)
-            {
-                Console.Error.WriteLine("⚠️  use_gateway=true but no gateway is configured in models.json – calling models directly.");
-            }
+            if (!_useGateway || !model.ViaGateway)
+                throw new ConfigException($"APIM is required for \"{model.Key}\": use_gateway and via_gateway must be true.");
+            var gateway = _cfg.Gateway;
+            if (gateway == null || string.IsNullOrEmpty(gateway.BaseUrl))
+                throw new ConfigException("APIM is required: deploy the gateway and regenerate models.json.");
+            var key = _cfg.GetEnv(gateway.ApiKeyEnv);
+            if (string.IsNullOrEmpty(key))
+                throw new ConfigException($"APIM subscription key is missing ({gateway.ApiKeyEnv}).");
+            if (model.ExtraHeaders.Select(header => header.Key).Any(name =>
+                    name.Equals("api-key", StringComparison.OrdinalIgnoreCase)
+                    || name.Equals("Authorization", StringComparison.OrdinalIgnoreCase)
+                    || name.Equals("Ocp-Apim-Subscription-Key", StringComparison.OrdinalIgnoreCase)))
+                throw new ConfigException($"Model \"{model.Key}\": extra_headers must not override gateway credentials.");
+            return (gateway.BaseUrl, key);
         }
+        if (model.ViaGateway)
+            throw new ConfigException("The judge must use via_gateway: false; it is excluded from the team token budget.");
         if (string.IsNullOrEmpty(model.BaseUrl))
         {
             throw new LlmException($"Model \"{model.Key}\" has no base_url in models.json");
@@ -241,7 +247,7 @@ public sealed class LlmClient
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         request.Content = content;
-        // models.json "extra_headers" (e.g. x-session-affinity); they may replace api-key/Authorization, not Content-Type.
+        // Endpoint rejects gateway credential overrides; affinity headers remain supported.
         var custom = new HashSet<string>(extraHeaders.Select(h => h.Key), StringComparer.OrdinalIgnoreCase);
         if (!string.IsNullOrEmpty(apiKey))
         {

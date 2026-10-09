@@ -49,7 +49,9 @@ STANDARD and Premium for COMPLEX; the classifier uses Economy and escalation fol
 To substitute a model, configure its real catalog name, publisher `format`, `pricing_key` and request settings in
 the corresponding Terraform variable. For another OpenAI-compatible endpoint, keep these app keys in
 `models.json` and configure its `base_url`, `api_key_env`, token parameter, temperature support and extra body/headers.
-Set `via_gateway: false` for endpoints that the current Azure-backed APIM policy does not serve. Update pricing
+All inference entries must use `via_gateway: true`; configure an APIM backend and model-routing rule for any
+external resource/provider not served by the built-in routes. Only the configured judge uses `via_gateway: false`.
+Update pricing
 with your coach and re-measure quality; the tier name does not guarantee capability or price.
 
 **Existing checkouts:** rename `frontier_model`, `mini_model` and `nano_model` overrides to
@@ -165,10 +167,14 @@ Terraform uses the **new Microsoft Foundry** resource model: one Foundry resourc
 are no hub or ML workspace resources. Open the project in the new Foundry portal at <https://ai.azure.com>
 (`terraform output foundry_portal_hint`).
 
-- The apps call the OpenAI-compatible v1 API. By default `models.json` uses
+- The apps call the OpenAI-compatible v1 API through **required APIM**, except the independent judge.
+  By default the direct judge/backend information in `models.json` uses
   `https://<subdomain>.services.ai.azure.com/openai/v1/` (`ai_endpoint_style = "foundry"`). If you get 401s on that
   host, set `ai_endpoint_style = "openai"` (→ `https://<subdomain>.openai.azure.com/openai/v1/`) and re-apply.
-- The APIM gateway always talks to `https://<subdomain>.openai.azure.com/openai` with its managed identity.
+- Every policy routes by the request's physical `model`: configured Fireworks deployments go to Fireworks,
+  the configured Ollama model goes to its self-hosted backend, and other models go to Azure OpenAI.
+  Azure uses managed identity at `https://<subdomain>.openai.azure.com/openai`; Fireworks uses its backend
+  credentials (API key by default), and the workshop Ollama backend is anonymous.
 - The provider is pinned to **azurerm `~> 5.8`** (4.x ended with 4.81.0). If your checkout still has a lock file from
   azurerm 4.x, run `terraform init -upgrade`. Fallback for teams that must stay on 4.x: see the comment in
   `infra/providers.tf`.
@@ -186,14 +192,14 @@ prints what to run next.
 |---|---|---|
 | `foundry_project_name` | `proj-tokenwars` | name of the Foundry project |
 | `ai_endpoint_style` | `foundry` | host written to `models.json`: `foundry` (`*.services.ai.azure.com`) or `openai` (`*.openai.azure.com`, fallback) |
-| `deploy_apim` | `true` | API Management (BasicV2) as AI gateway with managed-identity auth to Azure AI |
+| `deploy_apim` | `true` | required API Management (BasicV2) multi-provider gateway; `false` is rejected |
 | `apim_policy_file` | `policies/ai-gateway-starter.xml` | policy template applied to the `openai` API (TODO 3.5; `ai-gateway-multiprovider.xml` for 3.6) |
 | `deploy_selfhosted_model` | `false` | Ollama (`llama3.2:3b`) on Azure Container Apps (CPU) → models.json key `selfhosted` |
 | `deploy_secondary_region` | `false` | second Foundry resource + APIM backend pool for the failover demo |
 | `deploy_fireworks` | `false` | Challenge 2.4: second Foundry resource + project in `fireworks_location` (default `eastus2`, US Data Zone only) with the `fireworks_models` deployments → models.json keys `fw_fast`, `fw_pro`, `.env` `FIREWORKS_AI_API_KEY` |
 | `fireworks_models` | `fw_fast` = `FW-DeepSeek-V4-Flash-0731`, `fw_pro` = `FW-DeepSeek-V4-Pro` | DataZoneStandard / GlobalStandard only (no PTU); alternatives listed in `terraform.tfvars.example` |
 | `fireworks_grant_deployer_role` | `false` | assigns `fireworks_deployer_role` (`Foundry Owner`) on the Fireworks project if deployment fails with Forbidden |
-| `fireworks_backend_auth` / `failover_model_map` | `api_key` / balanced→fw_fast, premium→fw_pro | Challenge 3.6 failover backend auth and model mapping |
+| `fireworks_backend_auth` / `failover_model_map` | `api_key` / balanced→fw_fast, premium→fw_pro | Fireworks auth for all policies / Challenge 3.6 Azure→Fireworks failover mapping |
 | `*_model` | GPT-5.6 answer tiers, GPT-5.5 judge, text-embedding-3-small, Llama 3.3 70B | model name / version / SKU / capacity (TPM ×1000) / pricing key / `max_tokens_param` / `supports_temperature` / `extra_body` / `extra_headers` |
 
 Re-run `terraform apply` after every change; it regenerates `.env` and `shared/config/models.json`.
@@ -208,8 +214,8 @@ Re-run `terraform apply` after every change; it regenerates `.env` and `shared/c
 | `judge` | `judge` → `gpt-5.5` (2026-04-24) | independent evaluator; not part of the score; bypasses the gateway |
 | `embedding` | `text-embedding-3-small` | semantic cache / embedding retrieval |
 | `open` | `Llama-3.3-70B-Instruct` | serverless open-weight model, `max_tokens`, temperature supported |
-| `selfhosted` | `llama3.2:3b` (Ollama) | optional, CPU on Container Apps |
-| `fw_fast` | `FW-DeepSeek-V4-Flash-0731` | optional (Challenge 2.4), Fireworks on Foundry, Data Zone Standard pay-per-token, direct call (`via_gateway: false`), `prompt_cache_key` in `extra_body` |
+| `selfhosted` | `llama3.2:3b` (Ollama) | optional, CPU on Container Apps; routed through APIM |
+| `fw_fast` | `FW-DeepSeek-V4-Flash-0731` | optional (Challenge 2.4), Fireworks on Foundry, Data Zone Standard pay-per-token, through APIM (`via_gateway: true`), `prompt_cache_key` in `extra_body` |
 | `fw_pro` | `FW-DeepSeek-V4-Pro` | same; open premium model vs `premium` |
 | `custom` | fine-tuned model | coach demo only ("Own the Weights", coach subscription); has an informational `hourly_cost_usd` |
 
@@ -232,6 +238,45 @@ For an existing deployment, run `terraform plan` and review the model replacemen
 `infra/`. Terraform regenerates `shared/config/models.json` only after the new deployments exist; until then,
 the generated registry still points to your current deployments. Do not manually rewrite Terraform state or old
 run results. Re-run `doctor` and the baseline after applying, since model quality and latency must be remeasured.
+
+### Required gateway and provider telemetry
+
+`use_gateway` defaults to `true` in both tracks and cannot be disabled for real inference. All non-judge
+models, including Fireworks, Ollama, embeddings and custom models, require `via_gateway: true`, a gateway
+URL and an APIM subscription key. Missing configuration fails explicitly; there is no direct-call fallback.
+Offline `--mock` still needs no gateway or credentials. The independent configured judge is the only direct
+exception and must have `via_gateway: false`; a missing judge does not fall back to an answer model.
+
+Existing configuration: redeploy from the updated templates to regenerate `.env` and `models.json`, retain
+`deploy_apim = true`, and change old strategy files to `"use_gateway": true`. Do not just change an external
+model's `base_url`: APIM needs its backend and physical-model route too. Credential overrides in inference
+`extra_headers` are rejected; affinity headers remain supported. Deployment names must be distinct across
+providers. APIM routing does not make public backend endpoints private.
+
+Routing, response headers (`x-tokenwars-provider`, `x-tokenwars-model`) and team/provider token metrics are
+already built into **all three policies**, including the starter. TODO 3.5 adds chat budgets, enriches
+telemetry with API/model dimensions, and adds Azure pool/retry resilience. TODO 3.6 adds **failover only**.
+The native LLM policies apply to chat completions; embeddings also pass through APIM and contribute to the
+outbound metric, but not to the chat-only token limiter.
+Only the three answer-tier deployments use the Azure regional pool; embeddings, open and custom models
+stay on the primary backend because the secondary resource does not deploy them.
+
+For the dashboard, use the outbound **Provider Tokens** metric, attributed to the final serving provider:
+`team` is the APIM subscription display name, so each team should use its own subscription key.
+
+```kusto
+customMetrics
+| where name == "Provider Tokens"
+| extend team = tostring(customDimensions["team"]),
+         provider = tostring(customDimensions["provider"])
+| summarize tokens = sum(value) by team, provider, bin(timestamp, 1h)
+| order by timestamp asc
+```
+
+Provider values are `azure-openai`, `fireworks` and `selfhosted`. Native LLM token metrics describe the
+requested route, while the outbound counter reflects a rewritten failover model/provider. **Do not sum
+both metric families together.** Failed attempts without reported usage cannot be counted; this dashboard
+is not a billing ledger. The app still prices failover calls using the requested model's `pricing_key`.
 
 GPT-5.6 pricing uses Microsoft's published Standard Global **short-context** rates:
 Sol $4.00 / $0.50 / $20.00, Terra $2.00 / $0.20 / $12.00, Luna $0.20 / $0.02 / $1.20
@@ -259,7 +304,7 @@ cd infra
 ./scripts/check-fireworks-prereqs.sh --register      # PowerShell: ./scripts/check-fireworks-prereqs.ps1 -Register
 ./scripts/check-fireworks-prereqs.sh                 # repeat until it reports no blockers (feature up to 30 min)
 terraform apply -var 'deploy_fireworks=true'         # or set deploy_fireworks = true in tfvars; a deployment can take up to 30 min
-# Challenge 3.6 (stretch, needs deploy_apim + deploy_fireworks):
+# Challenge 3.6 (stretch: failover only; provider routing already works):
 terraform apply -var 'deploy_fireworks=true' -var 'apim_policy_file=policies/ai-gateway-multiprovider.xml'
 ```
 

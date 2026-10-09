@@ -9,7 +9,7 @@
   ./finetune.ps1 create         # POST {endpoint}/fine_tuning/jobs (trainingType=GlobalStandard)
   ./finetune.ps1 wait           # poll the job until succeeded/failed
   ./finetune.ps1 deploy         # ARM PUT .../accounts/<acct>/deployments/<name> (sku GlobalStandard)
-  ./finetune.ps1 test           # one chat completion against the new deployment
+  ./finetune.ps1 test           # one chat completion through required APIM
   ./finetune.ps1 status         # show state + job + deployment
   ./finetune.ps1 delete         # DELETE the deployment -> stops the hourly hosting fee
   ./finetune.ps1 cleanup-files  # optional: delete the uploaded files
@@ -195,10 +195,14 @@ function Invoke-Deploy {
 }
 
 function Invoke-Test {
-    Initialize-Context
+    $python = Get-EnvOr 'PYTHON' 'python'
+    $gatewayJson = & $python -c 'import json,sys; sys.path.insert(0,sys.argv[1]); from kit_common import find_root,read_json,gateway_credentials; root=find_root(); print(json.dumps(gateway_credentials(root,read_json(root/"shared"/"config"/"models.json"))))' $PSScriptRoot
+    if ($LASTEXITCODE -ne 0) { Fail 'required gateway configuration could not be loaded' }
+    $gateway = $gatewayJson | ConvertFrom-Json
     $first = Get-Content (Join-Path $DataDir 'validation.jsonl') -TotalCount 1 -Encoding utf8 | ConvertFrom-Json
     $msgs = @($first.messages | Where-Object { $_.role -ne 'assistant' } | ForEach-Object { @{ role = $_.role; content = $_.content } })
-    $resp = Invoke-Api POST '/chat/completions' -Body @{ model = $DeploymentName; messages = $msgs; max_tokens = 300; temperature = 0.2 }
+    $body = @{ model = $DeploymentName; messages = $msgs; max_tokens = 300; temperature = 0.2 } | ConvertTo-Json -Depth 20 -Compress
+    $resp = Invoke-RestMethod -Method POST -Uri "$($gateway[0])chat/completions" -Headers @{ 'api-key' = $gateway[1] } -ContentType 'application/json' -Body $body
     Write-Host "Question: $(($msgs[-1].content -split 'Question: ')[-1])"
     Write-Host "Answer:   $($resp.choices[0].message.content)"
     Write-Host "Usage:    $($resp.usage | ConvertTo-Json -Compress)"

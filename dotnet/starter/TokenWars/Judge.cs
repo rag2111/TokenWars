@@ -34,13 +34,12 @@ public sealed class Judge
         ModelKey = cfg.Scoring.JudgeModel;
         if (!cfg.Models.ContainsKey(ModelKey))
         {
-            var chatModels = cfg.ChatModels();
-            var fallback = cfg.Models.ContainsKey("balanced") ? "balanced" : chatModels.FirstOrDefault()
-                ?? throw new ConfigException("No chat model configured for the judge.");
-            Console.Error.WriteLine($"⚠️  Judge model \"{ModelKey}\" not configured – judging with \"{fallback}\".");
-            ModelKey = fallback;
+            throw new ConfigException($"Judge model \"{ModelKey}\" is not configured; an independent direct judge is required.");
         }
         var path = cfg.SharedPath("prompts", "judge.md");
+        var model = cfg.Model(ModelKey);
+        if (model.ViaGateway || model.Type != "chat")
+            throw new ConfigException("The independent judge must be a chat model with via_gateway: false.");
         _template = File.Exists(path) ? File.ReadAllText(path).Replace("\r\n", "\n") : FallbackJudge;
     }
 

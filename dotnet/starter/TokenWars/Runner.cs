@@ -611,7 +611,8 @@ public static class Runner
         Say("\n  Models:");
         foreach (var (key, model) in cfg.Models)
         {
-            var keyState = cfg.GetEnv(model.ApiKeyEnv).Length > 0 ? "key present" : $"key MISSING ({model.ApiKeyEnv})";
+            var keyEnv = key == cfg.Scoring.JudgeModel ? model.ApiKeyEnv : cfg.Gateway?.ApiKeyEnv ?? "APIM_SUBSCRIPTION_KEY";
+            var keyState = cfg.GetEnv(keyEnv).Length > 0 ? "key present" : $"key MISSING ({keyEnv})";
             Say($"    - {key,-11} {model.Deployment,-26} {model.Type,-9} via_gateway={(model.ViaGateway ? "true" : "false"),-5} {keyState}");
             if (model.Type == "chat")
             {
@@ -630,7 +631,7 @@ public static class Runner
                 Say($"      {new string(' ', 11)} {details}");
             }
         }
-        var missing = new[] { "premium", "balanced", "economy", "embedding", "judge" }.Where(k => !cfg.Models.ContainsKey(k)).ToList();
+        var missing = new[] { "premium", "balanced", "economy", "embedding", cfg.Scoring.JudgeModel }.Where(k => !cfg.Models.ContainsKey(k)).ToList();
         if (missing.Count > 0) Say($"    ⚠️  not configured: {string.Join(", ", missing)}");
         if (cfg.Gateway != null)
         {
@@ -639,7 +640,7 @@ public static class Runner
         }
         else
         {
-            Say("    - gateway     not deployed");
+            Say("    - gateway     REQUIRED (not configured; mock mode can run without it)");
         }
 
         if (cfg.Mock)

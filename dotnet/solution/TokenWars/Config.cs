@@ -106,7 +106,7 @@ public sealed class Strategy
     public string DefaultModel { get; set; } = "premium";
     public string Routing { get; set; } = "none";
     public bool Escalation { get; set; }
-    public bool UseGateway { get; set; }
+    public bool UseGateway { get; set; } = true;
     public bool RetryOnThrottle { get; set; }
     public int Concurrency { get; set; } = 8;
 
@@ -126,6 +126,9 @@ public sealed class Strategy
             Console.Error.WriteLine($"⚠️  Ignoring unknown strategy.json keys: {string.Join(", ", unknown)}");
         }
 
+        if (o.TryGetPropertyValue("use_gateway", out var useGateway) && useGateway?.GetValueKind() != JsonValueKind.True)
+            throw new ConfigException("APIM is required: strategy.use_gateway must be the JSON boolean true.");
+
         var s = new Strategy
         {
             CompactPrompt = JsonUtil.Bool(o["compact_prompt"]) ?? false,
@@ -140,11 +143,13 @@ public sealed class Strategy
             DefaultModel = (JsonUtil.Str(o["default_model"]) ?? "premium").Trim(),
             Routing = (JsonUtil.Str(o["routing"]) ?? "none").Trim().ToLowerInvariant(),
             Escalation = JsonUtil.Bool(o["escalation"]) ?? false,
-            UseGateway = JsonUtil.Bool(o["use_gateway"]) ?? false,
+            UseGateway = JsonUtil.Bool(o["use_gateway"]) ?? true,
             RetryOnThrottle = JsonUtil.Bool(o["retry_on_throttle"]) ?? false,
             Concurrency = JsonUtil.Int(o["concurrency"]) ?? 8,
         };
 
+        if (!s.UseGateway)
+            throw new ConfigException("APIM is required: strategy.use_gateway must be true (the judge is the only direct exception).");
         if (s.Retrieval is not ("all" or "keyword" or "embedding"))
             throw new ConfigException($"strategy.retrieval must be \"all\", \"keyword\" or \"embedding\" (got \"{s.Retrieval}\")");
         if (s.Routing is not ("none" or "rules" or "classifier"))
@@ -190,7 +195,7 @@ public sealed class ModelConfig
     public string ApiKeyEnv { get; init; } = "AZURE_AI_API_KEY";
     public string PricingKey { get; init; } = "";
     public string Type { get; init; } = "chat";
-    public bool ViaGateway { get; init; }
+    public bool ViaGateway { get; init; } = true;
     public string MaxTokensParam { get; init; } = "max_tokens";
 
     /// <summary>When false, `temperature` is left out of every chat request (GPT-5.6 family).</summary>
@@ -484,6 +489,9 @@ public sealed class AppConfig
                 if (node is not JsonObject m) continue;
                 var deployment = JsonUtil.Str(m["deployment"]);
                 if (string.IsNullOrEmpty(deployment)) continue;
+                if (m.TryGetPropertyValue("via_gateway", out var viaGateway)
+                    && viaGateway?.GetValueKind() is not (JsonValueKind.True or JsonValueKind.False))
+                    throw new ConfigException($"Model \"{key}\": via_gateway must be a JSON boolean.");
                 var baseUrl = (JsonUtil.Str(m["base_url"]) ?? "").Trim();
                 if (baseUrl.Length > 0 && !baseUrl.EndsWith('/')) baseUrl += "/";
                 var maxParam = JsonUtil.Str(m["max_tokens_param"]);
@@ -495,7 +503,7 @@ public sealed class AppConfig
                     ApiKeyEnv = NonEmpty(JsonUtil.Str(m["api_key_env"]), "AZURE_AI_API_KEY"),
                     PricingKey = NonEmpty(JsonUtil.Str(m["pricing_key"]), deployment),
                     Type = NonEmpty(JsonUtil.Str(m["type"]), "chat"),
-                    ViaGateway = JsonUtil.Bool(m["via_gateway"]) ?? false,
+                    ViaGateway = JsonUtil.Bool(m["via_gateway"]) ?? (key != "judge"),
                     MaxTokensParam = string.IsNullOrWhiteSpace(maxParam) ? "max_tokens" : maxParam,
                     SupportsTemperature = AsBool(m["supports_temperature"], true),
                     ExtraBody = m["extra_body"] is JsonObject extra
@@ -555,7 +563,7 @@ public sealed class AppConfig
         "balanced":      {"deployment": "gpt-5.6-terra", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.6-terra", "type": "chat", "via_gateway": true, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}},
         "economy":      {"deployment": "gpt-5.6-luna", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.6-luna", "type": "chat", "via_gateway": true, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}},
         "open":      {"deployment": "Llama-3.3-70B-Instruct", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "llama-3.3-70b-instruct", "type": "chat", "via_gateway": true, "max_tokens_param": "max_tokens", "supports_temperature": true, "extra_body": {}},
-        "embedding": {"deployment": "text-embedding-3-small", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "text-embedding-3-small", "type": "embedding", "via_gateway": false, "max_tokens_param": "max_tokens", "supports_temperature": true, "extra_body": {}},
+        "embedding": {"deployment": "text-embedding-3-small", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "text-embedding-3-small", "type": "embedding", "via_gateway": true, "max_tokens_param": "max_tokens", "supports_temperature": true, "extra_body": {}},
         "judge":     {"deployment": "judge", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.5", "type": "chat", "via_gateway": false, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}}
       },
       "gateway": null

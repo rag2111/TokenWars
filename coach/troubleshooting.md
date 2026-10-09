@@ -20,14 +20,14 @@ Judge calls bypass APIM, so APIM failover does not recover a judge outage. Its c
 | Llama deployment fails with a format/version error | Catalog version numbers change. | Keep `open_model.version = null` (default version) and `format = "Meta"`; or disable with `deploy_open_model = false`. |
 | `RequestConflict` / "Another operation is being performed" | Parallel operations on one Foundry resource. | Deployments are chained with `depends_on`; just re-run `terraform apply`. |
 | Custom subdomain / name already taken | Soft-deleted account with the same name. | The provider purges on destroy; otherwise `az cognitiveservices account list-deleted` + `az cognitiveservices account purge`. |
-| APIM takes long | v2 tiers typically 5–15 min; classic Developer/Basic 30–60 min. | Keep `BasicV2_1`. Deploy the day before or during kickoff; teams can start Challenge 1 without APIM (`use_gateway: false`). |
+| APIM takes long | v2 tiers typically 5–15 min; classic Developer/Basic 30–60 min. | Keep `BasicV2_1`. Deploy the day before; teams can start coding with `--mock` while waiting. Real inference requires APIM. |
 | APIM "soft-deleted service with the same name exists" | Previous destroy without purge. | `recover_soft_deleted`/purge are enabled in the provider; else `az apim deletedservice purge --service-name <name> --location <region>`. |
 | `subscription_id` / "a subscription ID must be configured" | azurerm 4.x / 5.x needs an explicit subscription. | `export ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)` or set `subscription_id` in tfvars. |
 | `terraform init`: "locked provider registry.terraform.io/hashicorp/azurerm 4.x does not match configured version constraint ~> 5.8" (or "Inconsistent dependency lock file") | Lock file from an older checkout (azurerm 4.x). | `terraform init -upgrade`. If a team must stay on 4.x: follow the fallback comment in `infra/providers.tf` (`~> 4.81`, remove `resource_providers_to_register` and `logs_destination`). |
 | `MissingSubscriptionRegistration` / "The subscription is not registered to use namespace 'Microsoft.…'" or `resource_providers_to_register` fails with `AuthorizationFailed` | azurerm 5.x registers **no** providers by default; the kit registers `Microsoft.CognitiveServices`, `Microsoft.ApiManagement`, `Microsoft.OperationalInsights`, `Microsoft.Insights`, `Microsoft.App`, which needs Owner/Contributor on the subscription. | Run as Owner/Contributor, or register manually: `az provider register --namespace <ns>` (check with `az provider show -n <ns> --query registrationState`), then re-apply. |
 | Unsupported argument `resource_providers_to_register` / `logs_destination` | Running the 5.x configuration with azurerm 4.x. | `terraform init -upgrade` (pin is `~> 5.8`). |
 | `foundry_project_endpoint` looks like `https://<sub>.services.ai.azure.com/api/projects/<proj>` | The `"AI Foundry API"` key was not found in the project's `endpoints` map (VALIDATE); the output fell back. | Informational only — the apps use `ai_base_url`. Check `terraform output foundry_project_endpoints`. |
-| `AuthorizationFailed` on `azurerm_role_assignment` | Contributor cannot create role assignments. | Needs Owner or User Access Administrator; or ask the coach to pre-create the assignments / set `deploy_apim = false`. |
+| `AuthorizationFailed` on `azurerm_role_assignment` | Contributor cannot create role assignments. | Needs Owner or User Access Administrator; or ask the coach to pre-create the assignments. APIM cannot be disabled. |
 | Policy error "Resource ... disallowed by policy" or `disableLocalAuth` enforced | Organisation Azure Policy (no public network / no local auth / allowed regions). | Use a sandbox subscription. If local auth is forced off, the apps' API keys won't work: use the APIM gateway only (`use_gateway: true`, APIM uses managed identity), which requires `via_gateway: true` models. |
 
 ## Fireworks on Foundry (Challenge 2.4 / 3.6, optional)
@@ -46,12 +46,21 @@ first: it checks login, the feature, the resource provider, your role, the regio
 | **Forbidden** / `AuthorizationFailed` when creating a Fireworks deployment | Deploying needs **Foundry Owner** (formerly Azure AI Owner) or **Azure AI Developer** on the project; RBAC propagation can take minutes. | Set `fireworks_grant_deployer_role = true` (and `fireworks_deployer_role = "Azure AI Owner"` if the tenant still shows the old name), apply again; or ask the subscription owner to assign the role on the Fireworks project. |
 | Deployment fails with a model **format** / version error (`InvalidResourceProperties`, "format ... not supported") | `fireworks_model_format` (default `"Fireworks"`) and `version = null` are VALIDATE items. | Run the check script — step 6 prints the real *format* and version per model; set `fireworks_model_format` / `version` accordingly. `"FireworksCustom"` is only for imported custom weights (PTU-only, not used). |
 | Apply runs for 20–30 min on `fireworks_first` / `fireworks_rest` | A Fireworks deployment can take up to 30 min (Terraform timeout is 60 min). | Wait; this is why it belongs in setup, not in Challenge 2. |
-| `doctor`: `fw_fast` 401 | `FIREWORKS_AI_API_KEY` missing/stale in `.env`, or the `services.ai.azure.com` host (VALIDATE). | Re-run `terraform apply`; if 401 persists, `ai_endpoint_style = "openai"` and re-apply. |
+| `doctor`: `fw_fast` 401 | Missing/stale APIM subscription key, or Fireworks backend credentials/host. | Check `APIM_SUBSCRIPTION_KEY`, backend `fireworks`, its secret named value and APIM trace. Re-apply to refresh the backend key. The caller no longer uses `FIREWORKS_AI_API_KEY`. |
 | `fw_*` returns 400 for a parameter | Fireworks models take `max_tokens`, not GPT-5.x-only parameters. | Keep `max_tokens_param = "max_tokens"`, no `reasoning_effort` in `extra_body`. |
 | Embeddings on `fw_*` fail | Fireworks on Foundry is chat completions only. | Keep `embedding` on `text-embedding-3-small`. |
-| `fw_*` not reachable through APIM (`use_gateway: true`) | By design: `via_gateway` is false for `fw_*`; the `openai` API routes only to Azure. Fireworks is reachable through APIM only as the 3.6 failover target. | The apps call `fw_*` directly even with `use_gateway: true`. |
+| `fw_*` not reachable through APIM | Stale registry/policy, mismatched physical deployment names or Fireworks backend auth. | Re-apply the updated templates; all policies route configured Fireworks models to the Fireworks backend. Entries need `via_gateway: true`; callers use the APIM subscription key. |
 
 ### Multi-provider failover policy (Challenge 3.6)
+
+This challenge adds failover only. Physical-model routing and lowercase `team`/`provider` dimensions already
+work in every policy. Use outbound **Provider Tokens** for final-provider consumption, including embeddings;
+native LLM metrics describe the requested route. Do not add the two families together. Failed attempts
+without reported usage cannot be counted. Chat-only LLM token limits do not govern embeddings.
+
+Missing gateway/key, `use_gateway: false`, or a non-judge model with `via_gateway: false` are configuration
+errors, not permission to call the backend directly. Re-apply the infrastructure and migrate old strategy
+files to `true`; use `--mock` if the gateway is not ready. Only the configured independent judge is direct.
 
 | Symptom | Cause | Fix |
 |---|---|---|
@@ -61,7 +70,7 @@ first: it checks login, the feature, the resource provider, your role, the regio
 | 503 / error without a Fireworks retry | With a secondary region the pool circuit breaker may be **open**: the gateway raises an error, `on-error` runs, no retry (VALIDATE). | Keep `deploy_secondary_region = false` for the failover demo; use a low deployment TPM; expect the first 429s to fail over. |
 | Failover attempt returns 401 | `fireworks_backend_auth = "managed_identity"` not accepted by Fireworks deployments (VALIDATE), or the `fireworks-api-key` named value is stale. | Use the default `fireworks_backend_auth = "api_key"`; re-apply to refresh the named value. |
 | Failover attempt returns 400 | Fireworks rejected a remaining GPT-5.x-only parameter (the policy removes `reasoning_effort` and renames `max_completion_tokens`). | Check the trace; remove the parameter in the `set-body` of the policy. |
-| `x-tokenwars-provider` always `azure-openai` in metrics, although the header says `fireworks` | `llm-emit-token-metric` may evaluate the Provider dimension before the backend call (VALIDATE). | Use the outbound metric **"Provider Tokens"** (namespace `tokenwars`) — it is exact. |
+| Native token metrics say `azure-openai` while the response header says `fireworks` | Native dimensions intentionally describe the requested route, not the rewritten failover. | Use outbound **Provider Tokens** grouped by lowercase `team`/`provider` for final reported usage. Do not sum both metric families; attempts without usage remain uncounted. |
 | Answers got worse after enabling failover | A different model answers silently (quality drift). | That is the debrief point; read `x-tokenwars-model`. |
 
 ## Calling models

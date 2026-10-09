@@ -6,7 +6,7 @@
 #   ./finetune.sh create      # POST {endpoint}/fine_tuning/jobs  (trainingType=GlobalStandard)
 #   ./finetune.sh wait        # poll the job until succeeded/failed (prints status + latest event)
 #   ./finetune.sh deploy      # ARM PUT …/accounts/<acct>/deployments/<name>  (sku GlobalStandard)
-#   ./finetune.sh test        # one chat completion against the new deployment
+#   ./finetune.sh test        # one chat completion through required APIM
 #   ./finetune.sh status      # show state + job + deployment
 #   ./finetune.sh delete      # DELETE the deployment → stops the hourly hosting fee
 #   ./finetune.sh cleanup-files   # optional: delete the uploaded training/validation files
@@ -210,7 +210,17 @@ cmd_deploy() {
 }
 
 cmd_test() {
-  need_vars
+  local gateway gw_url gw_key
+  gateway="$("$PY" - "$SCRIPT_DIR" <<'PYEOF'
+import json, sys
+sys.path.insert(0, sys.argv[1])
+from kit_common import find_root, read_json, gateway_credentials
+root = find_root()
+print(json.dumps(gateway_credentials(root, read_json(root / "shared" / "config" / "models.json"))))
+PYEOF
+)" || die "required gateway configuration could not be loaded"
+  gw_url="$(json_get "$gateway" 'd[0]')"; gw_url="${gw_url%$'\r'}"
+  gw_key="$(json_get "$gateway" 'd[1]')"; gw_key="${gw_key%$'\r'}"
   local body
   body="$("$PY" - "$DATA_DIR/validation.jsonl" "$DEPLOYMENT_NAME" <<'PYEOF'
 import json, sys
@@ -221,7 +231,7 @@ print(json.dumps({"model": sys.argv[2], "messages": msgs, "max_tokens": 300, "te
 PYEOF
 )"
   local resp
-  resp="$(api POST /chat/completions -H "Content-Type: application/json" -d "$body")"
+  resp="$(ENDPOINT="${gw_url%/}" AUTH_HEADER="api-key: $gw_key" api POST /chat/completions -H "Content-Type: application/json" -d "$body")"
   echo "Question: $(json_get "$body" 'd["messages"][-1]["content"].split("Question: ")[-1]')"
   echo "Answer:   $(json_get "$resp" 'd["choices"][0]["message"]["content"]')"
   echo "Usage:    $(json_get "$resp" 'd.get("usage")')"

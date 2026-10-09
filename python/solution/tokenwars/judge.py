@@ -4,11 +4,11 @@ from __future__ import annotations
 import json
 import random
 import re
-import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
 
+from .config import ConfigError
 from .llm_client import RETRYABLE_STATUS, LlmError
 from .pricing import call_cost
 
@@ -53,9 +53,10 @@ class Judge:
         self.client = client
         self.model_key = config.scoring.get("judge_model", "judge")
         if self.model_key not in config.models:
-            fallback = "balanced" if "balanced" in config.models else config.chat_models()[0]
-            print(f'⚠️  Judge model "{self.model_key}" not configured – judging with "{fallback}".', file=sys.stderr)
-            self.model_key = fallback
+            raise ConfigError(f'Judge model "{self.model_key}" is not configured; an independent direct judge is required.')
+        model = config.model(self.model_key)
+        if model.via_gateway or model.type != "chat":
+            raise ConfigError("The independent judge must be a chat model with via_gateway: false.")
         path = Path(config.root) / "shared" / "prompts" / "judge.md"
         self.template = path.read_text(encoding="utf-8") if path.exists() else _FALLBACK_JUDGE
 

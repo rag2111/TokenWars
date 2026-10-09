@@ -33,9 +33,13 @@ cost_per_success_usd = total_cost_usd / max(successes, 1)
 - **Coach demo models are not eligible for the leaderboard.** The `custom` model from the "Own the Weights" demo runs
   in the coach subscription, its price is only written to the coach's local `pricing.json`, and demo runs are never
   submitted.
-- **Multi-provider failover (Challenge 3.6):** the app cannot see which provider answered behind the gateway, so a
-  failed-over answer is priced with the **requested** model's `pricing_key` (the Azure price). This is conservative —
-  failover never makes a run look cheaper. Quality drift from the substitute model does show up in the judge score.
+- **Required gateway:** all inference (including Fireworks, Ollama and embeddings) uses APIM; only the independent
+  judge is direct. Built-in provider routing does not change ordinary model pricing.
+- **Multi-provider failover (Challenge 3.6):** the app does not use the gateway's provider/model response headers
+  to reprice calls. A failed-over answer therefore uses the **requested** model's `pricing_key`, not the serving
+  Fireworks price. The leaderboard is not exact provider billing. Quality drift does affect the judge score.
+  Use outbound **Provider Tokens** grouped by lowercase `team`/`provider` for the serving-provider split;
+  do not sum it with native requested-route LLM metrics. Failed attempts without reported usage remain uncounted.
 
 ## Validity gate
 

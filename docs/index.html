@@ -118,6 +118,8 @@ ul.ticks li::before{content:"▸";position:absolute;inset-inline-start:4px;color
 .callout.danger{border-color:rgba(255,92,122,.6);background:rgba(255,92,122,.08)}
 .figure{margin:16px 0;background:var(--bg-2);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
 .figure svg{display:block;width:100%;height:auto}
+.arch-figure{overflow-x:auto}
+.arch-figure .arch{min-width:900px}
 figcaption{color:var(--muted);font-size:.85rem;margin-block-start:8px}
 .pill{display:inline-block;font:600 .7rem var(--mono);color:var(--violet);border:1px solid rgba(180,140,255,.5);border-radius:999px;padding:0 7px;margin-inline-start:6px;vertical-align:middle}
 
@@ -293,6 +295,7 @@ details.faq[open]>summary{border-block-end:1px solid var(--line);color:var(--cya
   .topbar,.sidebar,.copy-btn,.timer-card,.toast{display:none!important}
   main{margin:0;padding:0}
   .code pre{color:#000}
+  .arch-figure .arch{min-width:0}
   details>*{display:block}
 }
 
@@ -310,6 +313,10 @@ details.faq[open]>summary{border-block-end:1px solid var(--line);color:var(--cya
 .promptbar .w{font:600 13px system-ui,"Segoe UI",sans-serif;fill:#eef2ff}
 .promptbar .c{font:400 12px system-ui,"Segoe UI",sans-serif;fill:#a9b1d6}
 .arch .n.f rect{stroke:#b48cff}
+.arch .model-layer{fill:#0e1128;stroke:#7df9ff;stroke-width:1.5}
+.arch .model-group{fill:#141733;stroke:#454d80;stroke-width:1.2}
+.arch .group-title{fill:#eef2ff;font:600 14px system-ui,"Segoe UI",sans-serif;text-anchor:middle}
+.arch .group-note{fill:#a9b1d6;font:400 11.5px system-ui,"Segoe UI",sans-serif;text-anchor:middle}
 .badge-validate{display:inline-block;font:600 .68rem var(--mono);color:var(--amber);border:1px dashed rgba(255,181,71,.6);border-radius:999px;padding:1px 8px;margin-inline-start:8px;vertical-align:middle;letter-spacing:.04em;text-transform:uppercase;opacity:.9}
 .step-tag.opt{background:var(--violet);box-shadow:0 0 14px rgba(180,140,255,.5)}
 .limits{border:1px solid rgba(255,181,71,.55);background:rgba(255,181,71,.06);border-radius:12px;padding:12px 16px;margin-block:14px}
@@ -398,14 +405,14 @@ tr.grp th{background:rgba(125,249,255,.06);color:var(--cyan);font:700 .74rem var
 </div>
 <h3>How it all fits together</h3>
 <p>Every workload question goes through the same answer pipeline, and each TODO lights up one block. Make each block cheaper without letting the judge's pass rate drop below 85%.</p>
-<figure class="figure">
-<svg class="arch" viewBox="0 0 1100 470" role="img" aria-labelledby="arch-t arch-d" xmlns="http://www.w3.org/2000/svg">
+<figure class="figure arch-figure">
+<svg class="arch" viewBox="0 0 1100 680" role="img" aria-labelledby="arch-t arch-d" xmlns="http://www.w3.org/2000/svg">
   <title id="arch-t">Token Wars answer pipeline</title>
-  <desc id="arch-d">A request goes through the exact and semantic cache, the router and the context builder, then to one model tier (premium, balanced, economy, open or self-hosted), optionally through the Azure API Management AI gateway, or directly to the optional Fireworks on Foundry models (fw_fast, fw_pro), which also serve as the gateway's multi-provider failover target in Challenge 3.6. The answer is judged, summarised on the scorecard and submitted to the leaderboard. A cache hit skips straight to the answer. An ESCALATE reply moves the item up to the next model tier.</desc>
+  <desc id="arch-d">A request goes through the cache, router and context builder, then the required Azure API Management gateway. The model layer contains four groups: Fireworks through Foundry (fw_fast and fw_pro), frontier models through Foundry (premium, balanced and economy), other models through Foundry (open and embedding), and optional selfhosted models (Ollama). All four groups use the gateway's built-in physical-model routing and team/provider token metrics. Challenge 3.6 adds Azure-to-Fireworks failover only. The separate Judge Model uses GPT-5.5 directly, as the sole inference exception outside team token budgets and scores. A cache hit skips the answer model; an ESCALATE reply requests a higher tier through the gateway.</desc>
   <defs>
     <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7df9ff"/></marker>
     <marker id="ahm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff4fb8"/></marker>
-    <marker id="ahl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#c6ff4a"/></marker>
+    <marker id="ahj" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ffb547"/></marker>
     <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     <linearGradient id="gw" x1="0" x2="1"><stop offset="0" stop-color="#ff4fb8" stop-opacity=".15"/><stop offset="1" stop-color="#7df9ff" stop-opacity=".15"/></linearGradient>
   </defs>
@@ -419,39 +426,64 @@ tr.grp th{background:rgba(125,249,255,.06);color:var(--cyan);font:700 .74rem var
   <line class="ln" x1="150" y1="72" x2="196" y2="72" marker-end="url(#ah)"/>
   <line class="ln" x1="360" y1="72" x2="406" y2="72" marker-end="url(#ah)"/>
   <line class="ln" x1="560" y1="72" x2="606" y2="72" marker-end="url(#ah)"/>
-  <rect x="560" y="160" width="520" height="60" rx="12" fill="url(#gw)" stroke="#ff4fb8" stroke-dasharray="7 5" stroke-width="1.6"/>
-  <text x="820" y="186" fill="#ffd1ec" style="font:600 14px system-ui,Segoe UI,sans-serif;text-anchor:middle">Optional AI gateway (Azure API Management)</text>
-  <text x="820" y="206" fill="#a9b1d6" style="font:400 11.5px system-ui,Segoe UI,sans-serif;text-anchor:middle">token limit · token metrics · backend failover · use_gateway (TODO 3.5)</text>
+  <rect x="320" y="160" width="760" height="64" rx="12" fill="url(#gw)" stroke="#ff4fb8" stroke-width="1.6"/>
+  <text x="700" y="186" fill="#ffd1ec" style="font:600 15px system-ui,Segoe UI,sans-serif;text-anchor:middle">Required AI gateway (Azure API Management)</text>
+  <text x="700" y="207" fill="#a9b1d6" style="font:400 12px system-ui,Segoe UI,sans-serif;text-anchor:middle">built-in model routing · team + provider metrics · 3.5 budgets · 3.6 failover</text>
   <path class="ln" d="M800 72 H1010 V156" marker-end="url(#ah)"/>
-  <text class="lbl" x="880" y="64">chat call</text>
-  <g class="n m"><rect x="560" y="260" width="96" height="58" rx="10"/><text x="608" y="286">premium</text><text class="s" x="608" y="304">gpt-5.6-sol</text></g>
-  <g class="n m"><rect x="666" y="260" width="96" height="58" rx="10"/><text x="714" y="286">balanced</text><text class="s" x="714" y="304">gpt-5.6-terra</text></g>
-  <g class="n m"><rect x="772" y="260" width="96" height="58" rx="10"/><text x="820" y="286">economy</text><text class="s" x="820" y="304">gpt-5.6-luna</text></g>
-  <g class="n m"><rect x="878" y="260" width="96" height="58" rx="10"/><text x="926" y="286">open</text><text class="s" x="926" y="304">Llama 3.3 70B</text></g>
-  <g class="n m"><rect x="984" y="260" width="96" height="58" rx="10" stroke-dasharray="5 4"/><text x="1032" y="286">selfhosted</text><text class="s" x="1032" y="304">Ollama (opt.)</text></g>
-  <line class="ln" x1="820" y1="220" x2="820" y2="256" marker-end="url(#ah)"/>
-  <rect x="316" y="244" width="208" height="82" rx="12" fill="rgba(180,140,255,.08)" stroke="#b48cff" stroke-dasharray="6 4" stroke-width="1.5"/>
-  <text x="420" y="261" fill="#d9c8ff" style="font:600 12.5px system-ui,Segoe UI,sans-serif;text-anchor:middle">Fireworks on Foundry (opt. · US)</text>
-  <g class="n f"><rect x="326" y="268" width="90" height="50" rx="9"/><text x="371" y="290">fw_fast</text><text class="s" x="371" y="308">DS-V4 Flash</text></g>
-  <g class="n f"><rect x="424" y="268" width="90" height="50" rx="9"/><text x="469" y="290">fw_pro</text><text class="s" x="469" y="308">DS-V4 Pro</text></g>
-  <path class="ln" d="M800 90 H832 V140 H420 V240" stroke-dasharray="5 4" marker-end="url(#ah)"/>
-  <text class="lbl" x="428" y="192">direct (fw_*, 2.4)</text>
-  <path d="M560 206 H532 V292 H527" stroke="#ff4fb8" stroke-width="1.6" fill="none" stroke-dasharray="4 4" marker-end="url(#ahm)"/>
-  <text x="474" y="236" style="fill:#ff9fd6;font:italic 11.5px system-ui,Segoe UI,sans-serif;text-anchor:middle">3.6 failover</text>
-  <text class="lbl" x="560" y="345">escalation ladder: economy → balanced → premium · open / selfhosted / fw_* → premium (TODO 3.3)</text>
-  <path d="M1032 322 C1032 372 700 372 666 322" stroke="#c6ff4a" stroke-width="1.6" fill="none" stroke-dasharray="4 4" marker-end="url(#ahl)"/>
-  <text x="850" y="384" style="fill:#c6ff4a;font:700 12px ui-monospace,Consolas,monospace">ESCALATE ↺</text>
-  <g class="n j"><rect x="330" y="390" width="150" height="64" rx="12"/><text x="405" y="418">Judge</text><text class="s" x="405" y="438">score 1–5 · pass ≥ 4</text></g>
-  <g class="n j"><rect x="165" y="390" width="140" height="64" rx="12"/><text x="235" y="418">Scorecard</text><text class="s" x="235" y="438">cost / success</text></g>
-  <g class="n l"><rect x="10" y="390" width="130" height="64" rx="12" filter="url(#glow)"/><text x="75" y="418">Leaderboard</text><text class="s" x="75" y="438">run --submit</text></g>
-  <path class="ln" d="M608 322 V422 H484" marker-end="url(#ah)"/>
-  <text class="lbl" x="520" y="412">answer</text>
-  <line class="ln" x1="330" y1="422" x2="309" y2="422" marker-end="url(#ah)"/>
-  <line class="ln" x1="165" y1="422" x2="144" y2="422" marker-end="url(#ah)"/>
-  <path d="M280 104 V300 Q280 340 330 350 L392 386" stroke="#ff4fb8" stroke-width="2" fill="none" stroke-dasharray="6 5" marker-end="url(#ahm)"/>
-  <text x="140" y="236" style="fill:#ff9fd6;font:italic 12px system-ui,Segoe UI,sans-serif">cache hit → cost 0,</text>
-  <text x="140" y="252" style="fill:#ff9fd6;font:italic 12px system-ui,Segoe UI,sans-serif">skip the model</text>
-</svg><figcaption>The answer pipeline. Dashed elements are optional. Every model call is costed, including classifier, embedding and escalation calls. Judge calls are not.</figcaption></figure>
+  <text class="lbl" x="880" y="64">chat + embeddings</text>
+  <g id="model-layer">
+    <rect class="model-layer" x="20" y="268" width="1060" height="238" rx="16"/>
+    <text x="40" y="294" fill="#7df9ff" style="font:700 17px system-ui,Segoe UI,sans-serif">Model layer</text>
+    <text x="40" y="315" fill="#a9b1d6" style="font:400 12px system-ui,Segoe UI,sans-serif">Answer, classifier and embedding models · all accessed through APIM</text>
+    <g id="models-fireworks">
+      <rect class="model-group" x="36" y="352" width="220" height="134" rx="12" style="stroke:#b48cff" stroke-dasharray="6 4"/>
+      <text class="group-title" x="146" y="374">Fireworks through Foundry</text>
+      <text class="group-note" x="146" y="393">Optional · US deployment</text>
+      <g class="n f"><rect x="48" y="408" width="94" height="66" rx="10"/><text x="95" y="434">fw_fast</text><text class="s" x="95" y="455">DS-V4 Flash</text></g>
+      <g class="n f"><rect x="150" y="408" width="94" height="66" rx="10"/><text x="197" y="434">fw_pro</text><text class="s" x="197" y="455">DS-V4 Pro</text></g>
+    </g>
+    <g id="models-frontier">
+      <rect class="model-group" x="272" y="352" width="340" height="134" rx="12" style="stroke:#c6ff4a"/>
+      <text class="group-title" x="442" y="374">Frontier models through Foundry</text>
+      <text class="group-note" x="442" y="393">Azure OpenAI · provider-neutral tiers</text>
+      <g class="n m"><rect x="284" y="408" width="100" height="66" rx="10"/><text x="334" y="434">Premium</text><text class="s" x="334" y="455">gpt-5.6-sol</text></g>
+      <g class="n m"><rect x="392" y="408" width="100" height="66" rx="10"/><text x="442" y="434">Balanced</text><text class="s" x="442" y="455">gpt-5.6-terra</text></g>
+      <g class="n m"><rect x="500" y="408" width="100" height="66" rx="10"/><text x="550" y="434">Economy</text><text class="s" x="550" y="455">gpt-5.6-luna</text></g>
+    </g>
+    <g id="models-other-foundry">
+      <rect class="model-group" x="628" y="352" width="250" height="134" rx="12"/>
+      <text class="group-title" x="753" y="374">Other models through Foundry</text>
+      <text class="group-note" x="753" y="393">Open weights + embeddings</text>
+      <g class="n"><rect x="640" y="408" width="106" height="66" rx="10"/><text x="693" y="434">open</text><text class="s" x="693" y="455">Llama 3.3 70B</text></g>
+      <g class="n"><rect x="754" y="408" width="112" height="66" rx="10"/><text x="810" y="430">embedding</text><text class="s" x="810" y="449">text-embedding</text><text class="s" x="810" y="464">-3-small</text></g>
+    </g>
+    <g id="models-selfhosted">
+      <rect class="model-group" x="894" y="352" width="170" height="134" rx="12" stroke-dasharray="6 4"/>
+      <text class="group-title" x="979" y="374">Selfhosted models</text>
+      <text class="group-note" x="979" y="393">Ollama · optional</text>
+      <g class="n m"><rect x="906" y="408" width="146" height="66" rx="10"/><text x="979" y="434">selfhosted</text><text class="s" x="979" y="455">llama3.2:3b</text></g>
+    </g>
+  </g>
+  <path class="ln" d="M840 224 V330 M146 330 H979"/>
+  <path class="ln" d="M146 330 V348" marker-end="url(#ah)"/>
+  <path class="ln" d="M442 330 V348" marker-end="url(#ah)"/>
+  <path class="ln" d="M753 330 V348" marker-end="url(#ah)"/>
+  <path class="ln" d="M979 330 V348" marker-end="url(#ah)"/>
+  <text x="500" y="531" style="fill:#c6ff4a;font:700 12px ui-monospace,Consolas,monospace;text-anchor:middle">ESCALATE (TODO 3.3): economy → balanced → premium</text>
+  <text class="lbl" x="500" y="550" style="text-anchor:middle">open / selfhosted / fw_* → premium · every retry uses APIM</text>
+  <g class="n j"><rect x="640" y="596" width="180" height="66" rx="12"/><text x="730" y="622">Judge</text><text class="s" x="730" y="643">score 1–5 · pass ≥ 4</text></g>
+  <g class="n j" id="judge-model"><rect x="878" y="596" width="186" height="66" rx="12"/><text x="971" y="622">Judge Model</text><text class="s" x="971" y="643">GPT-5.5</text></g>
+  <line x1="824" y1="629" x2="874" y2="629" stroke="#ffb547" stroke-width="2" marker-start="url(#ahj)" marker-end="url(#ahj)"/>
+  <text x="971" y="574" style="fill:#ffb547;font:600 12px system-ui,Segoe UI,sans-serif;text-anchor:middle">Direct exception · outside team budget</text>
+  <g class="n j"><rect x="370" y="596" width="180" height="66" rx="12"/><text x="460" y="622">Scorecard</text><text class="s" x="460" y="643">cost / success</text></g>
+  <g class="n l"><rect x="70" y="596" width="180" height="66" rx="12" filter="url(#glow)"/><text x="160" y="622">Leaderboard</text><text class="s" x="160" y="643">run --submit</text></g>
+  <path class="ln" d="M730 506 V592" marker-end="url(#ah)"/>
+  <text class="lbl" x="746" y="575">answer</text>
+  <line class="ln" x1="640" y1="629" x2="554" y2="629" marker-end="url(#ah)"/>
+  <line class="ln" x1="370" y1="629" x2="254" y2="629" marker-end="url(#ah)"/>
+  <path d="M280 104 V142 H8 V568 H700 V592" stroke="#ff4fb8" stroke-width="2" fill="none" stroke-dasharray="6 5" marker-end="url(#ahm)"/>
+  <text x="40" y="535" style="fill:#ff9fd6;font:italic 12px system-ui,Segoe UI,sans-serif">cache hit → cost 0, skip the answer model</text>
+</svg><figcaption>The model layer groups deployments by model family and hosting platform; all four groups use required APIM. Fireworks and selfhosted groups are optional (dashed). Only the separate Judge Model (GPT-5.5) is called directly, outside team budgets and scores. Classifier, embedding and escalation calls are costed. Scroll horizontally on smaller screens to read the diagram.</figcaption></figure>
 </section>
 <section id="scenario" class="doc-section" aria-labelledby="scenario-h"><p class="kicker">The scenario</p><h2 id="scenario-h">The scenario: ByteCart Support Copilot</h2>
 <p><strong>ByteCart</strong> is a fictional, fast-growing digital-native e-commerce marketplace based in the EU (prices in EUR). Its GenAI <em>Support Copilot</em> answers customer questions about returns, shipping, payments, ByteCart Plus membership, marketplace sellers, warranties, coupons, gift cards, privacy and orders.</p>
@@ -779,14 +811,14 @@ deploy_fireworks = false
 # fireworks_grant_deployer_role = true             # if the deployment fails with Forbidden
 # fireworks_deployer_role       = "Foundry Owner"  # or "Azure AI Owner" (old name, same role)
 #
-# Challenge 3.6 (stretch): multi-provider failover through APIM (needs deploy_apim + deploy_fireworks)
+# Challenge 3.6 (stretch): failover only; provider routing is built in (needs deploy_fireworks)
 # apim_policy_file       = "policies/ai-gateway-multiprovider.xml"
 # fireworks_backend_auth = "api_key"                # or "managed_identity"
 # failover_model_map     = { "gpt-5.6-terra" = "FW-DeepSeek-V4-Flash-0731", "gpt-5.6-sol" = "FW-DeepSeek-V4-Pro" }   # default</code></pre></div>
 </div></details>
 <details class="hint"><summary>📋 All infra variables (<code>infra/variables.tf</code>)</summary><div class="hint-body">
 <div class="table-wrap"><table><thead><tr><th scope="col">Variable</th><th scope="col">Default</th><th scope="col">Purpose</th></tr></thead><tbody>
-<tr class="grp"><th colspan="3" scope="colgroup">General</th></tr><tr><td><code>team_name</code></td><td>– (required)</td><td>2–20 chars: lowercase letters, digits, hyphens. Used in resource names, <code>.env</code> and on the leaderboard</td></tr><tr><td><code>subscription_id</code></td><td><code>null</code></td><td>Your team's Azure subscription; <code>null</code> = use <code>ARM_SUBSCRIPTION_ID</code></td></tr><tr><td><code>location</code></td><td><code>swedencentral</code></td><td>Region of all primary resources</td></tr><tr><td><code>resource_group_name</code></td><td><code>null</code> → <code>rg-tokenwars-&lt;team_name&gt;</code></td><td>Resource group</td></tr><tr><td><code>tags</code></td><td><code>{}</code></td><td>Extra tags for all resources</td></tr><tr class="grp"><th colspan="3" scope="colgroup">Microsoft Foundry</th></tr><tr><td><code>foundry_project_name</code></td><td><code>proj-tokenwars</code></td><td>Foundry project created under the Foundry resource (also used for the Fireworks resource's project)</td></tr><tr><td><code>ai_endpoint_style</code></td><td><code>foundry</code></td><td>Host in <code>models.json</code> <code>base_url</code>: <code>foundry</code> = <code>https://&lt;name&gt;.services.ai.azure.com/openai/v1/</code>, <code>openai</code> = <code>https://&lt;name&gt;.openai.azure.com/openai/v1/</code> (fallback). Same OpenAI-compatible v1 API; also applies to the Fireworks <code>base_url</code></td></tr><tr class="grp"><th colspan="3" scope="colgroup">Models (deployments on the Foundry resource)</th></tr><tr><td><code>premium_model</code>, <code>balanced_model</code>, <code>economy_model</code>, <code>judge_model</code>, <code>embedding_model</code>, <code>open_model</code></td><td>gpt-5.6-sol (800) · gpt-5.6-terra (800) · gpt-5.6-luna (800) · judge = gpt-5.5 (2026-04-24, 800) · text-embedding-3-small (150) · Llama-3.3-70B-Instruct (100)</td><td>Objects with <code>name</code>, <code>version</code>, <code>format</code>, <code>sku</code>, <code>capacity</code>, <code>pricing_key</code>, <code>max_tokens_param</code>, <code>supports_temperature</code>, <code>extra_body</code>, <code>extra_headers</code>. Override only the fields you need, e.g. <code>economy_model = { capacity = 800 }</code></td></tr><tr><td><code>deploy_open_model</code></td><td><code>true</code></td><td>Deploy the open-weight model (models.json key <code>open</code>)</td></tr><tr class="grp"><th colspan="3" scope="colgroup">AI gateway (API Management)</th></tr><tr><td><code>deploy_apim</code></td><td><code>true</code></td><td>Deploy API Management as the AI gateway (v2 tiers take about 5–15 minutes)</td></tr><tr><td><code>apim_sku</code></td><td><code>BasicV2_1</code></td><td>BasicV2/StandardV2 support <code>llm-token-limit</code> + <code>llm-emit-token-metric</code> (Consumption doesn't support the token limit)</td></tr><tr><td><code>apim_publisher_email</code></td><td><code>tokenwars@example.com</code></td><td>Required by APIM</td></tr><tr><td><code>apim_policy_file</code></td><td><code>policies/ai-gateway-starter.xml</code></td><td>Policy template for the <code>openai</code> API (TODO 3.5). <code>policies/ai-gateway-solution.xml</code> = reference solution; <code>policies/ai-gateway-multiprovider.xml</code> = Challenge 3.6 stretch (needs <code>deploy_fireworks = true</code>)</td></tr><tr><td><code>apim_consumers</code></td><td><code>["checkout-squad","support-squad"]</code></td><td>One APIM subscription (key) each; the app uses <code>support-squad</code> (or the first one)</td></tr><tr><td><code>tokens_per_minute_per_consumer</code></td><td><code>20000</code></td><td>Passed to the policy as <code>${tokens_per_minute}</code> (<code>llm-token-limit</code>)</td></tr><tr><td><code>failover_model_map</code></td><td><code>null</code></td><td>Challenge 3.6 only: Azure deployment name → Fireworks deployment name. <code>null</code> = <code>{ &lt;balanced&gt; = &lt;fw_fast&gt;, &lt;premium&gt; = &lt;fw_pro&gt; }</code>. Unmapped models never fail over</td></tr><tr class="grp"><th colspan="3" scope="colgroup">Self-hosted small model</th></tr><tr><td><code>deploy_selfhosted_model</code></td><td><code>false</code></td><td>Ollama on Azure Container Apps (CPU), models.json key <code>selfhosted</code></td></tr><tr><td><code>selfhosted_model</code></td><td><code>llama3.2:3b</code></td><td>Ollama model tag</td></tr><tr><td><code>selfhosted_cpu</code> / <code>selfhosted_memory</code></td><td><code>4</code> / <code>8Gi</code></td><td>Container size (1:2 ratio)</td></tr><tr class="grp"><th colspan="3" scope="colgroup">Secondary region (failover demo)</th></tr><tr><td><code>deploy_secondary_region</code></td><td><code>false</code></td><td>Second Foundry resource (premium/balanced/economy, same deployment names) as the APIM failover backend</td></tr><tr><td><code>secondary_location</code></td><td><code>francecentral</code></td><td>Region of the secondary Foundry resource</td></tr><tr><td><code>secondary_capacity</code></td><td><code>800</code></td><td>TPM (×1000) per secondary chat deployment</td></tr><tr class="grp"><th colspan="3" scope="colgroup">Fireworks on Foundry (Challenge 2.4, pay-per-token only)</th></tr><tr><td><code>deploy_fireworks</code></td><td><code>false</code></td><td>Second, US-based Foundry resource (+ project) with one deployment per <code>fireworks_models</code> entry; adds models.json keys <code>fw_fast</code> / <code>fw_pro</code> and <code>FIREWORKS_AI_API_KEY</code> to <code>.env</code></td></tr><tr><td><code>fireworks_location</code></td><td><code>eastus2</code></td><td>Data Zone Standard pay-per-token is US-only: eastus, eastus2, centralus, northcentralus, westus, westus3 (other regions get a warning)</td></tr><tr><td><code>fireworks_models</code></td><td><code>fw_fast</code> → FW-DeepSeek-V4-Flash-0731, <code>fw_pro</code> → FW-DeepSeek-V4-Pro</td><td>Map of <code>fw_*</code> keys → <code>model</code>, <code>pricing_key</code> (required) and optional <code>deployment_name</code>, <code>version</code>, <code>sku</code> (<code>DataZoneStandard</code> | <code>GlobalStandard</code>, no PTU), <code>capacity</code> (200), <code>max_tokens_param</code>, <code>supports_temperature</code>, <code>extra_body</code> (<code>{ prompt_cache_key = "bytecart-support" }</code>), <code>extra_headers</code></td></tr><tr><td><code>fireworks_model_format</code></td><td><code>Fireworks</code></td><td>Deployment model format (needs validation: the prereq script prints the real value)</td></tr><tr><td><code>fireworks_grant_deployer_role</code></td><td><code>false</code></td><td>Assign <code>fireworks_deployer_role</code> to the identity running Terraform on the Fireworks project (enable if the deployment fails with Forbidden)</td></tr><tr><td><code>fireworks_deployer_role</code></td><td><code>Foundry Owner</code></td><td>Use <code>Azure AI Owner</code> if your tenant still shows the old name (same role ID)</td></tr><tr><td><code>fireworks_backend_auth</code></td><td><code>api_key</code></td><td>Challenge 3.6: how APIM authenticates to the Fireworks resource (<code>api_key</code> | <code>managed_identity</code>)</td></tr><tr class="grp"><th colspan="3" scope="colgroup">Leaderboard</th></tr><tr><td><code>leaderboard_url</code> / <code>leaderboard_key</code></td><td><code>""</code></td><td>Written into <code>.env</code> as <code>TOKENWARS_LEADERBOARD_URL</code> / <code>TOKENWARS_LEADERBOARD_KEY</code></td></tr>
+<tr class="grp"><th colspan="3" scope="colgroup">General</th></tr><tr><td><code>team_name</code></td><td>– (required)</td><td>2–20 chars: lowercase letters, digits, hyphens. Used in resource names, <code>.env</code> and on the leaderboard</td></tr><tr><td><code>subscription_id</code></td><td><code>null</code></td><td>Your team's Azure subscription; <code>null</code> = use <code>ARM_SUBSCRIPTION_ID</code></td></tr><tr><td><code>location</code></td><td><code>swedencentral</code></td><td>Region of all primary resources</td></tr><tr><td><code>resource_group_name</code></td><td><code>null</code> → <code>rg-tokenwars-&lt;team_name&gt;</code></td><td>Resource group</td></tr><tr><td><code>tags</code></td><td><code>{}</code></td><td>Extra tags for all resources</td></tr><tr class="grp"><th colspan="3" scope="colgroup">Microsoft Foundry</th></tr><tr><td><code>foundry_project_name</code></td><td><code>proj-tokenwars</code></td><td>Foundry project created under the Foundry resource (also used for the Fireworks resource's project)</td></tr><tr><td><code>ai_endpoint_style</code></td><td><code>foundry</code></td><td>Host in <code>models.json</code> <code>base_url</code>: <code>foundry</code> = <code>https://&lt;name&gt;.services.ai.azure.com/openai/v1/</code>, <code>openai</code> = <code>https://&lt;name&gt;.openai.azure.com/openai/v1/</code> (fallback). Same OpenAI-compatible v1 API; also applies to the Fireworks <code>base_url</code></td></tr><tr class="grp"><th colspan="3" scope="colgroup">Models (deployments on the Foundry resource)</th></tr><tr><td><code>premium_model</code>, <code>balanced_model</code>, <code>economy_model</code>, <code>judge_model</code>, <code>embedding_model</code>, <code>open_model</code></td><td>gpt-5.6-sol (800) · gpt-5.6-terra (800) · gpt-5.6-luna (800) · judge = gpt-5.5 (2026-04-24, 800) · text-embedding-3-small (150) · Llama-3.3-70B-Instruct (100)</td><td>Objects with <code>name</code>, <code>version</code>, <code>format</code>, <code>sku</code>, <code>capacity</code>, <code>pricing_key</code>, <code>max_tokens_param</code>, <code>supports_temperature</code>, <code>extra_body</code>, <code>extra_headers</code>. Override only the fields you need, e.g. <code>economy_model = { capacity = 800 }</code></td></tr><tr><td><code>deploy_open_model</code></td><td><code>true</code></td><td>Deploy the open-weight model (models.json key <code>open</code>)</td></tr><tr class="grp"><th colspan="3" scope="colgroup">AI gateway (API Management)</th></tr><tr><td><code>deploy_apim</code></td><td><code>true</code></td><td>Required multi-provider AI gateway; false is rejected (v2 tiers take about 5–15 minutes)</td></tr><tr><td><code>apim_sku</code></td><td><code>BasicV2_1</code></td><td>BasicV2/StandardV2 support <code>llm-token-limit</code> + <code>llm-emit-token-metric</code> (Consumption doesn't support the token limit)</td></tr><tr><td><code>apim_publisher_email</code></td><td><code>tokenwars@example.com</code></td><td>Required by APIM</td></tr><tr><td><code>apim_policy_file</code></td><td><code>policies/ai-gateway-starter.xml</code></td><td>Policy template for the <code>openai</code> API (TODO 3.5). <code>policies/ai-gateway-solution.xml</code> = reference solution; <code>policies/ai-gateway-multiprovider.xml</code> = Challenge 3.6 stretch (needs <code>deploy_fireworks = true</code>)</td></tr><tr><td><code>apim_consumers</code></td><td><code>["checkout-squad","support-squad"]</code></td><td>One APIM subscription (key) each; the app uses <code>support-squad</code> (or the first one)</td></tr><tr><td><code>tokens_per_minute_per_consumer</code></td><td><code>20000</code></td><td>Passed to the policy as <code>${tokens_per_minute}</code> (<code>llm-token-limit</code>)</td></tr><tr><td><code>failover_model_map</code></td><td><code>null</code></td><td>Challenge 3.6 only: Azure deployment name → Fireworks deployment name. <code>null</code> = <code>{ &lt;balanced&gt; = &lt;fw_fast&gt;, &lt;premium&gt; = &lt;fw_pro&gt; }</code>. Unmapped models never fail over</td></tr><tr class="grp"><th colspan="3" scope="colgroup">Self-hosted small model</th></tr><tr><td><code>deploy_selfhosted_model</code></td><td><code>false</code></td><td>Ollama on Azure Container Apps (CPU), models.json key <code>selfhosted</code></td></tr><tr><td><code>selfhosted_model</code></td><td><code>llama3.2:3b</code></td><td>Ollama model tag</td></tr><tr><td><code>selfhosted_cpu</code> / <code>selfhosted_memory</code></td><td><code>4</code> / <code>8Gi</code></td><td>Container size (1:2 ratio)</td></tr><tr class="grp"><th colspan="3" scope="colgroup">Secondary region (failover demo)</th></tr><tr><td><code>deploy_secondary_region</code></td><td><code>false</code></td><td>Second Foundry resource (premium/balanced/economy, same deployment names) as the APIM failover backend</td></tr><tr><td><code>secondary_location</code></td><td><code>francecentral</code></td><td>Region of the secondary Foundry resource</td></tr><tr><td><code>secondary_capacity</code></td><td><code>800</code></td><td>TPM (×1000) per secondary chat deployment</td></tr><tr class="grp"><th colspan="3" scope="colgroup">Fireworks on Foundry (Challenge 2.4, pay-per-token only)</th></tr><tr><td><code>deploy_fireworks</code></td><td><code>false</code></td><td>Second, US-based Foundry resource (+ project) with one deployment per <code>fireworks_models</code> entry; adds models.json keys <code>fw_fast</code> / <code>fw_pro</code> and <code>FIREWORKS_AI_API_KEY</code> to <code>.env</code></td></tr><tr><td><code>fireworks_location</code></td><td><code>eastus2</code></td><td>Data Zone Standard pay-per-token is US-only: eastus, eastus2, centralus, northcentralus, westus, westus3 (other regions get a warning)</td></tr><tr><td><code>fireworks_models</code></td><td><code>fw_fast</code> → FW-DeepSeek-V4-Flash-0731, <code>fw_pro</code> → FW-DeepSeek-V4-Pro</td><td>Map of <code>fw_*</code> keys → <code>model</code>, <code>pricing_key</code> (required) and optional <code>deployment_name</code>, <code>version</code>, <code>sku</code> (<code>DataZoneStandard</code> | <code>GlobalStandard</code>, no PTU), <code>capacity</code> (200), <code>max_tokens_param</code>, <code>supports_temperature</code>, <code>extra_body</code> (<code>{ prompt_cache_key = "bytecart-support" }</code>), <code>extra_headers</code></td></tr><tr><td><code>fireworks_model_format</code></td><td><code>Fireworks</code></td><td>Deployment model format (needs validation: the prereq script prints the real value)</td></tr><tr><td><code>fireworks_grant_deployer_role</code></td><td><code>false</code></td><td>Assign <code>fireworks_deployer_role</code> to the identity running Terraform on the Fireworks project (enable if the deployment fails with Forbidden)</td></tr><tr><td><code>fireworks_deployer_role</code></td><td><code>Foundry Owner</code></td><td>Use <code>Azure AI Owner</code> if your tenant still shows the old name (same role ID)</td></tr><tr><td><code>fireworks_backend_auth</code></td><td><code>api_key</code></td><td>All policies: how APIM authenticates to the Fireworks resource (<code>api_key</code> | <code>managed_identity</code>)</td></tr><tr class="grp"><th colspan="3" scope="colgroup">Leaderboard</th></tr><tr><td><code>leaderboard_url</code> / <code>leaderboard_key</code></td><td><code>""</code></td><td>Written into <code>.env</code> as <code>TOKENWARS_LEADERBOARD_URL</code> / <code>TOKENWARS_LEADERBOARD_KEY</code></td></tr>
 </tbody></table></div>
 <div class="code"><div class="code-head"><span class="code-label">shape of every model variable (all fields optional)</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>premium_model = {
   name                 = "gpt-5.6-sol"                       # model name in the catalog
@@ -843,14 +875,15 @@ terraform output foundry_portal_hint</code></pre></div>
     <p><code>.env</code> in the repo root (git-ignored, contains keys):</p>
     <div class="code"><div class="code-head"><span class="code-label">.env (repo root)</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>TOKENWARS_TEAM=neon-ninjas
 AZURE_AI_API_KEY=***
-APIM_SUBSCRIPTION_KEY=***          # empty if APIM not deployed
+APIM_SUBSCRIPTION_KEY=***          # required for all non-judge inference
 SELFHOSTED_API_KEY=ollama
 FIREWORKS_AI_API_KEY=***           # empty unless deploy_fireworks = true
 TOKENWARS_LEADERBOARD_URL=         # from leaderboard_url (or paste it here)
 TOKENWARS_LEADERBOARD_KEY=         # from leaderboard_key (optional)
 TOKENWARS_MOCK=0</code></pre></div>
     <p><strong>Provider-neutral tiers:</strong> Premium (<code>premium</code>) handles COMPLEX requests, Balanced (<code>balanced</code>) handles STANDARD requests, and Economy (<code>economy</code>) handles SIMPLE requests and classification. Escalation follows <code>economy → balanced → premium</code>. Sol, Terra and Luna are the current defaults, not part of the tier contract; the independent GPT-5.5 <code>judge</code> is unchanged.</p>
-    <p>Choose catalog models through <code>premium_model</code>, <code>balanced_model</code> and <code>economy_model</code> in Terraform. For another OpenAI-compatible provider, retain the app keys and configure its actual deployment, endpoint, credentials, price key and request parameters. Use <code>via_gateway: false</code> unless the gateway policy serves that endpoint. Re-measure quality and pricing with your coach.</p>
+    <p>Choose catalog models through <code>premium_model</code>, <code>balanced_model</code> and <code>economy_model</code> in Terraform. For another OpenAI-compatible provider, retain the app keys and configure its deployment, price key and request parameters, plus an APIM backend, credentials and model-routing rule. Every inference entry must use <code>via_gateway: true</code>; changing its <code>base_url</code> alone does not redirect gateway traffic. Only the independent judge uses <code>via_gateway: false</code>. Re-measure quality and pricing with your coach.</p>
+    <p><strong>Required from the baseline:</strong> every policy routes the physical request <code>model</code> to Fireworks when it matches a configured Fireworks deployment, to Ollama when it matches the configured self-hosted model, otherwise to Azure OpenAI. All non-judge chat, classifier and embedding calls use the APIM URL and subscription key. Missing gateway/key or disabled gateway flags fail explicitly; there is no direct fallback. Offline <code>--mock</code> still needs no gateway. Regenerate old registries by applying the updated templates and keep <code>"use_gateway": true</code> in strategies. APIM routing does not make public backend endpoints private.</p>
     <details class="hint"><summary>Upgrading an existing checkout to the new tier names</summary><div class="hint-body"><p>Update old tier overrides in your tfvars/automation and model keys in custom strategies and registries before running the apps. See the <a href="../README.md#provider-neutral-model-tiers">tier migration instructions</a>. This update expects a fresh infrastructure deployment, not an in-place state migration. Destroy an existing stack using its original configuration before deploying the updated stack. Review the plan and apply to regenerate the registry. Preserve physical model names, prices, capacity and historical results.</p></div></details>
     <p><code>shared/config/models.json</code> maps each model key to its deployment, endpoint, key variable, price key and gateway flag:</p>
     <div class="code"><div class="code-head"><span class="code-label">shared/config/models.json (abridged)</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>{ "models": {
@@ -871,7 +904,7 @@ TOKENWARS_MOCK=0</code></pre></div>
     "fw_fast": {"deployment": "FW-DeepSeek-V4-Flash-0731",
                 "base_url": "https://&lt;name&gt;-fw.services.ai.azure.com/openai/v1/",
                 "api_key_env": "FIREWORKS_AI_API_KEY", "pricing_key": "fw-deepseek-v4-flash-0731",
-                "type": "chat", "via_gateway": false, "max_tokens_param": "max_tokens",
+                "type": "chat", "via_gateway": true, "max_tokens_param": "max_tokens",
                 "supports_temperature": true, "extra_body": {"prompt_cache_key": "bytecart-support"},
                 "extra_headers": {}},
     "fw_pro": {...}
@@ -881,7 +914,7 @@ TOKENWARS_MOCK=0</code></pre></div>
     <ul class="ticks small">
       <li><code>supports_temperature</code> (default <code>true</code>). When <code>false</code>, the app leaves <code>temperature</code> out of chat requests. The GPT-5.6 family doesn't accept a custom temperature.</li>
       <li><code>extra_body</code> (default <code>{}</code>) is merged into every chat request for that model, e.g. <code>{"reasoning_effort": "none"}</code> for the GPT-5.6 family or <code>{"prompt_cache_key": "bytecart-support"}</code> for Fireworks. It's a cost lever; see TODO 1.4.</li>
-      <li><code>extra_headers</code> (default <code>{}</code>): a string → string map of HTTP headers added to every chat <strong>and</strong> embedding request for that model, e.g. <code>{"x-session-affinity": "bytecart"}</code>. Mock mode ignores them; <code>doctor</code> shows header names only, never values.</li>
+      <li><code>extra_headers</code> (default <code>{}</code>): headers added to every chat <strong>and</strong> embedding request, e.g. <code>{"x-session-affinity": "bytecart"}</code>. Overrides of <code>api-key</code>, <code>Authorization</code> or <code>Ocp-Apim-Subscription-Key</code> are rejected for gateway inference. Mock mode ignores them; <code>doctor</code> shows names only, never values.</li>
       <li><code>hourly_cost_usd</code> (default <code>0</code>): a fixed hosting fee, e.g. for a fine-tuned deployment. Informational only: when a compared model has a value above 0, <code>compare</code> adds a <code>hosting $/h</code> column. It's never added to the cost or the score.</li>
     </ul>
     <p class="muted small">Real environment variables override <code>.env</code>. The apps find the repo root by walking up from the current folder until they see <code>shared/config</code>; you can override this with <code>TOKENWARS_ROOT</code>. Terraform regenerates <code>models.json</code> on every <code>apply</code>, so any hand edits get overwritten.</p>
@@ -939,7 +972,7 @@ dotnet run -- doctor</code></pre></div>
   "default_model": "premium",
   "routing": "none",
   "escalation": false,
-  "use_gateway": false,
+  "use_gateway": true,
   "retry_on_throttle": false,
   "concurrency": 8
 }</code></pre></div></li>
@@ -1794,7 +1827,7 @@ deploy_selfhosted_model = true
 selfhosted_model        = "llama3.2:3b"</code></pre></div><div class="code"><div class="code-head"><span class="code-label">terminal</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>cd infra
 terraform apply</code></pre></div>
   <h4 class="sub">What to do</h4>
-  <ol class="do-list"><li>Check that <code>shared/config/models.json</code> has an <code>open</code> entry (Llama-3.3-70B-Instruct, <code>pricing_key: llama-3.3-70b-instruct</code>, <code>max_tokens_param: max_tokens</code>). It's deployed by default (<code>deploy_open_model = true</code>) and configured through the <code>open_model</code> variable, e.g. <code>open_model = { capacity = 100 }</code>.</li><li><strong>Optional, self-hosted:</strong> in <code>infra/terraform.tfvars</code>, set <code>deploy_selfhosted_model = true</code> (and optionally <code>selfhosted_model</code>), then run <code>terraform apply</code> again in <code>infra/</code>.</li><li>Terraform regenerates <code>models.json</code> with a <code>selfhosted</code> entry: <code>base_url</code> is your Container Apps FQDN + <code>/v1/</code>, with <code>api_key_env: SELFHOSTED_API_KEY</code> and <code>via_gateway: false</code>. Container size is set by <code>selfhosted_cpu</code> / <code>selfhosted_memory</code> (default 4 vCPU / 8Gi).</li><li>Run <span class="lang-py"><code>python -m tokenwars doctor</code></span><span class="lang-net"><code>dotnet run -- doctor</code></span> to confirm the new model answers its test call (64-token output budget).</li></ol>
+  <ol class="do-list"><li>Check that <code>shared/config/models.json</code> has an <code>open</code> entry (Llama-3.3-70B-Instruct, <code>pricing_key: llama-3.3-70b-instruct</code>, <code>max_tokens_param: max_tokens</code>). It's deployed by default (<code>deploy_open_model = true</code>) and configured through the <code>open_model</code> variable, e.g. <code>open_model = { capacity = 100 }</code>.</li><li><strong>Optional, self-hosted:</strong> in <code>infra/terraform.tfvars</code>, set <code>deploy_selfhosted_model = true</code> (and optionally <code>selfhosted_model</code>), then run <code>terraform apply</code> again in <code>infra/</code>.</li><li>Terraform regenerates <code>models.json</code> with a <code>selfhosted</code> entry: <code>base_url</code> is your Container Apps FQDN + <code>/v1/</code>, with <code>api_key_env: SELFHOSTED_API_KEY</code> and <code>via_gateway: true</code>. Container size is set by <code>selfhosted_cpu</code> / <code>selfhosted_memory</code> (default 4 vCPU / 8Gi).</li><li>Run <span class="lang-py"><code>python -m tokenwars doctor</code></span><span class="lang-net"><code>dotnet run -- doctor</code></span> to confirm the new model answers its test call (64-token output budget).</li></ol>
   
   <details class="hint">
     <summary>💡 Need a hint?</summary>
@@ -2093,7 +2126,7 @@ pwsh ./scripts/check-fireworks-prereqs.ps1           # [-Location westus3] [-Sub
 <li><strong>Per-token models can retire with 15 days' notice.</strong> Your coach confirms the model list one week before the event; alternatives are listed in <code>terraform.tfvars.example</code>.</li>
 <li><strong>Small open models are PTU-only on Fireworks</strong> (Llama 3.1 8B, Qwen3.5 9B, gpt-oss-20b, Ministral 3B). Pay-per-token offers exist only for large catalog models, so the Arena is <em>open premium vs closed premium</em>.</li>
 <li><strong>Fireworks custom weights</strong> (imported or fine-tuned models) are PTU-only too, so teams don't deploy them. The coach only shows them as a portal walkthrough in the <a href="#coach-demo">Own the Weights demo</a>.</li>
-<li><code>fw_*</code> models are always called directly (<code>via_gateway: false</code>). They're reachable through APIM only as the failover target of <a href="#step-3-6">stretch 3.6</a>.</li>
+<li><code>fw_*</code> models use required APIM (<code>via_gateway: true</code>) with built-in model routing in every policy. <a href="#step-3-6">Stretch 3.6</a> adds only Azure-to-Fireworks failover; you do not implement provider routing there.</li>
 </ul></div>
   <h4 class="sub">What to do</h4>
   <ol class="do-list"><li><strong>Doctor:</strong> confirm <code>fw_fast</code> and <code>fw_pro</code> are configured, have a key (<code>FIREWORKS_AI_API_KEY</code>) and answer the test call (64-token output budget).<div class="code"><div class="code-head"><span class="code-label">terminal</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre class="lang-py"><code>python -m tokenwars doctor
@@ -2226,7 +2259,7 @@ try {
 <section id="ch3" class="doc-section" aria-labelledby="ch3-h"><p class="kicker">Challenge 3</p><h2 id="ch3-h">Challenge 3 · Route &amp; Rule</h2>
 <div class="chal-banner c3"><div><p class="chal-time">2:40 – 3:30</p><p class="chal-lede">Send every request to the cheapest model that can handle it, escalate when unsure, and govern the traffic with an AI gateway.</p></div>
 <div class="chal-prog"><span class="lbl">Challenge progress</span><div class="bar"><span data-bar="c3"></span></div><span class="cnt" data-count="c3">0 / 6</span></div></div>
-<p>For reference, the solution ends up at <code>default_model "balanced"</code>, <code>routing "classifier"</code>, <code>escalation true</code> and <code>retry_on_throttle true</code> (with <code>use_gateway false</code>). Your data may point somewhere better. <strong>3.6</strong> is a stretch for teams that deployed Fireworks in 2.4 and finished 3.5.</p>
+<p>For reference, the solution ends up at <code>default_model "balanced"</code>, <code>routing "classifier"</code>, <code>escalation true</code> and <code>retry_on_throttle true</code> (with <code>use_gateway true</code>). Your data may point somewhere better. <strong>3.6</strong> is a stretch for teams that deployed Fireworks in 2.4 and finished 3.5.</p>
 
 <article class="step-card" id="step-3.1" data-step="3.1" data-group="c3" aria-labelledby="h-3.1">
   <header class="step-head">
@@ -2503,7 +2536,7 @@ try {
     <ul><li>No items in <code>results/run-*.json</code> have a non-null <code>error</code>, even under load.</li><li><code>latency_p95_ms</code> may rise when retries happen. That's the price of reliability.</li></ul>
   </div>
 
-<details class="hint step-solution" id="solution-3-4" data-solution-step="3.4"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace this method.</strong> In <code>python/starter/tokenwars/llm_client.py</code>, replace <strong>lines 176–177</strong> with the complete block below. Locate <code>def _send_with_retry(self, send_once: Callable[[], Any]) -&gt; Any:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/llm_client.py · lines 176–177</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/llm_client.py" data-start-line="176" data-end-line="177"><code>    def _send_with_retry(self, send_once: Callable[[], Any]) -&gt; Any:
+<details class="hint step-solution" id="solution-3-4" data-solution-step="3.4"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace this method.</strong> In <code>python/starter/tokenwars/llm_client.py</code>, replace <strong>lines 182–183</strong> with the complete block below. Locate <code>def _send_with_retry(self, send_once: Callable[[], Any]) -&gt; Any:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/llm_client.py · lines 182–183</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/llm_client.py" data-start-line="182" data-end-line="183"><code>    def _send_with_retry(self, send_once: Callable[[], Any]) -&gt; Any:
         for attempt in range(MAX_RETRIES + 1):
             response = send_once()
             status = getattr(response, "status_code", 200)
@@ -2515,7 +2548,7 @@ try {
             print(f"   ↻ HTTP {status} – retrying in {wait:.1f}s (retry {attempt + 1}/{MAX_RETRIES})",
                   file=sys.stderr)
             time.sleep(wait)
-        return response  # pragma: no cover</code></pre></div><p><strong>Insert the header-parsing helper at module level before _warn_empty_length.</strong> In <code>python/starter/tokenwars/llm_client.py</code>, replace <strong>line 180</strong> with the complete block below. Locate <code>def _warn_empty_length(model_key: str, max_tokens: int | None) -&gt; None:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/llm_client.py · lines 180–180</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/llm_client.py" data-start-line="180" data-end-line="180"><code>def _retry_after_seconds(headers: Any) -&gt; float | None:
+        return response  # pragma: no cover</code></pre></div><p><strong>Insert the header-parsing helper at module level before _warn_empty_length.</strong> In <code>python/starter/tokenwars/llm_client.py</code>, replace <strong>line 186</strong> with the complete block below. Locate <code>def _warn_empty_length(model_key: str, max_tokens: int | None) -&gt; None:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/llm_client.py · lines 186–186</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/llm_client.py" data-start-line="186" data-end-line="186"><code>def _retry_after_seconds(headers: Any) -&gt; float | None:
     for name, scale in (("retry-after-ms", 0.001), ("retry-after", 1.0)):
         value = headers.get(name) if headers is not None else None
         if value is None:
@@ -2540,7 +2573,7 @@ try {
     printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
     exit 1
   fi
-)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace the entire method, including its async signature.</strong> In <code>dotnet/starter/TokenWars/LlmClient.cs</code>, replace <strong>lines 232–235</strong> with the complete block below. Locate <code>private Task&lt;JsonNode?&gt; SendWithRetryAsync(Func&lt;Task&lt;JsonNode?&gt;&gt; sendOnce, CancellationToken ct)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/LlmClient.cs · lines 232–235</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/LlmClient.cs" data-start-line="232" data-end-line="235"><code>    private async Task&lt;JsonNode?&gt; SendWithRetryAsync(Func&lt;Task&lt;JsonNode?&gt;&gt; sendOnce, CancellationToken ct)
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace the entire method, including its async signature.</strong> In <code>dotnet/starter/TokenWars/LlmClient.cs</code>, replace <strong>lines 238–241</strong> with the complete block below. Locate <code>private Task&lt;JsonNode?&gt; SendWithRetryAsync(Func&lt;Task&lt;JsonNode?&gt;&gt; sendOnce, CancellationToken ct)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/LlmClient.cs · lines 238–241</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/LlmClient.cs" data-start-line="238" data-end-line="241"><code>    private async Task&lt;JsonNode?&gt; SendWithRetryAsync(Func&lt;Task&lt;JsonNode?&gt;&gt; sendOnce, CancellationToken ct)
     {
         for (int attempt = 0; ; attempt++)
         {
@@ -2588,20 +2621,23 @@ try {
 <article class="step-card" id="step-3.5" data-step="3.5" data-group="c3" aria-labelledby="h-3.5">
   <header class="step-head">
     <span class="step-tag ">TODO 3.5</span>
-    <h3 id="h-3.5">AI gateway policy (3.5a · 3.5b · 3.5c) + use_gateway</h3>
+    <h3 id="h-3.5">AI gateway governance (3.5a · 3.5b · 3.5c)</h3>
     <label class="done-toggle"><input type="checkbox" class="done-cb" data-step="3.5"> <span>Mark as done</span></label>
   </header>
   <div class="step-meta">
-    <div class="meta-box meta-goal"><h4>🎯 Goal</h4><p>Turn the pass-through APIM policy into a real AI gateway: a token budget per consumer, token metrics and backend failover. Then route your app's traffic through it.</p></div>
+    <div class="meta-box meta-goal"><h4>🎯 Goal</h4><p>Extend the already-required, provider-routed gateway with chat token budgets per consumer, richer telemetry and backend resilience. Provider routing and team/provider token metrics already work in the starter.</p></div>
     <div class="meta-box meta-why"><h4>💸 Why it saves tokens</h4><p>The gateway doesn't make tokens cheaper; pricing still uses each model's <code>pricing_key</code>. It gives you <strong>control</strong>: per-team budgets (<code>checkout-squad</code>, <code>support-squad</code>), visibility into who spends tokens on which model, and resilience. That's how you keep the token bill from outgrowing your users.</p></div>
-    <div class="meta-box meta-where"><h4>📂 File / TODO</h4><p>TODO <strong>3.5a–c</strong> in <code>infra/policies/ai-gateway-starter.xml</code> (same for both languages)</p><p>Applied via the terraform var <code>apim_policy_file</code>; then set <code>"use_gateway": true</code> in <span class="lang-py"><code>python/starter/strategy.json</code></span><span class="lang-net"><code>dotnet/starter/TokenWars/strategy.json</code></span></p></div>
+    <div class="meta-box meta-where"><h4>📂 File / TODO</h4><p>TODO <strong>3.5a–c</strong> in <code>infra/policies/ai-gateway-starter.xml</code> (same for both languages)</p><p>Applied via <code>apim_policy_file</code>. Keep the existing <code>"use_gateway": true</code>; APIM has been required since setup.</p></div>
   </div>
-  <p>The starter policy already works as a pass-through. Callers authenticate with their APIM subscription key in the <code>api-key</code> header; APIM calls Azure AI with its managed identity and strips the caller's key, so no model API keys leave the gateway. It's a terraform <code>templatefile</code> with these placeholders:</p><div class="table-wrap"><table>
+  <p>The starter already routes physical models to Azure OpenAI, optional Fireworks or optional Ollama. Callers use their APIM subscription key; the gateway removes it from the backend header/query. Azure uses managed identity, Fireworks uses backend credentials (API key by default), and the workshop Ollama backend is anonymous. Preserve these routes and the built-in <code>team</code>/<code>provider</code> metrics. This Terraform <code>templatefile</code> includes:</p><div class="table-wrap"><table>
 <thead><tr><th scope="col">Template placeholder</th><th scope="col">Filled by terraform with</th></tr></thead>
 <tbody>
 <tr><td><code>${backend_id}</code></td><td>The primary backend (your Foundry resource in the primary region). It's used today.</td></tr>
 <tr><td><code>${pool_backend_id}</code></td><td>The failover backend: a backend pool when <code>deploy_secondary_region = true</code>, otherwise the primary</td></tr>
+<tr><td><code>pool_models</code></td><td>The three answer-tier deployments present in both regions; embeddings, open and custom models stay on primary</td></tr>
 <tr><td><code>${tokens_per_minute}</code></td><td><code>var.tokens_per_minute_per_consumer</code> (default 20000)</td></tr>
+<tr><td><code>fireworks_models</code> / <code>fireworks_backend_id</code> / <code>fireworks_auth</code></td><td>Configured physical Fireworks deployment names, backend and authentication mode; optional branches are omitted when disabled</td></tr>
+<tr><td><code>selfhosted_enabled</code> / <code>selfhosted_model</code> / <code>selfhosted_backend_id</code></td><td>Optional Ollama route, preserving its own backend</td></tr>
 </tbody></table></div><details class="hint"><summary>🧩 Policy shape (illustrative, not the solution)</summary><div class="hint-body"><div class="code"><div class="code-head"><span class="code-label">policy shape (xml)</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>&lt;!-- ILLUSTRATIVE shape only: complete the attributes from the TODO hints in the file. --&gt;
 &lt;inbound&gt;
   &lt;base /&gt;
@@ -2620,42 +2656,72 @@ try {
                        &lt;/retry&gt;
 &lt;/backend&gt;</code></pre></div></div></details>
   <h4 class="sub">What to do</h4>
-  <ol class="do-list"><li><strong>3.5a: token limit per consumer.</strong> In <code>&lt;inbound&gt;</code>, add <code>llm-token-limit</code> so that <em>each</em> APIM subscription gets its own <code>${tokens_per_minute}</code> budget: <code>counter-key="@(context.Subscription.Id)"</code>, <code>tokens-per-minute="${tokens_per_minute}"</code>, <code>estimate-prompt-tokens="false"</code>, and expose the remaining budget with <code>remaining-tokens-header-name="x-ratelimit-remaining-tokens"</code>. Callers over the limit get HTTP 429 + Retry-After, which TODO 3.4 handles.</li><li><strong>3.5b: token metrics.</strong> Add <code>llm-emit-token-metric</code> with <code>namespace="tokenwars"</code> and dimensions <code>Subscription ID</code>, <code>Backend ID</code>, plus a custom <code>Model</code> dimension read from the request body's <code>model</code> field (policy expression). That answers "who uses how many tokens on which model?".</li><li><strong>3.5c: resilience.</strong> Part 1: switch <code>set-backend-service</code> from <code>${backend_id}</code> to <code>${pool_backend_id}</code>. Part 2: in <code>&lt;backend&gt;</code>, wrap <code>forward-request</code> in a <code>retry</code> on 429 and 5xx, e.g. <code>condition="@(context.Response.StatusCode == 429 || context.Response.StatusCode &gt;= 500)" count="2" interval="1" first-fast-retry="true"</code>.</li><li>Apply it:<div class="code"><div class="code-head"><span class="code-label">terminal</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>cd infra
+  <ol class="do-list"><li><strong>3.5a: chat token limit per consumer.</strong> Inside the existing chat-completions branch, add <code>llm-token-limit</code> with <code>counter-key="@(context.Subscription.Id)"</code>, <code>tokens-per-minute="${tokens_per_minute}"</code>, <code>estimate-prompt-tokens="false"</code> and <code>remaining-tokens-header-name="x-ratelimit-remaining-tokens"</code>. Each subscription shares one chat budget across all providers. Embeddings are routed and observed but are not governed by these chat-only LLM policies.</li><li><strong>3.5b: enrich existing metrics.</strong> Keep <code>Subscription ID</code>, <code>team</code> and lowercase <code>provider</code>; add <code>API ID</code> and <code>Model</code> from <code>tw-model</code> (five configured dimensions). Use the already-present outbound <strong>Provider Tokens</strong> metric for team/provider consumption.</li><li><strong>3.5c: resilience.</strong> Update <code>tw-azure-backend</code> to select <code>${pool_backend_id}</code> only for <code>pool_models</code>. Embeddings, open and custom models stay on primary; leave both Azure selectors and the Fireworks/Ollama routes intact. Wrap <code>forward-request</code> in a null-safe retry on backend 429/5xx. Retried Azure calls reselect from the pool; other providers retain their backend.</li><li>Apply it:<div class="code"><div class="code-head"><span class="code-label">terminal</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>cd infra
 terraform apply        # re-renders policies/ai-gateway-starter.xml (the default apim_policy_file)
 # compare with the reference policy, then switch back:
-terraform apply -var apim_policy_file=policies/ai-gateway-solution.xml</code></pre></div></li><li>Set <code>"use_gateway": true</code>. Models with <code>via_gateway: true</code> now call <code>gateway.base_url</code> with <code>APIM_SUBSCRIPTION_KEY</code> (the <code>support-squad</code> key). Then run <span class="lang-py"><code>python -m tokenwars run</code></span><span class="lang-net"><code>dotnet run -- run</code></span>.</li></ol>
+terraform apply -var apim_policy_file=policies/ai-gateway-solution.xml</code></pre></div></li><li>Keep <code>"use_gateway": true</code>. All non-judge models already call <code>gateway.base_url</code> with <code>APIM_SUBSCRIPTION_KEY</code>. Re-run <span class="lang-py"><code>python -m tokenwars run</code></span><span class="lang-net"><code>dotnet run -- run</code></span>.</li></ol>
   
   <details class="hint">
     <summary>💡 Need a hint?</summary>
-    <div class="hint-body"><div class="hint-item">Leave <code>${...}</code> placeholders exactly as written. Terraform substitutes them; literal <code>$</code> in comments is written as <code>$$</code>.</div><div class="hint-item">Failover only has somewhere to go with <code>deploy_secondary_region = true</code>. The secondary account (<code>secondary_location</code>, default <code>francecentral</code>) has its own <code>secondary_capacity</code> (800 by default). Deliberately trip the primary's circuit breaker during the controlled test to watch retried requests move to the next healthy backend. The breaker honours Retry-After.</div><div class="hint-item"><code>use_gateway</code> only takes effect when <code>gateway</code> exists in <code>models.json</code> (<code>deploy_apim = true</code>) and the model has <code>via_gateway: true</code>. <code>selfhosted</code> always goes direct.</div><div class="hint-item">Policy docs are linked in the XML header comment: llm-token-limit, llm-emit-token-metric, backends (load-balanced pools, circuit breaker) and retry. <code>BasicV2</code>/<code>StandardV2</code> support both LLM policies.</div><div class="hint-item"><strong>Stuck?</strong> Compare with <code>infra/policies/ai-gateway-solution.xml</code>.</div></div>
+    <div class="hint-body"><div class="hint-item">Preserve Terraform placeholders and conditional provider branches; disabled backends must not appear in the rendered policy.</div><div class="hint-item">Regional failover needs <code>deploy_secondary_region = true</code>. The secondary region defaults to <code>francecentral</code> with capacity 800 per chat deployment. Trip the primary circuit breaker only during a controlled test and inspect the backend header.</div><div class="hint-item">APIM, <code>use_gateway: true</code> and non-judge <code>via_gateway: true</code> are required. Ollama and Fireworks do not bypass the gateway.</div><div class="hint-item">Native LLM policies are chat-only. Keep generic outbound usage telemetry for embeddings. Keep the custom dimension count at five or fewer.</div><div class="hint-item"><strong>Stuck?</strong> Compare with <code>infra/policies/ai-gateway-solution.xml</code>.</div></div>
   </details>
   <div class="check-box">
     <h4>✅ Check your result: what should change on the scorecard</h4>
-    <ul><li>The run is still <strong>VALID</strong> with no errored items (TODO 3.4 retry absorbs the 429s from 3.5a).</li><li><code>total_cost_usd</code> is about the same as without the gateway. The price doesn't change; your control does.</li><li>After a few minutes, the <code>tokenwars</code> custom metric namespace in Application Insights shows tokens per subscription and model (3.5b).</li></ul>
+    <ul><li>The run should remain <strong>VALID</strong>; retries help transient 429s but cannot overcome a persistently insufficient budget.</li><li><code>total_cost_usd</code> is about the same as the gateway-enabled baseline. The price does not change; your control does.</li><li>Application Insights already shows team/provider consumption; 3.5b adds API/model detail to native chat telemetry.</li></ul>
   </div>
+  <div class="code"><div class="code-head"><span class="code-label">Application Insights · Logs (KQL) · final serving provider</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>customMetrics
+| where name == "Provider Tokens"
+| extend team = tostring(customDimensions["team"]),
+         provider = tostring(customDimensions["provider"])
+| summarize tokens = sum(value) by team, provider, bin(timestamp, 1h)
+| order by timestamp asc</code></pre></div>
+  <p class="small"><code>team</code> is the APIM subscription display name; <code>provider</code> is <code>azure-openai</code>, <code>fireworks</code> or <code>selfhosted</code>. Outbound <strong>Provider Tokens</strong> includes reported chat and embedding usage under the final provider. Native LLM token metrics describe the requested route: do not sum both families. Failed attempts without usage are not counted; this is not a billing ledger.</p>
 
-<details class="hint step-solution" id="solution-3-5" data-solution-step="3.5"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><p>These changes are shared by both languages. Keep Terraform placeholders exactly as copied; <code>${...}</code> is rendered by Terraform, not pasted into the Azure portal.</p><h4>TODO 3.5a: token budget</h4><p><strong>Replace the complete TODO 3.5a comment with this policy.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>lines 25–31</strong> with the complete block below. Locate <code>&lt;!-- TODO 3.5a: Token limit per consumer.</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 25–31</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="25" data-end-line="31"><code>    &lt;llm-token-limit counter-key="@(context.Subscription.Id)"
-                     tokens-per-minute="${tokens_per_minute}"
-                     estimate-prompt-tokens="false"
-                     remaining-tokens-header-name="x-ratelimit-remaining-tokens"
-                     tokens-consumed-header-name="x-tokens-consumed" /&gt;</code></pre></div><h4>TODO 3.5b: token metrics</h4><p><strong>Replace the complete TODO 3.5b comment with this policy.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>lines 33–37</strong> with the complete block below. Locate <code>&lt;!-- TODO 3.5b: Token metrics.</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 33–37</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="33" data-end-line="37"><code>    &lt;llm-emit-token-metric namespace="tokenwars"&gt;
-      &lt;dimension name="Subscription ID" /&gt;
-      &lt;dimension name="API ID" /&gt;
-      &lt;dimension name="Operation ID" /&gt;
-      &lt;dimension name="Model" value="@{
-          var body = context.Request.Body?.As&amp;lt;Newtonsoft.Json.Linq.JObject&amp;gt;(preserveContent: true);
-          var model = body?[&amp;quot;model&amp;quot;]?.ToString();
-          return string.IsNullOrEmpty(model) ? &amp;quot;unknown&amp;quot; : model;
-      }" /&gt;
-    &lt;/llm-emit-token-metric&gt;</code></pre></div><h4>TODO 3.5c: backend pool and retry</h4><p><strong>Replace the existing backend-selection line.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>line 41</strong> with the complete block below. Locate <code>&lt;set-backend-service backend-id=&quot;${backend_id}&quot; /&gt;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 41–41</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="41" data-end-line="41"><code>    &lt;set-backend-service backend-id="${pool_backend_id}" /&gt;</code></pre></div><p><strong>Replace forward-request with the complete retry wrapper.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>line 57</strong> with the complete block below. Locate <code>&lt;forward-request buffer-request-body=&quot;true&quot; timeout=&quot;120&quot; /&gt;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 57–57</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="57" data-end-line="57"><code>    &lt;retry condition="@(context.Response.StatusCode == 429 || context.Response.StatusCode &gt;= 500)"
-           count="2" interval="1" max-interval="8" delta="2" first-fast-retry="true"&gt;
-      &lt;forward-request buffer-request-body="true" timeout="120" /&gt;
-    &lt;/retry&gt;</code></pre></div><p><strong>Replace the outbound block to expose the backend response header.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>lines 60–62</strong> with the complete block below. Locate <code>&lt;outbound&gt;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 60–62</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="60" data-end-line="62"><code>  &lt;outbound&gt;
+<details class="hint step-solution" id="solution-3-5" data-solution-step="3.5"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><p>These changes are shared by both languages. Keep Terraform placeholders exactly as copied; <code>${...}</code> is rendered by Terraform, not pasted into the Azure portal.</p><h4>TODO 3.5a: token budget</h4><p><strong>Replace the TODO 3.5a comment inside the chat branch.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>lines 53–56</strong> with the complete block below. Locate <code>&lt;!-- TODO 3.5a: llm-token-limit</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 53–56</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="53" data-end-line="56"><code>        &lt;llm-token-limit counter-key=&quot;@(context.Subscription.Id)&quot;
+                         tokens-per-minute=&quot;${tokens_per_minute}&quot;
+                         estimate-prompt-tokens=&quot;false&quot;
+                         remaining-tokens-header-name=&quot;x-ratelimit-remaining-tokens&quot;
+                         tokens-consumed-header-name=&quot;x-tokens-consumed&quot; /&gt;</code></pre></div><h4>TODO 3.5b: enrich existing metrics</h4><p><strong>Replace the TODO 3.5b comment and existing native metric together.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>lines 57–62</strong> with the complete block below. Locate <code>&lt;!-- TODO 3.5b: retain these dimensions</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 57–62</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="57" data-end-line="62"><code>        &lt;llm-emit-token-metric namespace=&quot;tokenwars&quot;&gt;
+          &lt;dimension name=&quot;Subscription ID&quot; /&gt;
+          &lt;dimension name=&quot;team&quot; value=&quot;@(context.Subscription.Name)&quot; /&gt;
+          &lt;dimension name=&quot;provider&quot; value=&quot;@((string)context.Variables[&amp;quot;tw-provider&amp;quot;])&quot; /&gt;
+          &lt;dimension name=&quot;API ID&quot; /&gt;
+          &lt;dimension name=&quot;Model&quot; value=&quot;@((string)context.Variables[&amp;quot;tw-model&amp;quot;])&quot; /&gt;
+        &lt;/llm-emit-token-metric&gt;</code></pre></div><h4>TODO 3.5c: backend pool and retry</h4><p><strong>Replace the Azure backend selector; only replicated answer tiers use the pool.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>line 26</strong> with the complete block below. Locate <code>&lt;set-variable name=&quot;tw-azure-backend&quot;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 26–26</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="26" data-end-line="26"><code>    &lt;set-variable name=&quot;tw-azure-backend&quot; value=&quot;@{
+        var model = (string)context.Variables[&amp;quot;tw-model&amp;quot;];%{ for model in pool_models }
+        if (model == ${replace(jsonencode(model), &quot;\&quot;&quot;, &quot;&amp;quot;&quot;)}) { return &amp;quot;${pool_backend_id}&amp;quot;; }%{ endfor }
+        return &amp;quot;${backend_id}&amp;quot;;
+    }&quot; /&gt;</code></pre></div><p><strong>Replace forward-request with the complete null-safe retry.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>line 68</strong> with the complete block below. Locate <code>&lt;forward-request buffer-request-body=&quot;true&quot; timeout=&quot;120&quot; /&gt;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 68–68</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="68" data-end-line="68"><code>    &lt;retry condition=&quot;@(context.Response != null &amp;amp;&amp;amp; (context.Response.StatusCode == 429 || context.Response.StatusCode &amp;gt;= 500))&quot;
+           count=&quot;2&quot; interval=&quot;1&quot; max-interval=&quot;8&quot; delta=&quot;2&quot; first-fast-retry=&quot;true&quot;&gt;
+      &lt;forward-request buffer-request-body=&quot;true&quot; timeout=&quot;120&quot; /&gt;
+    &lt;/retry&gt;</code></pre></div><p><strong>Replace the outbound block, preserving provider usage telemetry.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>lines 70–95</strong> with the complete block below. Locate <code>&lt;outbound&gt;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 70–95</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="70" data-end-line="95"><code>  &lt;outbound&gt;
     &lt;base /&gt;
-    &lt;!-- Show which backend served the call (useful for the failover demo). --&gt;
-    &lt;set-header name="x-tokenwars-backend" exists-action="override"&gt;
+    &lt;set-header name=&quot;x-tokenwars-provider&quot; exists-action=&quot;override&quot;&gt;
+      &lt;value&gt;@((string)context.Variables[&quot;tw-provider&quot;])&lt;/value&gt;
+    &lt;/set-header&gt;
+    &lt;set-header name=&quot;x-tokenwars-model&quot; exists-action=&quot;override&quot;&gt;
+      &lt;value&gt;@((string)context.Variables[&quot;tw-model&quot;])&lt;/value&gt;
+    &lt;/set-header&gt;
+    &lt;set-header name=&quot;x-tokenwars-backend&quot; exists-action=&quot;override&quot;&gt;
       &lt;value&gt;@(context.Request.Url.Host)&lt;/value&gt;
     &lt;/set-header&gt;
+    &lt;!-- Exact final-response usage also covers embeddings, without applying chat-only LLM policies to them. --&gt;
+    &lt;set-variable name=&quot;tw-total-tokens&quot; value=&quot;@{
+        var contentType = context.Response.Headers.GetValueOrDefault(&amp;quot;Content-Type&amp;quot;, &amp;quot;&amp;quot;);
+        if (!contentType.Contains(&amp;quot;json&amp;quot;)) { return -1d; }
+        var body = context.Response.Body?.As&amp;lt;Newtonsoft.Json.Linq.JObject&amp;gt;(preserveContent: true);
+        return (double)((double?)body?[&amp;quot;usage&amp;quot;]?[&amp;quot;total_tokens&amp;quot;] ?? -1d);
+    }&quot; /&gt;
+    &lt;choose&gt;
+      &lt;when condition=&quot;@((double)context.Variables[&amp;quot;tw-total-tokens&amp;quot;] &amp;gt;= 0)&quot;&gt;
+        &lt;emit-metric name=&quot;Provider Tokens&quot; namespace=&quot;tokenwars&quot; value=&quot;@((double)context.Variables[&amp;quot;tw-total-tokens&amp;quot;])&quot;&gt;
+          &lt;dimension name=&quot;Subscription ID&quot; /&gt;
+          &lt;dimension name=&quot;team&quot; value=&quot;@(context.Subscription.Name)&quot; /&gt;
+          &lt;dimension name=&quot;provider&quot; value=&quot;@((string)context.Variables[&amp;quot;tw-provider&amp;quot;])&quot; /&gt;
+          &lt;dimension name=&quot;Model&quot; value=&quot;@((string)context.Variables[&amp;quot;tw-model&amp;quot;])&quot; /&gt;
+        &lt;/emit-metric&gt;
+      &lt;/when&gt;
+    &lt;/choose&gt;
   &lt;/outbound&gt;</code></pre></div><p>Update the existing assignments in <code>infra/terraform.tfvars</code> (examples at lines 52–55), without duplicates:</p><div class="code"><div class="code-head"><span class="code-label">infra/terraform.tfvars · existing gateway settings</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>deploy_apim = true
 apim_policy_file = "policies/ai-gateway-starter.xml"</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>terraform -chdir=infra init
 if ($LASTEXITCODE -ne 0) { throw "Terraform initialization failed." }
@@ -2670,7 +2736,7 @@ if ($LASTEXITCODE -ne 0) { throw "Deployment failed; do not continue." }</code><
     printf '%s\n' "Deployment failed; do not continue." &gt;&amp;2
     exit 1
   fi
-)</code></pre></div></div><p>Only after Terraform succeeds, enable the gateway. Keep the judge direct and do not change pricing, scoring or workload.</p><div class="lang-py"><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set use_gateway.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 14</strong> with the complete block below. Locate <code>&quot;use_gateway&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 14–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="14" data-end-line="14"><code>  "use_gateway": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+)</code></pre></div></div><p>Only after Terraform succeeds, enable the gateway. Keep the judge direct and do not change pricing, scoring or workload.</p><div class="lang-py"><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Confirm required use_gateway.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 14</strong> with the complete block below. Locate <code>&quot;use_gateway&quot;: true,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 14–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="14" data-end-line="14"><code>  "use_gateway": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
 Push-Location .\python\starter
 try {
     python -m tokenwars doctor
@@ -2696,7 +2762,7 @@ try {
     printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
     exit 1
   fi
-)</code></pre></div></div></div><div class="lang-net"><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set use_gateway.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 14</strong> with the complete block below. Locate <code>&quot;use_gateway&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 14–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="14" data-end-line="14"><code>  "use_gateway": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+)</code></pre></div></div></div><div class="lang-net"><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Confirm required use_gateway.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 14</strong> with the complete block below. Locate <code>&quot;use_gateway&quot;: true,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 14–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="14" data-end-line="14"><code>  "use_gateway": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
 Push-Location .\dotnet\starter\TokenWars
 try {
     dotnet run -- doctor
@@ -2751,17 +2817,17 @@ if ($LASTEXITCODE -ne 0) { throw "Terraform output failed." }</code></pre></div>
     <label class="done-toggle"><input type="checkbox" class="done-cb" data-step="3.6"> <span>Mark as done</span></label>
   </header>
   <div class="step-meta">
-    <div class="meta-box meta-goal"><h4>🎯 Goal</h4><p>When the Azure backend answers 429 or 5xx, let the gateway retry the request <strong>once</strong> on a Fireworks model instead of failing it, and make it visible which provider answered.</p></div>
-    <div class="meta-box meta-why"><h4>💸 Why it saves tokens</h4><p>A failed item scores 0. Failover to a second pay-per-token provider gives you headroom without buying reserved capacity (PTU) or keeping a second region warm, and the gateway's token budget still applies to every token.</p></div>
+    <div class="meta-box meta-goal"><h4>🎯 Goal</h4><p>Add <strong>failover only</strong>: when a mapped Azure chat request returns backend 429/5xx, retry it once on Fireworks. Provider routing, response headers and team/provider metrics already work in every policy.</p></div>
+    <div class="meta-box meta-why"><h4>💸 Why it saves tokens</h4><p>A failed item is unsuccessful. A second pay-per-token provider can improve availability without PTU or another Azure region. All returned chat usage shares the same consumer budget; unreported usage on failed attempts cannot be reconstructed.</p></div>
     <div class="meta-box meta-where"><h4>📂 File / TODO</h4><p><code>infra/policies/ai-gateway-multiprovider.xml</code>, selected with <code>apim_policy_file</code> (same for both languages; no app code).</p><p>Requires <code>deploy_apim = true</code> <strong>and</strong> <code>deploy_fireworks = true</code> (apply fails otherwise), plus <code>"use_gateway": true</code> in <span class="lang-py"><code>python/starter/strategy.json</code></span><span class="lang-net"><code>dotnet/starter/TokenWars/strategy.json</code></span>.</p></div>
   </div>
   <div class="panel"><h4>⚙️ What the policy does</h4>
 <ul class="ticks small">
-<li>Everything from the solution policy: <code>llm-token-limit</code> per subscription, token metrics and the Azure backend (pool).</li>
+<li>Retains built-in provider routing, per-subscription chat limits, metrics and the Azure backend/pool. For mapped Azure chats, its retry switches provider rather than using the solution policy's same-provider retries.</li>
 <li>In <code>&lt;backend&gt;</code>: after the Azure attempt, if the response is <strong>429 or ≥ 500</strong> and the requested model is in <code>failover_model_map</code>, it retries <strong>once</strong> on the APIM backend <code>fireworks</code>. The retry rewrites <code>model</code> to the mapped Fireworks deployment, removes <code>reasoning_effort</code> and renames <code>max_completion_tokens</code> to <code>max_tokens</code>.</li>
 <li><code>failover_model_map</code> (default <code>null</code>) resolves to <code>{ "gpt-5.6-terra" = "FW-DeepSeek-V4-Flash-0731", "gpt-5.6-sol" = "FW-DeepSeek-V4-Pro" }</code> (balanced → <code>fw_fast</code>, premium → <code>fw_pro</code>). Unmapped models (economy, Llama, embeddings, judge) never fail over.</li>
 <li>Response headers: <code>x-tokenwars-provider: azure-openai|fireworks</code>, <code>x-tokenwars-model</code> (the model that actually answered) and <code>x-tokenwars-backend</code>.</li>
-<li>Metrics (namespace <code>tokenwars</code>): <code>llm-emit-token-metric</code> with a <strong>Provider</strong> dimension next to Subscription ID, Backend ID and Model, plus an outbound <code>emit-metric</code> "Provider Tokens" (Subscription ID, Provider, Model).</li>
+<li>Existing metrics (namespace <code>tokenwars</code>) retain lowercase <code>team</code>/<code>provider</code> dimensions. Native LLM metrics retain the requested route; outbound <strong>Provider Tokens</strong> records the final serving provider/model, including after failover. Explicit Fireworks/Ollama requests never enter Azure-to-Fireworks failover.</li>
 <li>With <code>fireworks_backend_auth = "api_key"</code> the Fireworks key is stored as the secret named value <code>fireworks-api-key</code> and injected by the backend; the Azure bearer token is removed on the Fireworks attempt.</li>
 </ul></div><div class="code"><div class="code-head"><span class="code-label">infra/terraform.tfvars</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>deploy_apim      = true
 deploy_fireworks = true                                     # from 2.4
@@ -2784,7 +2850,7 @@ curl -s -D - -o /dev/null "${GW}chat/completions" \
 # x-tokenwars-provider: azure-openai     (or: fireworks, during a failover)
 # x-tokenwars-model: gpt-5.6-terra        (the model that actually answered)</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Application Insights › Logs (KQL)</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>customMetrics
 | where name == "Provider Tokens"
-| summarize tokens = sum(value) by provider = tostring(customDimensions["Provider"]), model = tostring(customDimensions["Model"]), bin(timestamp, 1m)
+| summarize tokens = sum(value) by team = tostring(customDimensions["team"]), provider = tostring(customDimensions["provider"]), model = tostring(customDimensions["Model"]), bin(timestamp, 1m)
 | order by timestamp asc</code></pre></div></li><li>Restore the capacity and <code>concurrency</code> you changed, and decide whether you'd keep the multi-provider policy for your final run.</li></ol>
   <div class="callout warn"><strong>🗣 Debrief: quality drift and hidden side effects.</strong>
 <ul class="ticks">
@@ -2795,97 +2861,101 @@ curl -s -D - -o /dev/null "${GW}chat/completions" \
 </ul></div>
   <details class="hint">
     <summary>💡 Need a hint?</summary>
-    <div class="hint-body"><div class="hint-item"><strong>Needs validation</strong> (not yet tested end-to-end on a live gateway): (a) whether <code>llm-emit-token-metric</code> evaluates the Provider dimension after the backend call (if not, it always says <code>azure-openai</code>; the outbound "Provider Tokens" metric is exact); (b) when the Azure circuit breaker is <em>open</em>, the gateway may raise an error instead of a 503, so <code>on-error</code> runs and there's no Fireworks retry: keep <code>deploy_secondary_region = false</code>, use a low TPM and expect the first 429s to fail over; (c) whether Fireworks models reject other GPT-5.x-only parameters; (d) policy expressions compile on save, so <code>terraform apply</code> fails fast if not.</div><div class="hint-item"><code>fireworks_backend_auth = "managed_identity"</code> depends on Fireworks deployments accepting Entra ID tokens (needs validation). The default <code>api_key</code> is the documented path.</div><div class="hint-item">No failover at all? Check that the requested model is in <code>terraform output apim_failover_model_map</code>, that your 429s come from the backend (not from <code>llm-token-limit</code>), and that <code>use_gateway</code> is on.</div><div class="hint-item">Compare with the solution policy: <code>infra/policies/ai-gateway-solution.xml</code>. The multi-provider policy contains everything in it plus the Fireworks retry.</div></div>
+    <div class="hint-body"><div class="hint-item"><strong>Needs live validation:</strong> check the rewritten Fireworks request, returned provider/model and outbound usage dimensions. Native metrics intentionally retain the requested route. An open Azure circuit breaker may enter <code>on-error</code> before a retryable response exists: keep <code>deploy_secondary_region = false</code> for this demo.</div><div class="hint-item"><code>fireworks_backend_auth = "managed_identity"</code> needs live validation; <code>api_key</code> is the default path.</div><div class="hint-item">No failover? Check <code>apim_failover_model_map</code>, backend 429/5xx rather than the gateway limiter, and a mapped Azure chat model. Explicit Fireworks/Ollama calls, embeddings, unmapped models and auth errors do not enter this retry.</div><div class="hint-item">Preserve built-in routing and telemetry from the solution policy; change only the failover-specific request adaptation/retry. Restore test capacity and concurrency afterwards.</div></div>
   </details>
   <div class="check-box">
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li>Under forced throttling, some responses carry <code>x-tokenwars-provider: fireworks</code> and <code>x-tokenwars-model: FW-…</code>.</li><li>The run stays <strong>VALID</strong>, with fewer (ideally zero) errored items than the same load without the multi-provider policy.</li><li>"Provider Tokens" in Application Insights shows a <code>fireworks</code> series next to <code>azure-openai</code>.</li></ul>
   </div>
 
-<details class="hint step-solution" id="solution-3-6" data-solution-step="3.6"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><p>Optional stretch: finish 2.4 and 3.4–3.5 first. This policy has not been validated end-to-end on a live gateway; deployment success alone is not proof of failover.</p><p><strong>Keep this complete reference policy (or replace the entire file if you edited it).</strong> In <code>infra/policies/ai-gateway-multiprovider.xml</code>, replace <strong>lines 1–138</strong> with the complete block below. Locate <code>&lt;policies&gt;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-multiprovider.xml · lines 1–138</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-multiprovider.xml" data-start-line="1" data-end-line="138"><code>&lt;policies&gt;
+<details class="hint step-solution" id="solution-3-6" data-solution-step="3.6"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><p>Optional stretch: finish 2.4 and 3.4–3.5 first. This policy has not been validated end-to-end on a live gateway; deployment success alone is not proof of failover.</p><p><strong>Keep this complete reference policy (or replace the entire file if you edited it).</strong> In <code>infra/policies/ai-gateway-multiprovider.xml</code>, replace <strong>lines 1–145</strong> with the complete block below. Locate <code>&lt;policies&gt;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-multiprovider.xml · lines 1–145</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-multiprovider.xml" data-start-line="1" data-end-line="145"><code>&lt;policies&gt;
   &lt;!--
-    Token Wars - AI gateway policy, Challenge 3.6 (stretch) "Multi-Provider Failover" for the "openai" API.
-    Everything from the SOLUTION policy (token limit per consumer, token metrics, Azure failover pool) PLUS:
-    when the Azure OpenAI backend answers 429 or 5xx, the request is retried ONCE against the Fireworks on Foundry
-    backend, with the "model" field rewritten to the mapped Fireworks deployment (failover_model_map).
+    Token Wars - Challenge 3.6: failover only (provider routing already works in every policy).
+    An Azure 429/5xx for a mapped chat model retries ONCE on Fireworks.
+    Explicit Fireworks / Ollama requests never enter that failover path.
+    Apply: terraform apply -var &#x27;deploy_fireworks=true&#x27; -var &#x27;apim_policy_file=policies/ai-gateway-multiprovider.xml&#x27;
 
-    Apply with (needs deploy_fireworks = true):
-      terraform apply -var 'deploy_fireworks=true' -var 'apim_policy_file=policies/ai-gateway-multiprovider.xml'
-
-    Template variables (double $ so they are not substituted here):
-      $${backend_id}            primary Azure backend
-      $${pool_backend_id}       Azure failover pool (or the primary if no secondary region)
-      $${fireworks_backend_id}  APIM backend "fireworks" (US Foundry resource, /openai/v1)
-      $${fireworks_auth}        "api_key" (backend injects the key from a secret named value) | "managed_identity"
-      $${tokens_per_minute}     var.tokens_per_minute_per_consumer
-      failover_model_map        Azure deployment name -&gt; Fireworks deployment name (rendered as a lookup below)
-
-    Response headers: x-tokenwars-provider: azure-openai | fireworks, x-tokenwars-model (model that answered).
-    Debrief: a DIFFERENT model silently answers during failover (quality drift!), and llm-token-limit counts the
-    tokens of both providers against the same consumer budget.
-
-    VALIDATE (not yet tested end-to-end on a live gateway):
-      * llm-emit-token-metric: whether the custom "Provider" dimension is evaluated after the backend call
-        (otherwise it always reports azure-openai; the outbound emit-metric "Provider Tokens" is exact).
-      * when the pool/primary circuit breaker is OPEN the gateway may raise an error instead of returning a 503
-        response -&gt; on-error runs and no Fireworks retry happens (keep deploy_secondary_region = false for the demo).
-      * Fireworks models may reject GPT-5.x-only parameters: reasoning_effort is removed and max_completion_tokens is
-        renamed to max_tokens before the retry.
+    llm metrics describe the requested route. Use outbound &quot;Provider Tokens&quot; for final-provider consumption:
+    inbound expressions must not be relied on to observe variables changed during backend retry.
+    Failed attempts without a usage object cannot be counted. Circuit-breaker errors can enter on-error
+    before a retryable response exists; use deploy_secondary_region = false for the cross-provider demo.
   --&gt;
   &lt;inbound&gt;
     &lt;base /&gt;
-
-    &lt;!-- Token budget per consumer (APIM subscription); applies to Azure AND Fireworks tokens. --&gt;
-    &lt;llm-token-limit counter-key="@(context.Subscription.Id)"
-                     tokens-per-minute="${tokens_per_minute}"
-                     estimate-prompt-tokens="false"
-                     remaining-tokens-header-name="x-ratelimit-remaining-tokens"
-                     tokens-consumed-header-name="x-tokens-consumed" /&gt;
-
-    &lt;!-- Requested model (= Azure deployment name) and its Fireworks failover target ("" = no failover). --&gt;
-    &lt;set-variable name="tw-model" value="@{
+    &lt;set-variable name=&quot;tw-model&quot; value=&quot;@{
+        if (context.Operation.Id == &amp;quot;list-models&amp;quot;) { return &amp;quot;unknown&amp;quot;; }
         var body = context.Request.Body?.As&amp;lt;Newtonsoft.Json.Linq.JObject&amp;gt;(preserveContent: true);
-        var model = body?[&amp;quot;model&amp;quot;]?.ToString();
-        return string.IsNullOrEmpty(model) ? &amp;quot;unknown&amp;quot; : model;
-    }" /&gt;
-    &lt;set-variable name="tw-fw-model" value="@{
+        return body?[&amp;quot;model&amp;quot;]?.ToString() ?? &amp;quot;unknown&amp;quot;;
+    }&quot; /&gt;
+    &lt;set-variable name=&quot;tw-requested-model&quot; value=&quot;@((string)context.Variables[&amp;quot;tw-model&amp;quot;])&quot; /&gt;
+    &lt;set-variable name=&quot;tw-provider&quot; value=&quot;@{
+        var model = (string)context.Variables[&amp;quot;tw-model&amp;quot;];%{ for model in fireworks_models }
+        if (model == ${replace(jsonencode(model), &quot;\&quot;&quot;, &quot;&amp;quot;&quot;)}) { return &amp;quot;fireworks&amp;quot;; }%{ endfor }%{ if selfhosted_enabled }
+        if (model == ${replace(jsonencode(selfhosted_model), &quot;\&quot;&quot;, &quot;&amp;quot;&quot;)}) { return &amp;quot;selfhosted&amp;quot;; }%{ endif }
+        return &amp;quot;azure-openai&amp;quot;;
+    }&quot; /&gt;
+    &lt;set-variable name=&quot;tw-azure-backend&quot; value=&quot;@{
+        var model = (string)context.Variables[&amp;quot;tw-model&amp;quot;];%{ for model in pool_models }
+        if (model == ${replace(jsonencode(model), &quot;\&quot;&quot;, &quot;&amp;quot;&quot;)}) { return &amp;quot;${pool_backend_id}&amp;quot;; }%{ endfor }
+        return &amp;quot;${backend_id}&amp;quot;;
+    }&quot; /&gt;
+    &lt;set-variable name=&quot;tw-requested-provider&quot; value=&quot;@((string)context.Variables[&amp;quot;tw-provider&amp;quot;])&quot; /&gt;
+    &lt;set-variable name=&quot;tw-fw-model&quot; value=&quot;@{
         var model = (string)context.Variables[&amp;quot;tw-model&amp;quot;];%{ for azure_model, fw_model in failover_model_map }
-        if (model == &amp;quot;${azure_model}&amp;quot;) { return &amp;quot;${fw_model}&amp;quot;; }%{ endfor }
+        if (model == ${replace(jsonencode(azure_model), &quot;\&quot;&quot;, &quot;&amp;quot;&quot;)}) { return ${replace(jsonencode(fw_model), &quot;\&quot;&quot;, &quot;&amp;quot;&quot;)}; }%{ endfor }
         return &amp;quot;&amp;quot;;
-    }" /&gt;
-    &lt;set-variable name="tw-provider" value="azure-openai" /&gt;
-    &lt;set-variable name="tw-failover" value="@(false)" /&gt;
-
-    &lt;!-- Token metrics to Application Insights (custom metrics, namespace "tokenwars") with a provider dimension. --&gt;
-    &lt;llm-emit-token-metric namespace="tokenwars"&gt;
-      &lt;dimension name="Subscription ID" /&gt;
-      &lt;dimension name="Backend ID" /&gt;
-      &lt;dimension name="Model" value="@((string)context.Variables[&amp;quot;tw-model&amp;quot;])" /&gt;
-      &lt;dimension name="Provider" value="@(context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;(&amp;quot;tw-provider&amp;quot;, &amp;quot;azure-openai&amp;quot;))" /&gt;
-    &lt;/llm-emit-token-metric&gt;
-
-    &lt;!-- First attempt: Azure (failover pool if a secondary region exists, otherwise the primary). --&gt;
-    &lt;set-backend-service backend-id="${pool_backend_id}" /&gt;
-
-    &lt;!-- Keyless backend auth with APIM's managed identity (Azure resources). --&gt;
-    &lt;authentication-managed-identity resource="https://cognitiveservices.azure.com" /&gt;
-
-    &lt;!-- Never forward the caller's APIM subscription key to a model endpoint. --&gt;
-    &lt;set-header name="api-key" exists-action="delete" /&gt;
+    }&quot; /&gt;
+    &lt;set-variable name=&quot;tw-failover&quot; value=&quot;@(false)&quot; /&gt;
+%{ if length(fireworks_models) &gt; 0 || selfhosted_enabled }
+    &lt;choose&gt;%{ if length(fireworks_models) &gt; 0 }
+      &lt;when condition=&quot;@((string)context.Variables[&amp;quot;tw-provider&amp;quot;] == &amp;quot;fireworks&amp;quot;)&quot;&gt;
+        &lt;set-backend-service backend-id=&quot;${fireworks_backend_id}&quot; /&gt;%{ if fireworks_auth == &quot;managed_identity&quot; }
+        &lt;authentication-managed-identity resource=&quot;https://cognitiveservices.azure.com&quot; /&gt;%{ else }
+        &lt;set-header name=&quot;Authorization&quot; exists-action=&quot;delete&quot; /&gt;%{ endif }
+      &lt;/when&gt;%{ endif }%{ if selfhosted_enabled }
+      &lt;when condition=&quot;@((string)context.Variables[&amp;quot;tw-provider&amp;quot;] == &amp;quot;selfhosted&amp;quot;)&quot;&gt;
+        &lt;set-backend-service backend-id=&quot;${selfhosted_backend_id}&quot; /&gt;
+        &lt;set-header name=&quot;Authorization&quot; exists-action=&quot;delete&quot; /&gt;
+      &lt;/when&gt;%{ endif }
+      &lt;otherwise&gt;
+        &lt;set-backend-service backend-id=&quot;@((string)context.Variables[&amp;quot;tw-azure-backend&amp;quot;])&quot; /&gt;
+        &lt;authentication-managed-identity resource=&quot;https://cognitiveservices.azure.com&quot; /&gt;
+      &lt;/otherwise&gt;
+    &lt;/choose&gt;
+%{ else }
+    &lt;set-backend-service backend-id=&quot;@((string)context.Variables[&amp;quot;tw-azure-backend&amp;quot;])&quot; /&gt;
+    &lt;authentication-managed-identity resource=&quot;https://cognitiveservices.azure.com&quot; /&gt;
+%{ endif }
+    &lt;set-header name=&quot;api-key&quot; exists-action=&quot;delete&quot; /&gt;
+    &lt;set-query-parameter name=&quot;api-key&quot; exists-action=&quot;delete&quot; /&gt;
+    &lt;choose&gt;
+      &lt;when condition=&quot;@(context.Operation.Id == &amp;quot;chat-completions&amp;quot;)&quot;&gt;
+        &lt;llm-token-limit counter-key=&quot;@(context.Subscription.Id)&quot;
+                         tokens-per-minute=&quot;${tokens_per_minute}&quot;
+                         estimate-prompt-tokens=&quot;false&quot;
+                         remaining-tokens-header-name=&quot;x-ratelimit-remaining-tokens&quot;
+                         tokens-consumed-header-name=&quot;x-tokens-consumed&quot; /&gt;
+        &lt;llm-emit-token-metric namespace=&quot;tokenwars&quot;&gt;
+          &lt;dimension name=&quot;Subscription ID&quot; /&gt;
+          &lt;dimension name=&quot;team&quot; value=&quot;@(context.Subscription.Name)&quot; /&gt;
+          &lt;dimension name=&quot;provider&quot; value=&quot;@((string)context.Variables[&amp;quot;tw-requested-provider&amp;quot;])&quot; /&gt;
+          &lt;dimension name=&quot;API ID&quot; /&gt;
+          &lt;dimension name=&quot;Model&quot; value=&quot;@((string)context.Variables[&amp;quot;tw-requested-model&amp;quot;])&quot; /&gt;
+        &lt;/llm-emit-token-metric&gt;
+      &lt;/when&gt;
+    &lt;/choose&gt;
   &lt;/inbound&gt;
-
   &lt;backend&gt;
-    &lt;!-- Runs once; retried ONCE (count=1) only if tw-failover was set after the Azure attempt. --&gt;
-    &lt;retry condition="@(context.Variables.GetValueOrDefault&amp;lt;bool&amp;gt;(&amp;quot;tw-failover&amp;quot;, false))"
-           count="1" interval="1" first-fast-retry="true"&gt;
+    &lt;retry condition=&quot;@(context.Variables.GetValueOrDefault&amp;lt;bool&amp;gt;(&amp;quot;tw-failover&amp;quot;, false))&quot;
+           count=&quot;1&quot; interval=&quot;1&quot; first-fast-retry=&quot;true&quot;&gt;
       &lt;choose&gt;
-        &lt;when condition="@(context.Variables.GetValueOrDefault&amp;lt;bool&amp;gt;(&amp;quot;tw-failover&amp;quot;, false))"&gt;
-          &lt;!-- Second attempt: Fireworks on Foundry with the mapped deployment name. --&gt;
-          &lt;set-variable name="tw-provider" value="fireworks" /&gt;
-          &lt;set-backend-service backend-id="${fireworks_backend_id}" /&gt;
+        &lt;when condition=&quot;@(context.Variables.GetValueOrDefault&amp;lt;bool&amp;gt;(&amp;quot;tw-failover&amp;quot;, false))&quot;&gt;
+          &lt;set-variable name=&quot;tw-provider&quot; value=&quot;fireworks&quot; /&gt;
+          &lt;set-variable name=&quot;tw-model&quot; value=&quot;@((string)context.Variables[&amp;quot;tw-fw-model&amp;quot;])&quot; /&gt;
+          &lt;set-backend-service backend-id=&quot;${fireworks_backend_id}&quot; /&gt;
           &lt;set-body&gt;@{
               var body = context.Request.Body.As&amp;lt;Newtonsoft.Json.Linq.JObject&amp;gt;(preserveContent: true);
-              body[&amp;quot;model&amp;quot;] = (string)context.Variables[&amp;quot;tw-fw-model&amp;quot;];
+              body[&amp;quot;model&amp;quot;] = (string)context.Variables[&amp;quot;tw-model&amp;quot;];
               body.Remove(&amp;quot;reasoning_effort&amp;quot;);
               if (body[&amp;quot;max_completion_tokens&amp;quot;] != null) {
                   if (body[&amp;quot;max_tokens&amp;quot;] == null) {
@@ -2894,49 +2964,52 @@ curl -s -D - -o /dev/null "${GW}chat/completions" \
                   body.Remove(&amp;quot;max_completion_tokens&amp;quot;);
               }
               return body.ToString();
-          }&lt;/set-body&gt;%{ if fireworks_auth == "api_key" }
-          &lt;!-- The fireworks backend adds the api-key header itself; drop the Azure bearer token. --&gt;
-          &lt;set-header name="Authorization" exists-action="delete" /&gt;%{ endif }
+          }&lt;/set-body&gt;%{ if fireworks_auth == &quot;api_key&quot; }
+          &lt;set-header name=&quot;Authorization&quot; exists-action=&quot;delete&quot; /&gt;%{ endif }
         &lt;/when&gt;
       &lt;/choose&gt;
-      &lt;forward-request buffer-request-body="true" timeout="120" /&gt;
-      &lt;!-- Fail over only from Azure, only for mapped models, only on throttling / server errors. --&gt;
-      &lt;set-variable name="tw-failover" value="@(
-          context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;(&amp;quot;tw-provider&amp;quot;, &amp;quot;azure-openai&amp;quot;) == &amp;quot;azure-openai&amp;quot;
-          &amp;amp;&amp;amp; context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;(&amp;quot;tw-fw-model&amp;quot;, &amp;quot;&amp;quot;) != &amp;quot;&amp;quot;
+      &lt;forward-request buffer-request-body=&quot;true&quot; timeout=&quot;120&quot; /&gt;
+      &lt;set-variable name=&quot;tw-failover&quot; value=&quot;@(
+          (string)context.Variables[&amp;quot;tw-provider&amp;quot;] == &amp;quot;azure-openai&amp;quot;
+          &amp;amp;&amp;amp; context.Operation.Id == &amp;quot;chat-completions&amp;quot;
+          &amp;amp;&amp;amp; (string)context.Variables[&amp;quot;tw-fw-model&amp;quot;] != &amp;quot;&amp;quot;
           &amp;amp;&amp;amp; context.Response != null
-          &amp;amp;&amp;amp; (context.Response.StatusCode == 429 || context.Response.StatusCode &amp;gt;= 500))" /&gt;
+          &amp;amp;&amp;amp; (context.Response.StatusCode == 429 || context.Response.StatusCode &amp;gt;= 500))&quot; /&gt;
     &lt;/retry&gt;
   &lt;/backend&gt;
-
   &lt;outbound&gt;
     &lt;base /&gt;
-    &lt;set-header name="x-tokenwars-provider" exists-action="override"&gt;
-      &lt;value&gt;@(context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;("tw-provider", "azure-openai"))&lt;/value&gt;
+    &lt;set-header name=&quot;x-tokenwars-provider&quot; exists-action=&quot;override&quot;&gt;
+      &lt;value&gt;@((string)context.Variables[&quot;tw-provider&quot;])&lt;/value&gt;
     &lt;/set-header&gt;
-    &lt;set-header name="x-tokenwars-model" exists-action="override"&gt;
-      &lt;value&gt;@(context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;("tw-provider", "azure-openai") == "fireworks" ? context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;("tw-fw-model", "") : context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;("tw-model", "unknown"))&lt;/value&gt;
+    &lt;set-header name=&quot;x-tokenwars-model&quot; exists-action=&quot;override&quot;&gt;
+      &lt;value&gt;@((string)context.Variables[&quot;tw-model&quot;])&lt;/value&gt;
     &lt;/set-header&gt;
-    &lt;set-header name="x-tokenwars-backend" exists-action="override"&gt;
+    &lt;set-header name=&quot;x-tokenwars-backend&quot; exists-action=&quot;override&quot;&gt;
       &lt;value&gt;@(context.Request.Url.Host)&lt;/value&gt;
     &lt;/set-header&gt;
-    &lt;!-- Exact per-provider token counter (non-streaming JSON responses), evaluated after the final attempt. --&gt;
-    &lt;emit-metric name="Provider Tokens" namespace="tokenwars" value="@{
+    &lt;!-- Count actual returned usage under the final provider and rewritten model, not the requested Azure route. --&gt;
+    &lt;set-variable name=&quot;tw-total-tokens&quot; value=&quot;@{
         var contentType = context.Response.Headers.GetValueOrDefault(&amp;quot;Content-Type&amp;quot;, &amp;quot;&amp;quot;);
-        if (!contentType.Contains(&amp;quot;json&amp;quot;)) { return 0d; }
+        if (!contentType.Contains(&amp;quot;json&amp;quot;)) { return -1d; }
         var body = context.Response.Body?.As&amp;lt;Newtonsoft.Json.Linq.JObject&amp;gt;(preserveContent: true);
-        return (double)((double?)body?[&amp;quot;usage&amp;quot;]?[&amp;quot;total_tokens&amp;quot;] ?? 0d);
-    }"&gt;
-      &lt;dimension name="Subscription ID" /&gt;
-      &lt;dimension name="Provider" value="@(context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;(&amp;quot;tw-provider&amp;quot;, &amp;quot;azure-openai&amp;quot;))" /&gt;
-      &lt;dimension name="Model" value="@((string)context.Variables[&amp;quot;tw-model&amp;quot;])" /&gt;
-    &lt;/emit-metric&gt;
+        return (double)((double?)body?[&amp;quot;usage&amp;quot;]?[&amp;quot;total_tokens&amp;quot;] ?? -1d);
+    }&quot; /&gt;
+    &lt;choose&gt;
+      &lt;when condition=&quot;@((double)context.Variables[&amp;quot;tw-total-tokens&amp;quot;] &amp;gt;= 0)&quot;&gt;
+        &lt;emit-metric name=&quot;Provider Tokens&quot; namespace=&quot;tokenwars&quot; value=&quot;@((double)context.Variables[&amp;quot;tw-total-tokens&amp;quot;])&quot;&gt;
+          &lt;dimension name=&quot;Subscription ID&quot; /&gt;
+          &lt;dimension name=&quot;team&quot; value=&quot;@(context.Subscription.Name)&quot; /&gt;
+          &lt;dimension name=&quot;provider&quot; value=&quot;@((string)context.Variables[&amp;quot;tw-provider&amp;quot;])&quot; /&gt;
+          &lt;dimension name=&quot;Model&quot; value=&quot;@((string)context.Variables[&amp;quot;tw-model&amp;quot;])&quot; /&gt;
+        &lt;/emit-metric&gt;
+      &lt;/when&gt;
+    &lt;/choose&gt;
   &lt;/outbound&gt;
-
   &lt;on-error&gt;
     &lt;base /&gt;
-    &lt;set-header name="x-tokenwars-provider" exists-action="override"&gt;
-      &lt;value&gt;@(context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;("tw-provider", "azure-openai"))&lt;/value&gt;
+    &lt;set-header name=&quot;x-tokenwars-provider&quot; exists-action=&quot;override&quot;&gt;
+      &lt;value&gt;@(context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;(&quot;tw-provider&quot;, &quot;azure-openai&quot;))&lt;/value&gt;
     &lt;/set-header&gt;
   &lt;/on-error&gt;
 &lt;/policies&gt;</code></pre></div><p>Update the existing assignments in <code>infra/terraform.tfvars</code> (examples at lines 52–55, 66 and 78); do not append duplicate properties:</p><div class="code"><div class="code-head"><span class="code-label">infra/terraform.tfvars · multi-provider settings</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>deploy_apim = true
@@ -2961,7 +3034,7 @@ if ($LASTEXITCODE -ne 0) { throw "Terraform output failed." }</code></pre></div>
     printf '%s\n' "Terraform output failed." &gt;&amp;2
     exit 1
   fi
-)</code></pre></div></div><div class="lang-py"><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set use_gateway.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 14</strong> with the complete block below. Locate <code>&quot;use_gateway&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 14–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="14" data-end-line="14"><code>  "use_gateway": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+)</code></pre></div></div><div class="lang-py"><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Confirm required use_gateway.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 14</strong> with the complete block below. Locate <code>&quot;use_gateway&quot;: true,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 14–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="14" data-end-line="14"><code>  "use_gateway": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
 Push-Location .\python\starter
 try {
     python -m tokenwars doctor
@@ -2987,7 +3060,7 @@ try {
     printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
     exit 1
   fi
-)</code></pre></div></div></div><div class="lang-net"><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set use_gateway.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 14</strong> with the complete block below. Locate <code>&quot;use_gateway&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 14–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="14" data-end-line="14"><code>  "use_gateway": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+)</code></pre></div></div></div><div class="lang-net"><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Confirm required use_gateway.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 14</strong> with the complete block below. Locate <code>&quot;use_gateway&quot;: true,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 14–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="14" data-end-line="14"><code>  "use_gateway": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
 Push-Location .\dotnet\starter\TokenWars
 try {
     dotnet run -- doctor

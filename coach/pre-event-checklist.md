@@ -95,6 +95,10 @@ terraform output next_steps
 ```
 
 - [ ] `terraform apply` finished; `.env` and `shared/config/models.json` were written.
+- [ ] Required APIM is deployed; every non-judge entry has `via_gateway: true` and both strategies use
+      `use_gateway: true`. Only the independent judge is direct. Fireworks and Ollama routes are present when enabled.
+- [ ] Application Insights **Provider Tokens** groups consumption by lowercase `team` and `provider`;
+      the reported final provider/model is correct. Do not sum this with native LLM token metrics.
 - [ ] Existing checkout: migrate tier overrides/registries to `premium` / `balanced` / `economy` using the
       [tier migration instructions](../README.md#provider-neutral-model-tiers). Confirm the old infrastructure was
       destroyed using its original configuration before a fresh deployment; no automatic state migration is provided.
