@@ -69,7 +69,7 @@ Full list with commands and timing: [`coach/pre-event-checklist.md`](coach/pre-e
   (`Microsoft.CognitiveServices`, `Microsoft.ApiManagement`, `Microsoft.OperationalInsights`, `Microsoft.Insights`,
   `Microsoft.App`) itself.
 - Model quota in your region (default `swedencentral`) for `gpt-5.6-sol`, `gpt-5.6-terra`, `gpt-5.6-luna`,
-  `text-embedding-3-small` and `Llama-3.3-70B-Instruct` (GlobalStandard). Check with
+  `gpt-5.5` (independent judge), `text-embedding-3-small` and `Llama-3.3-70B-Instruct` (GlobalStandard). Check with
   `az cognitiveservices model list --location swedencentral -o table`, `az cognitiveservices usage list --location swedencentral -o table`
   and the Foundry portal's *Quota* page.
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli), [Terraform ≥ 1.6](https://developer.hashicorp.com/terraform/install)
@@ -163,7 +163,7 @@ prints what to run next.
 | `fireworks_models` | `fw_fast` = `FW-DeepSeek-V4-Flash-0731`, `fw_pro` = `FW-DeepSeek-V4-Pro` | DataZoneStandard / GlobalStandard only (no PTU); alternatives listed in `terraform.tfvars.example` |
 | `fireworks_grant_deployer_role` | `false` | assigns `fireworks_deployer_role` (`Foundry Owner`) on the Fireworks project if deployment fails with Forbidden |
 | `fireworks_backend_auth` / `failover_model_map` | `api_key` / mini→fw_fast, frontier→fw_pro | Challenge 3.6 failover backend auth and model mapping |
-| `*_model` | GPT-5.6 family, text-embedding-3-small, Llama 3.3 70B | model name / version / SKU / capacity (TPM ×1000) / pricing key / `max_tokens_param` / `supports_temperature` / `extra_body` / `extra_headers` |
+| `*_model` | GPT-5.6 answer tiers, GPT-5.5 judge, text-embedding-3-small, Llama 3.3 70B | model name / version / SKU / capacity (TPM ×1000) / pricing key / `max_tokens_param` / `supports_temperature` / `extra_body` / `extra_headers` |
 
 Re-run `terraform apply` after every change; it regenerates `.env` and `shared/config/models.json`.
 
@@ -174,7 +174,7 @@ Re-run `terraform apply` after every change; it regenerates `.env` and `shared/c
 | `frontier` | `gpt-5.6-sol` (2026-07-09) | reasoning-capable; written with `max_completion_tokens`, no `temperature`, `reasoning_effort: none` |
 | `mini` | `gpt-5.6-terra` (2026-07-09) | same settings |
 | `nano` | `gpt-5.6-luna` (2026-07-09) | same settings; also the classifier router |
-| `judge` | `judge` → `gpt-5.6-terra` | not part of the score; bypasses the gateway |
+| `judge` | `judge` → `gpt-5.5` (2026-04-24) | independent evaluator; not part of the score; bypasses the gateway |
 | `embedding` | `text-embedding-3-small` | semantic cache / embedding retrieval |
 | `open` | `Llama-3.3-70B-Instruct` | serverless open-weight model, `max_tokens`, temperature supported |
 | `selfhosted` | `llama3.2:3b` (Ollama) | optional, CPU on Container Apps |
@@ -182,9 +182,20 @@ Re-run `terraform apply` after every change; it regenerates `.env` and `shared/c
 | `fw_pro` | `FW-DeepSeek-V4-Pro` | same; open frontier model vs `frontier` |
 | `custom` | fine-tuned model | coach demo only ("Own the Weights", coach subscription); has an informational `hourly_cost_usd` |
 
-All four GPT-5.6 deployments (`frontier`, `mini`, `nano`, `judge`) default to capacity **800** (800K TPM each).
+The three GPT-5.6 answer deployments and the independent GPT-5.5 `judge` default to capacity **800** (800K TPM each).
 The optional secondary region uses capacity **800** per chat deployment too; embeddings and open-weight models
-keep their existing capacities. Terra needs quota for both `mini` and the separate `judge` deployment.
+keep their existing capacities. Terra needs 800K TPM for `mini`; GPT-5.5 needs a separate 800K TPM allocation for `judge`.
+
+**Why GPT-5.5 for the judge:** the challenges optimise GPT-5.6 answer tiers, so a separate frontier evaluator
+avoids using Terra to grade Terra's own answers. GPT-5.5 fits the existing short reference-answer/JSON grading
+flow; GPT-6.1 Sol is an alternative to evaluate, not a requirement for these challenges. A different model does
+not guarantee unbiased grading: coaches must calibrate it against a few human-reviewed answers in the dry run.
+The judge keeps `max_completion_tokens`, omitted temperature and `reasoning_effort: none`.
+
+Challenges 1–3, answer routing and the ≥85% quality bar are unchanged. The judge bypasses APIM and is not a
+failover target; its cost remains `judge_cost_usd`, outside the leaderboard score. Use the same pinned judge,
+prompt and settings for all teams throughout the event. Changing the evaluator can change pass rates:
+repeat the baseline and scored comparisons, and do not rank new scores against old-judge runs.
 
 For an existing deployment, run `terraform plan` and review the model replacements, then `terraform apply` from
 `infra/`. Terraform regenerates `shared/config/models.json` only after the new deployments exist; until then,
@@ -195,6 +206,9 @@ GPT-5.6 pricing uses Microsoft's published Standard Global **short-context** rat
 Sol $4.00 / $0.50 / $20.00, Terra $2.00 / $0.20 / $12.00, Luna $0.20 / $0.02 / $1.20
 per 1M input / cached input / output tokens. Sol's input/output rates are promotional through at least
 2026-11-30; recheck before later events. [Pricing source](https://azure.microsoft.com/en-us/blog/gpt-5-6-now-available-in-microsoft-foundry/).
+GPT-5.5 judge pricing is $5.00 / $0.50 / $30.00 per 1M input / cached input / output tokens
+([Microsoft pricing source](https://azure.microsoft.com/en-us/blog/openais-gpt-5-5-in-microsoft-foundry-frontier-intelligence-on-an-enterprise-ready-platform/));
+measure its unscored cost and latency during the dry run.
 
 The GPT-4.1 family is deprecated for new customers in 2026; if your subscription still has access you can switch back
 with the commented block in `infra/terraform.tfvars.example` (`pricing.json` keeps the `gpt-4.1*` prices).

@@ -33,6 +33,13 @@ Run everything from `dotnet/starter/TokenWars/` (the folder that contains `strat
 
 Extra option: `--strategy PATH` uses another strategy file.
 
+The evaluator is the separate `judge` deployment: **GPT-5.5 (2026-04-24), capacity 800**, not Terra.
+It calls Azure directly, bypasses APIM and uses `max_completion_tokens`, omitted temperature and
+`reasoning_effort: none`. Prices are $5 / $0.50 / $30 per 1M input / cached input / output tokens;
+`judge_cost_usd` remains outside the score. Challenges 1–3 and the ≥85% quality bar are unchanged.
+Use the same pinned judge for every team and repeat baselines/comparisons after migration; old-judge
+scores are not directly comparable. Terraform updates the generated registry only after deployment.
+
 - `strategy.json` is read from the **current directory** (fallback: the project folder). Results are written to
   `results/run-<yyyyMMdd-HHmmss>.json` / `results/compare-<yyyyMMdd-HHmmss>.json` next to it.
 - The repository root is found by walking up from the current directory to a folder containing `shared/config`

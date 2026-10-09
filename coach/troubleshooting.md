@@ -7,6 +7,12 @@ Embedding probes and normal run output limits are unchanged.
 
 ## Deployment (Terraform)
 
+The default evaluator is a separate `judge` deployment of GPT-5.5 (2026-04-24), GlobalStandard, capacity 800.
+Check availability and quota for GPT-5.5 separately from the GPT-5.6 answer tiers. After changing the evaluator,
+review `terraform plan`, apply it, re-run `doctor`, then repeat baselines and comparisons with the same judge
+for every team. Terraform regenerates the live model registry after deployment; do not edit state or old results.
+Judge calls bypass APIM, so APIM failover does not recover a judge outage. Its cost is reported but unscored.
+
 | Symptom | Cause | Fix |
 |---|---|---|
 | `InsufficientQuota` / "exceeds the available quota" on `azurerm_cognitive_deployment` | TPM quota per subscription + region + model + SKU is exhausted (often shared by several teams in one subscription). | Lower `capacity` in `terraform.tfvars` (e.g. `frontier_model = { capacity = 100 }`), request more quota (Foundry portal > Quota), use another region or a separate subscription per team. |

@@ -556,7 +556,7 @@ public sealed class AppConfig
         "nano":      {"deployment": "gpt-5.6-luna", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.6-luna", "type": "chat", "via_gateway": true, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}},
         "open":      {"deployment": "Llama-3.3-70B-Instruct", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "llama-3.3-70b-instruct", "type": "chat", "via_gateway": true, "max_tokens_param": "max_tokens", "supports_temperature": true, "extra_body": {}},
         "embedding": {"deployment": "text-embedding-3-small", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "text-embedding-3-small", "type": "embedding", "via_gateway": false, "max_tokens_param": "max_tokens", "supports_temperature": true, "extra_body": {}},
-        "judge":     {"deployment": "judge", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.6-terra", "type": "chat", "via_gateway": false, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}}
+        "judge":     {"deployment": "judge", "base_url": "https://mock.invalid/openai/v1/", "api_key_env": "AZURE_AI_API_KEY", "pricing_key": "gpt-5.5", "type": "chat", "via_gateway": false, "max_tokens_param": "max_completion_tokens", "supports_temperature": false, "extra_body": {"reasoning_effort": "none"}}
       },
       "gateway": null
     }

@@ -71,7 +71,8 @@ variable "ai_endpoint_style" {
 #                          (GPT-5.x: "none" | "low" | "medium" | "high"; reasoning tokens are billed as output tokens)
 #   extra_headers        = string map added as HTTP headers to every request for that model (default {})
 #
-# Defaults use the GPT-5.6 family: Sol (frontier), Terra (mini/judge), Luna (nano).
+# Answer defaults use GPT-5.6: Sol (frontier), Terra (mini), Luna (nano).
+# The independent judge uses GPT-5.5, pinned separately from the answer tiers.
 # The GPT-4.1 family is deprecated for new customers in 2026;
 # its values are kept as a commented alternative in terraform.tfvars.example.
 # The baseline sends ~15k prompt tokens per call with 8 parallel workers, so the frontier deployment needs a
@@ -133,16 +134,16 @@ variable "nano_model" {
   default = {}
 }
 
-# Verify availability first: az cognitiveservices model list --location <region> --query "[?model.name=='gpt-5.6-terra']" -o table
+# Verify availability first: az cognitiveservices model list --location <region> --query "[?model.name=='gpt-5.5']" -o table
 variable "judge_model" {
-  description = "LLM-as-a-judge model. Deployed as a separate deployment called 'judge' so its traffic never competes with the team's deployments."
+  description = "Independent GPT-5.5 evaluator, deployed as 'judge' with its own throughput allocation. Bypasses APIM; evaluation cost is excluded from the team score."
   type = object({
-    name                 = optional(string, "gpt-5.6-terra")
-    version              = optional(string, "2026-07-09")
+    name                 = optional(string, "gpt-5.5")
+    version              = optional(string, "2026-04-24")
     format               = optional(string, "OpenAI")
     sku                  = optional(string, "GlobalStandard")
     capacity             = optional(number, 800)
-    pricing_key          = optional(string, "gpt-5.6-terra")
+    pricing_key          = optional(string, "gpt-5.5")
     max_tokens_param     = optional(string, "max_completion_tokens")
     supports_temperature = optional(bool, false)
     extra_body           = optional(map(string), { reasoning_effort = "none" })

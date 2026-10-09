@@ -17,7 +17,7 @@ Full per-team and coach checklist: [pre-event-checklist.md](pre-event-checklist.
 | When | What |
 |---|---|
 | T-14 d | Send every team [pre-event-checklist.md](pre-event-checklist.md): own subscription, roles, quota, tool versions, optional Fireworks registration. |
-| T-7 d | Confirm every team has its **own subscription** and **model quota** in the chosen region (default `swedencentral`): gpt-5.6-sol / gpt-5.6-terra / gpt-5.6-luna, text-embedding-3-small, Llama-3.3-70B-Instruct (GlobalStandard). Defaults request 800K TPM for each of frontier, mini, nano and judge, 150K (embedding), 100K (Llama) per team — if a team has less quota, lower `capacity`. Terra needs 1.6M TPM across mini and judge. Optional secondary chat deployments request 800K TPM each in their region. GPT-4.1 is *deprecated* for new customers in 2026 (commented fallback in `terraform.tfvars.example`). |
+| T-7 d | Confirm every team has its **own subscription** and **model quota** in the chosen region (default `swedencentral`): gpt-5.6-sol / gpt-5.6-terra / gpt-5.6-luna for answers, gpt-5.5 (2026-04-24) for the independent judge, text-embedding-3-small, Llama-3.3-70B-Instruct (GlobalStandard). Defaults request 800K TPM for each of frontier, mini, nano and judge, 150K (embedding), 100K (Llama) per team — if a team has less quota, lower `capacity`. Terra and GPT-5.5 each need their own 800K TPM allocation. Optional secondary chat deployments request 800K TPM each in their region. GPT-4.1 is *deprecated* for new customers in 2026 (commented fallback in `terraform.tfvars.example`). |
 | T-7 d | Check that Azure Policy does not force `disableLocalAuth` on Foundry resources (the apps use API keys), that allowed regions include `swedencentral` (and a US region if the team wants the Fireworks Arena) and that users can create role assignments (APIM managed identity). |
 | T-7 d | **Dry run in a fresh subscription** (section 11): `terraform init -upgrade` + `apply` (azurerm 5.x), `doctor`, baseline, solution, `compare`, APIM solution policy, Fireworks Arena and the 3.6 failover policy. Work through the VALIDATE list. |
 | T-7 d | **Confirm the Fireworks per-token model list and prices** (offers can retire with 15 days' notice): `infra/scripts/check-fireworks-prereqs.sh` output, Foundry model catalog, Azure pricing calculator. Update `fireworks_models` / `shared/config/pricing.json`; set `"verified": true` only for confirmed prices. Update the other prices too. |
@@ -77,7 +77,14 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
   has a different prefix, so **Azure OpenAI prompt caching (automatic, ≥ 1,024 identical prefix tokens) never hits**.
 - The baseline stuffs ~7.8k tokens of KB + ~7k tokens of orders JSON (all customers — also a privacy smell!) into
   every call → ~15k input tokens × 100 questions.
-- Quality bar: LLM-as-a-judge (`judge` deployment) with reference answers; judge cost is excluded.
+- Quality bar: LLM-as-a-judge (`judge` deployment, GPT-5.5 version 2026-04-24, capacity 800) with reference answers;
+  judge cost is excluded. It calls Azure directly, bypasses APIM and is distinct from the GPT-5.6 answer tiers.
+- GPT-5.5 was chosen for the short reference-answer/JSON grading flow without changing the challenge pipeline.
+  GPT-6.1 Sol can be evaluated for a future event; newer is not proof of better grading on this workload.
+  Model separation does not remove all bias: calibrate a sample against human grades before the event.
+- Pin the same judge version, prompt, reasoning effort (`none`) and settings across teams. Challenges 1–3,
+  the rubric and ≥85% bar are unchanged. Repeat baselines/comparisons after the evaluator migration; do not mix
+  former Terra-judge scores with GPT-5.5 scores in the leaderboard or improvement calculations.
 
 ### Challenge 1 — "The Token Diet" (TODO 1.1–1.7)
 - **1.1 Compact prompt**: instructions from ~800 to ~60 tokens; "at most 5 short sentences" also cuts output tokens.
@@ -251,7 +258,8 @@ yet — record them during the T-7 dry run. If a Fireworks model emits reasoning
 
 - Record cost-per-success improvements against the new baseline. Anything claiming > 99 % with a pass
   rate ≥ 85 % deserves a look at the code (see scoring.md, disqualification).
-- Judge cost (gpt-5.6-terra): measure in the dry run (excluded from the score).
+- Judge cost (gpt-5.5): $5 input / $0.50 cached input / $30 output per 1M tokens; measure token use and latency
+  in the dry run (excluded from the score). [Microsoft pricing source](https://azure.microsoft.com/en-us/blog/openais-gpt-5-5-in-microsoft-foundry-frontier-intelligence-on-an-enterprise-ready-platform/).
 - If a team raises `reasoning_effort` above `none`, expect higher output token counts (and latency) — check
   `output_tokens` in the scorecard.
 - Runtime: measure baseline and optimised runs at concurrency 8 and capacity 800.
@@ -322,7 +330,7 @@ az containerapp update --name tokenwars-leaderboard --resource-group <rg> --min-
 | Baseline runs (3 × ~$7–8 on gpt-5.6-sol) | ~$21–24 | ~$210–240 |
 | Optimised runs, `ask`, experiments (~20 runs, routing-dependent) | budget ~$6–20 | budget ~$60–200 |
 | `compare` runs (30 items × 4 models, compact prompt; ~$2–4 more with the baseline prompt) | ~$0.5–4 | ~$5–40 |
-| Judge (Terra; measure during dry run) | budget ~$5–10 | budget ~$50–100 |
+| Judge (GPT-5.5; roughly 2.5× Terra token rates; measure during dry run) | budget ~$12–25 | budget ~$120–250 |
 | APIM StandardV2_1 (~$0.96/h × ~6 h) | ~$6 | ~$60 |
 | Ollama on ACA, 4 vCPU/8 GiB (~$0.45/h × ~3 h, optional) | ~$1.5 | ~$15 |
 | Fireworks Arena, optional: `compare` 30 items × `fw_fast` + `fw_pro` (~$0.01 + ~$0.08 compact prompt; up to ~$1 with the baseline prompt) + 2–4 full runs (~$0.02 `fw_fast` / ~$0.30 `fw_pro` each) ¹ | ~$0.5–3 | ~$5–30 |
@@ -330,7 +338,7 @@ az containerapp update --name tokenwars-leaderboard --resource-group <rg> --min-
 | Fireworks Foundry resource + pay-per-token deployments (no hourly fee) | $0 idle | $0 idle |
 | Log Analytics / App Insights | < $1 | < $10 |
 | Leaderboard (Container App, shared) | — | < $2 |
-| **Total (planning allowance; recheck after dry run)** | **~$40–75** | **~$400–750** |
+| **Total (planning allowance; recheck after dry run)** | **~$50–90** | **~$500–900** |
 
 ¹ From `pricing.json` Fireworks values, which are **`verified: false`** (third-party tracker, Oct 2026) — re-check at T-7.
 

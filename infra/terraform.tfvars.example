@@ -21,7 +21,8 @@ leaderboard_key = "tokenwars"
 
 # --- Models -------------------------------------------------------------------
 # Defaults: gpt-5.6-sol (2026-07-09), gpt-5.6-terra (2026-07-09), gpt-5.6-luna (2026-07-09),
-# judge = gpt-5.6-terra, text-embedding-3-small, Llama-3.3-70B-Instruct. GPT-5.6 models are written to models.json with
+# judge = gpt-5.5 (2026-04-24, independent evaluator), text-embedding-3-small, Llama-3.3-70B-Instruct.
+# GPT-5.6 answer models and the GPT-5.5 judge are written to models.json with
 # max_tokens_param = "max_completion_tokens", supports_temperature = false, extra_body = { reasoning_effort = "none" }.
 #
 # Verify availability/quota in your region first:
@@ -32,7 +33,7 @@ leaderboard_key = "tokenwars"
 # frontier_model  = { capacity = 800 }
 # mini_model      = { capacity = 800 }
 # nano_model      = { capacity = 800 }
-# judge_model     = { capacity = 800 }
+# judge_model     = { capacity = 800 }   # separate GPT-5.5 deployment; not the mini answer model
 # embedding_model = { sku = "Standard", capacity = 150 }   # if GlobalStandard is not offered for embeddings
 # open_model      = { name = "Llama-3.3-70B-Instruct", format = "Meta", capacity = 100 }
 # deploy_open_model = true
@@ -45,7 +46,7 @@ leaderboard_key = "tokenwars"
 # frontier_model = { name = "gpt-4.1",      version = "2025-04-14", pricing_key = "gpt-4.1",      max_tokens_param = "max_tokens", supports_temperature = true, extra_body = {} }
 # mini_model     = { name = "gpt-4.1-mini", version = "2025-04-14", pricing_key = "gpt-4.1-mini", max_tokens_param = "max_tokens", supports_temperature = true, extra_body = {} }
 # nano_model     = { name = "gpt-4.1-nano", version = "2025-04-14", pricing_key = "gpt-4.1-nano", max_tokens_param = "max_tokens", supports_temperature = true, extra_body = {} }
-# judge_model    = { name = "gpt-4.1-mini", version = "2025-04-14", pricing_key = "gpt-4.1-mini", max_tokens_param = "max_tokens", supports_temperature = true, extra_body = {} }
+# Keep judge_model on the pinned GPT-5.5 default even when changing answer tiers.
 
 # --- Challenge 3: AI gateway --------------------------------------------------
 deploy_apim = true

@@ -59,13 +59,23 @@ submission (usually the baseline) — there is a special mention for the **bigge
 
 ## The judge
 
-- Model: the `judge` deployment (gpt-5.6-terra, `reasoning_effort: none`; temperature 0 only for models with
+- Model: the separate `judge` deployment (gpt-5.5 version 2026-04-24, GlobalStandard, capacity 800,
+  `reasoning_effort: none`; temperature 0 only for models with
   `supports_temperature: true`), JSON output, prompt `shared/prompts/judge.md`.
 - It compares the answer with a reference answer and 1–3 `must_include` facts:
   5 = correct & complete · 4 = correct, minor omissions, all must-include facts present · 3 = partially correct or a
   must-include fact missing · 2 = mostly wrong, or only "I'll escalate to a human" · 1 = wrong/hallucinated/harmful.
 - Verbosity is neither rewarded nor penalised.
 - **Judge cost is tracked separately (`judge_cost_usd`) and is NOT part of the score.**
+- The evaluator is distinct from the GPT-5.6 answer tiers. It bypasses APIM and is not a failover target.
+  Challenge 1 optimisations, Challenge 2 comparisons and Challenge 3 routing/escalation keep the same rubric
+  and ≥85% pass-rate requirement. Model separation does not guarantee freedom from grading bias.
+- Coaches pin the same judge version, prompt and settings for all teams; validate a sample against human grades
+  before the event. After migrating from Terra, repeat baselines and comparisons. Do not mix old-judge and
+  new-judge scores in the same ranking or claim a quality improvement solely from the evaluator change.
+- GPT-5.5 rates are $5 input / $0.50 cached input / $30 output per 1M tokens
+  ([Microsoft source](https://azure.microsoft.com/en-us/blog/openais-gpt-5-5-in-microsoft-foundry-frontier-intelligence-on-an-enterprise-ready-platform/)).
+  Measure actual judge token use and latency in the dry run; there is no extra answer-cost score penalty.
 - The judge is an LLM: expect ±2–3 % pass-rate noise between identical runs. Re-running to get lucky is allowed but
   costs time; coaches may ask a team to re-run if their best run is a clear outlier.
 

@@ -43,7 +43,9 @@ _BUILTIN_MODELS = {
         "nano": {"deployment": "gpt-5.6-luna", "pricing_key": "gpt-5.6-luna", **_GPT56},
         "open": {"deployment": "Llama-3.3-70B-Instruct", "pricing_key": "llama-3.3-70b-instruct", "via_gateway": True},
         "embedding": {"deployment": "text-embedding-3-small", "pricing_key": "text-embedding-3-small", "type": "embedding"},
-        "judge": {"deployment": "judge", "pricing_key": "gpt-5.6-terra", **_GPT56, "via_gateway": False},
+        "judge": {"deployment": "judge", "pricing_key": "gpt-5.5", "via_gateway": False,
+                  "max_tokens_param": "max_completion_tokens", "supports_temperature": False,
+                  "extra_body": {"reasoning_effort": "none"}},
     },
     "gateway": None,
 }
@@ -52,6 +54,7 @@ _BUILTIN_MODELS = {
 _BUILTIN_PRICING = {
     "currency": "USD",
     "models": {
+        "gpt-5.5": {"input_per_1m": 5.00, "cached_input_per_1m": 0.50, "output_per_1m": 30.00},
         "gpt-5.6-sol": {"input_per_1m": 4.00, "cached_input_per_1m": 0.50, "output_per_1m": 20.00},
         "gpt-5.6-terra": {"input_per_1m": 2.00, "cached_input_per_1m": 0.20, "output_per_1m": 12.00},
         "gpt-5.6-luna": {"input_per_1m": 0.20, "cached_input_per_1m": 0.02, "output_per_1m": 1.20},

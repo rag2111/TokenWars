@@ -47,16 +47,19 @@ pins azurerm `~> 5.8`).
 ### A3. Quota (T-7 days)
 
 Default region `swedencentral`, GlobalStandard. Defaults per team (TPM in thousands): gpt-5.6-sol **800**, gpt-5.6-terra
-**800** (+ **800** for the `judge` deployment), gpt-5.6-luna **800**, text-embedding-3-small **150**,
+**800**, gpt-5.6-luna **800**, gpt-5.5 **800** (separate `judge` deployment), text-embedding-3-small **150**,
 Llama-3.3-70B-Instruct **100**.
 
 ```bash
 az cognitiveservices model list --location swedencentral \
-  --query "[?contains(model.name,'gpt-5.6-') || contains(model.name,'text-embedding-3-small') || contains(model.name,'Llama-3.3')].{name:model.name, version:model.version, format:model.format}" -o table
+  --query "[?contains(model.name,'gpt-5.6-') || model.name=='gpt-5.5' || contains(model.name,'text-embedding-3-small') || contains(model.name,'Llama-3.3')].{name:model.name, version:model.version, format:model.format}" -o table
 az cognitiveservices usage list --location swedencentral -o table      # current usage vs limit per model + SKU
 ```
 
 - [ ] gpt-5.6-sol (2026-07-09), gpt-5.6-terra and gpt-5.6-luna (2026-07-09) are listed and have enough GlobalStandard quota.
+- [ ] gpt-5.5 (2026-04-24) is available with 800K TPM quota for `judge`; it does not share Terra's model allocation.
+- [ ] Coaches use the same pinned GPT-5.5 judge, prompt and settings for every team, check a human-graded sample,
+      and repeat baselines/comparisons after migration. Do not mix scores produced by different judges.
 - [ ] text-embedding-3-small has quota (if GlobalStandard is not offered: `embedding_model = { sku = "Standard" }`).
 - [ ] Llama-3.3-70B-Instruct is available (serverless, format `Meta`).
 - [ ] Less quota? Lower `capacity` per model in `terraform.tfvars` (and `"concurrency"` in `strategy.json`) or request

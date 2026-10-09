@@ -59,7 +59,13 @@ offline and to compare token counts. Mock runs cannot go on the leaderboard.
 | `open` | `Llama-3.3-70B-Instruct` | open-weight model (Challenge 2) |
 | `selfhosted` | e.g. `llama3.2:3b` on Ollama | optional self-hosted model (Challenge 2) |
 | `embedding` | `text-embedding-3-small` | semantic cache / embedding retrieval |
-| `judge` | `judge` (running `gpt-5.6-terra`) | scoring only, not part of your cost |
+| `judge` | `judge` (running `gpt-5.5`, version 2026-04-24) | independent scoring model, not part of your cost |
+
+The separate GPT-5.5 judge has capacity 800, calls Azure directly (not APIM), and uses
+`max_completion_tokens`, omitted temperature and `reasoning_effort: none`. Its $5 / $0.50 / $30 per 1M
+input / cached input / output tokens are tracked in `judge_cost_usd`, outside the score. Challenges 1–3
+and the ≥85% quality bar are unchanged. Keep the same pinned judge for every team; repeat baselines and
+comparisons after migration rather than comparing against scores from the former Terra judge.
 
 Each model can also set these optional fields:
 
@@ -72,7 +78,7 @@ Each model can also set these optional fields:
   when any model in a `compare` run has a value above 0, the table gets an extra `hosting $/h` column and each entry
   in the compare JSON gets an `hourly_cost_usd` field. It is never added to the costs or the score.
 
-The GPT-5.6 family is configured with `"max_tokens_param": "max_completion_tokens"`, `"supports_temperature": false` and
+The GPT-5.6 answer tiers and GPT-5.5 judge are configured with `"max_tokens_param": "max_completion_tokens"`, `"supports_temperature": false` and
 `"extra_body": {"reasoning_effort": "none"}`.
 
 **Reasoning tokens are part of your bill.** GPT-5.6 models can reason before they answer, and reasoning tokens are
@@ -81,7 +87,7 @@ billed as output tokens. Keeping `reasoning_effort` at `none` or `low` for the s
 can use up the whole budget on reasoning and return an **empty answer** (`finish_reason: "length"`). The app records
 it as `""` (which fails the judge) and prints a one-time warning.
 
-`pricing.json` includes list prices for the `gpt-5.6-*` models as well as the older `gpt-4.1*` models, for teams that
+`pricing.json` includes prices for the `gpt-5.6-*` answer models and `gpt-5.5` judge as well as the older `gpt-4.1*` models, for teams that
 still have access to those.
 
 **More model keys can appear.** With Challenge 2.4 the generated `models.json` can also contain `fw_fast` and
