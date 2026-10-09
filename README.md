@@ -20,6 +20,8 @@ Your mission: **cut the cost per successful answer** while keeping answer qualit
 | 3:30 | Final Showdown & Debrief |
 
 Step-by-step instructions: open [`docs/index.html`](docs/index.html) in a browser.
+Each TODO in the [participant guide](docs/index.html#ch1) has an initially collapsed **Solution** after its hint and
+result check, with exact starter-file line locations, copyable Python/.NET replacements and separate optional extras.
 Before the event, every team works through [`coach/pre-event-checklist.md`](coach/pre-event-checklist.md).
 
 ## Principles

@@ -178,6 +178,13 @@ details.hint{margin:14px 0;border:1px dashed rgba(255,181,71,.55);border-radius:
 details.hint>summary{cursor:pointer;padding:10px 14px;font-weight:700;color:var(--amber);list-style-position:inside}
 details.hint[open]>summary{border-block-end:1px dashed rgba(255,181,71,.35)}
 .hint-body{padding:6px 14px 12px}
+.step-solution pre{max-height:32rem}
+.step-solution .code-head{gap:8px}
+.step-solution .code-label{min-width:0;overflow-wrap:anywhere}
+.step-solution .copy-btn{flex-shrink:0}
+.step-solution summary{overflow-wrap:anywhere}
+.step-solution>summary{font-size:1.1rem}
+@media print{.step-solution pre{max-height:none}}
 .hint-item{margin-block:10px}
 .solref{border-inline-start:3px solid var(--violet);padding:6px 12px;background:rgba(180,140,255,.07);border-radius:0 10px 10px 0;margin:6px 0}
 .check-box{margin-block-start:14px;border:1px solid rgba(198,255,74,.45);background:rgba(198,255,74,.05);border-radius:12px;padding:10px 16px}
@@ -978,6 +985,7 @@ dotnet run -- doctor
 <div class="chal-banner c1"><div><p class="chal-time">0:30 – 1:30</p><p class="chal-lede">Put the Support Copilot on a diet: fewer instruction tokens, less context, shorter answers, and reuse of everything that repeats.</p></div>
 <div class="chal-prog"><span class="lbl">Challenge progress</span><div class="bar"><span data-bar="c1"></span></div><span class="cnt" data-count="c1">0 / 7</span></div></div>
 <p><strong>Workflow for every TODO:</strong> implement → flip the flag in <span class="lang-py"><code>python/starter/strategy.json</code></span><span class="lang-net"><code>dotnet/starter/TokenWars/strategy.json</code></span> → quick run with <code>--limit 20</code> → check the scorecard fields listed on the card. If you turn a flag on before implementing its TODO, the app fails fast with <code>TODO x.y not implemented yet – see &lt;file&gt;</code>.</p>
+<p class="muted small">Each TODO has an initially hidden <strong>Solution</strong> after its hint and “Check your result”: exact starter-file locations, copyable replacements and the required settings. Reveal it only when needed. Line numbers use this checkout’s original starter; use the method names after earlier edits. For each command, choose either the PowerShell or Bash block and run it from the repository root; do not run both alternatives. Bash blocks use a subshell to preserve your current directory and shell settings. Real validation calls incur token charges, and a zero exit code alone does not prove ≥85% quality.</p>
 <p><strong>Break checkpoint (1:30):</strong> run the full workload with <span class="lang-py"><code>python -m tokenwars run</code></span><span class="lang-net"><code>dotnet run -- run</code></span>, fill in the tracker, then submit with <span class="lang-py"><code>python -m tokenwars run --submit</code></span><span class="lang-net"><code>dotnet run -- run --submit</code></span>.</p>
 
 <article class="step-card" id="step-1.1" data-step="1.1" data-group="c1" aria-labelledby="h-1.1">
@@ -1005,6 +1013,43 @@ If the context does not contain the answer, say you will connect the customer wi
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li><code>input_tokens</code> drop on every call by roughly the size of the verbose instructions.</li><li><code>output_tokens</code> drop sharply as answers become short and factual.</li><li><code>pass_rate</code> stays ≥ 85%. The judge doesn't reward verbosity.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-1-1" data-solution-step="1.1"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace the compact-prompt declaration.</strong> In <code>python/starter/tokenwars/prompts.py</code>, replace <strong>line 31</strong> with the complete block below. Locate <code>COMPACT_SYSTEM_PROMPT: str | None = None</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/prompts.py · lines 31–31</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/prompts.py" data-start-line="31" data-end-line="31"><code>COMPACT_SYSTEM_PROMPT = (
+    "You are ByteCart's customer support assistant. Answer using ONLY the context provided.\n"
+    "Be accurate and concise: at most 5 short sentences or bullet points. "
+    "Include exact numbers, fees and deadlines from the context.\n"
+    "If the context does not contain the answer, say you will connect the customer with a human agent."
+)</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set compact_prompt.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 2</strong> with the complete block below. Locate <code>&quot;compact_prompt&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 2–2</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="2" data-end-line="2"><code>  "compact_prompt": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace the compact-prompt declaration.</strong> In <code>dotnet/starter/TokenWars/Prompts.cs</code>, replace <strong>line 30</strong> with the complete block below. Locate <code>public static readonly string? CompactSystemPrompt = null;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/Prompts.cs · lines 30–30</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/Prompts.cs" data-start-line="30" data-end-line="30"><code>    public static readonly string CompactSystemPrompt =
+        "You are ByteCart's customer support assistant. Answer using ONLY the context provided.\n" +
+        "Be accurate and concise: at most 5 short sentences or bullet points. " +
+        "Include exact numbers, fees and deadlines from the context.\n" +
+        "If the context does not contain the answer, say you will connect the customer with a human agent.";</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set compact_prompt.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 2</strong> with the complete block below. Locate <code>&quot;compact_prompt&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 2–2</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="2" data-end-line="2"><code>  "compact_prompt": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div></div></details>
 </article>
 <article class="step-card" id="step-1.2" data-step="1.2" data-group="c1" aria-labelledby="h-1.2">
   <header class="step-head">
@@ -1033,6 +1078,246 @@ Enumerable.Range(0, n).OrderByDescending(i =&gt; score[i]).ThenBy(i =&gt; i).Tak
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li><code>input_tokens</code> per item fall by thousands. This is usually the single biggest drop.</li><li><code>pass_rate</code> holds, especially on multi-rule policy questions (check failing items' <code>judge_reason</code>).</li><li>Spot-check with <span class="lang-py"><code>python -m tokenwars ask</code></span><span class="lang-net"><code>dotnet run -- ask</code></span> that the retrieved context actually contains the answer.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-1-2" data-solution-step="1.2"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Initialize the IDF table once in ContextBuilder.__init__.</strong> In <code>python/starter/tokenwars/context.py</code>, replace <strong>line 109</strong> with the complete block below. Locate <code>self.section_terms = [set(tokenize(section.text)) for section in self.sections]</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/context.py · lines 109–109</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/context.py" data-start-line="109" data-end-line="109"><code>        self._idf = self._build_idf()</code></pre></div><p><strong>Replace keyword_retrieval with both methods below.</strong> In <code>python/starter/tokenwars/context.py</code>, replace <strong>lines 133–134</strong> with the complete block below. Locate <code>def keyword_retrieval(self, question: str, top_k: int) -&gt; str:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/context.py · lines 133–134</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/context.py" data-start-line="133" data-end-line="134"><code>    def _build_idf(self) -&gt; dict[str, float]:
+        n = len(self.sections)
+        df: dict[str, int] = {}
+        self._section_terms = [set(tokenize(s.text)) for s in self.sections]
+        for terms in self._section_terms:
+            for term in terms:
+                df[term] = df.get(term, 0) + 1
+        return {term: math.log(1 + n / count) for term, count in df.items()}
+
+    def keyword_retrieval(self, question: str, top_k: int) -&gt; str:
+        query_terms = set(tokenize(question))
+        scored = []
+        for index, terms in enumerate(self._section_terms):
+            score = sum(self._idf[t] for t in query_terms if t in terms)
+            scored.append((-score, index))
+        scored.sort()  # highest score first, ties keep original order
+        return SECTION_SEPARATOR.join(self.sections[i].text for _, i in scored[:top_k])</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set retrieval.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 4</strong> with the complete block below. Locate <code>&quot;retrieval&quot;: &quot;all&quot;,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 4–4</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="4" data-end-line="4"><code>  "retrieval": "keyword",</code></pre></div><p><strong>Set top_k.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 5</strong> with the complete block below. Locate <code>&quot;top_k&quot;: 3,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 5–5</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="5" data-end-line="5"><code>  "top_k": 3,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Add the IDF field inside ContextBuilder, immediately after _client.</strong> In <code>dotnet/starter/TokenWars/ContextBuilder.cs</code>, replace <strong>line 125</strong> with the complete block below. Locate <code>private readonly LlmClient _client;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/ContextBuilder.cs · lines 125–125</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/ContextBuilder.cs" data-start-line="125" data-end-line="125"><code>    private readonly LlmClient _client;
+    private readonly Dictionary&lt;string, double&gt; _idf = new(StringComparer.Ordinal);</code></pre></div><p><strong>Build IDF after initializing SectionTerms in the constructor.</strong> In <code>dotnet/starter/TokenWars/ContextBuilder.cs</code>, replace <strong>line 139</strong> with the complete block below. Locate <code>SectionTerms = Sections.Select(s =&gt; new HashSet&lt;string&gt;(TextUtil.Tokenize(s.Text), StringComparer.Ordinal)).ToList();</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/ContextBuilder.cs · lines 139–139</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/ContextBuilder.cs" data-start-line="139" data-end-line="139"><code>        SectionTerms = Sections.Select(s =&gt; new HashSet&lt;string&gt;(TextUtil.Tokenize(s.Text), StringComparer.Ordinal)).ToList();
+        BuildIdf();</code></pre></div><p><strong>Replace KeywordRetrieval with both methods below.</strong> In <code>dotnet/starter/TokenWars/ContextBuilder.cs</code>, replace <strong>lines 247–250</strong> with the complete block below. Locate <code>public string KeywordRetrieval(string question, int topK)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/ContextBuilder.cs · lines 247–250</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/ContextBuilder.cs" data-start-line="247" data-end-line="250"><code>    private void BuildIdf()
+    {
+        int n = Sections.Count;
+        var df = new Dictionary&lt;string, int&gt;(StringComparer.Ordinal);
+        foreach (var terms in SectionTerms)
+        {
+            foreach (var term in terms)
+            {
+                df[term] = df.TryGetValue(term, out var count) ? count + 1 : 1;
+            }
+        }
+        foreach (var (term, count) in df)
+        {
+            _idf[term] = Math.Log(1.0 + (double)n / count);
+        }
+    }
+
+    public string KeywordRetrieval(string question, int topK)
+    {
+        var queryTerms = TextUtil.Tokenize(question).Distinct().ToList();
+        var scored = new List&lt;(double Score, int Index)&gt;();
+        for (int i = 0; i &lt; SectionTerms.Count; i++)
+        {
+            double score = 0;
+            foreach (var term in queryTerms)
+            {
+                if (SectionTerms[i].Contains(term)) score += _idf[term];
+            }
+            scored.Add((score, i));
+        }
+        // OrderByDescending is a stable sort -&gt; ties keep the original order.
+        var top = scored.OrderByDescending(x =&gt; x.Score).Take(topK).Select(x =&gt; Sections[x.Index].Text);
+        return string.Join(SectionSeparator, top);
+    }</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set retrieval.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 4</strong> with the complete block below. Locate <code>&quot;retrieval&quot;: &quot;all&quot;,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 4–4</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="4" data-end-line="4"><code>  "retrieval": "keyword",</code></pre></div><p><strong>Set top_k.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 5</strong> with the complete block below. Locate <code>&quot;top_k&quot;: 3,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 5–5</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="5" data-end-line="5"><code>  "top_k": 3,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><details class="hint"><summary>Optional solution: embedding retrieval</summary><div class="hint-body"><p>Optional: finish TODO 1.6 first because the .NET implementation reuses its cosine helper. Apply these additional edits only after the core keyword solution; none of them replaces your order lookup.</p><div class="lang-py"><p><strong>Add the indexing imports.</strong> In <code>python/starter/tokenwars/context.py</code>, replace <strong>line 4</strong> with the complete block below. Locate <code>import json</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/context.py · lines 4–4</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/context.py" data-start-line="4" data-end-line="4" data-optional="true"><code>import hashlib
+import json
+import threading</code></pre></div><p><strong>Add the index state in ContextBuilder.__init__.</strong> In <code>python/starter/tokenwars/context.py</code>, replace <strong>line 107</strong> with the complete block below. Locate <code>self.embeddings_file = embeddings_file  # for the embedding-retrieval stretch goal</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/context.py · lines 107–107</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/context.py" data-start-line="107" data-end-line="107" data-optional="true"><code>        self.embeddings_file = embeddings_file  # for the embedding-retrieval stretch goal
+        self._section_vectors: list[list[float]] | None = None
+        self._index_lock = threading.Lock()</code></pre></div><p><strong>Insert the shared cosine helper before the class.</strong> In <code>python/starter/tokenwars/context.py</code>, replace <strong>line 99</strong> with the complete block below. Locate <code>class ContextBuilder:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/context.py · lines 99–99</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/context.py" data-start-line="99" data-end-line="99" data-optional="true"><code>def cosine(a: list[float], b: list[float]) -&gt; float:
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(y * y for y in b))
+    return dot / (na * nb) if na and nb else 0.0
+
+
+class ContextBuilder:</code></pre></div><p><strong>Replace the embedding stub with all three methods.</strong> In <code>python/starter/tokenwars/context.py</code>, replace <strong>lines 140–141</strong> with the complete block below. Locate <code>def embedding_retrieval(self, question_vector: Callable[[], list[float]], top_k: int, calls: list) -&gt; str:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/context.py · lines 140–141</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/context.py" data-start-line="140" data-end-line="141" data-optional="true"><code>    def embedding_retrieval(self, question_vector: Callable[[], list[float]], top_k: int, calls: list) -&gt; str:
+        vectors = self._ensure_section_vectors(calls)
+        query = question_vector()
+        scored = sorted(((-cosine(query, v), i) for i, v in enumerate(vectors)))
+        return SECTION_SEPARATOR.join(self.sections[i].text for _, i in scored[:top_k])
+
+    def _ensure_section_vectors(self, calls: list) -&gt; list[list[float]]:
+        with self._index_lock:
+            if self._section_vectors is not None:
+                return self._section_vectors
+            deployment = self.client.config.model("embedding").deployment
+            cache_key = ("mock:" if self.client.mock else "") + deployment
+            fingerprint = hashlib.sha256("\n\x00".join(s.text for s in self.sections).encode()).hexdigest()
+            stored = self._read_embeddings_file()
+            entry = stored.get(cache_key)
+            if entry and entry.get("fingerprint") == fingerprint and len(entry.get("vectors", [])) == len(self.sections):
+                self._section_vectors = entry["vectors"]
+                return self._section_vectors
+            vectors: list[list[float]] = []
+            texts = [s.text for s in self.sections]
+            for start in range(0, len(texts), 64):
+                result = self.client.embed("embedding", texts[start:start + 64])
+                calls.append(result)  # cost is counted once, on the item that triggers the indexing
+                vectors.extend(result.vectors)
+            self._section_vectors = vectors
+            if self.embeddings_file is not None:
+                stored[cache_key] = {"fingerprint": fingerprint, "vectors": vectors}
+                self.embeddings_file.parent.mkdir(parents=True, exist_ok=True)
+                self.embeddings_file.write_text(json.dumps(stored), encoding="utf-8")
+            return vectors
+
+    def _read_embeddings_file(self) -&gt; dict[str, Any]:
+        if self.embeddings_file is None or not self.embeddings_file.exists():
+            return {}
+        try:
+            return json.loads(self.embeddings_file.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {}</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set retrieval.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 4</strong> with the complete block below. Locate <code>&quot;retrieval&quot;: &quot;all&quot;,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 4–4</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="4" data-end-line="4" data-optional="true"><code>  "retrieval": "embedding",</code></pre></div><p><strong>Set top_k.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 5</strong> with the complete block below. Locate <code>&quot;top_k&quot;: 3,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 5–5</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="5" data-end-line="5" data-optional="true"><code>  "top_k": 3,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Add the index fields inside ContextBuilder.</strong> In <code>dotnet/starter/TokenWars/ContextBuilder.cs</code>, replace <strong>line 126</strong> with the complete block below. Locate <code>private readonly string? _embeddingsFile; // for the embedding-retrieval stretch goal</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/ContextBuilder.cs · lines 126–126</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/ContextBuilder.cs" data-start-line="126" data-end-line="126" data-optional="true"><code>    private readonly string? _embeddingsFile; // for the embedding-retrieval stretch goal
+    private readonly SemaphoreSlim _indexLock = new(1, 1);
+    private List&lt;double[]&gt;? _sectionVectors;</code></pre></div><p><strong>Replace the embedding stub with all three methods, including async.</strong> In <code>dotnet/starter/TokenWars/ContextBuilder.cs</code>, replace <strong>lines 256–260</strong> with the complete block below. Locate <code>public Task&lt;string&gt; EmbeddingRetrievalAsync(</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/ContextBuilder.cs · lines 256–260</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/ContextBuilder.cs" data-start-line="256" data-end-line="260" data-optional="true"><code>    public async Task&lt;string&gt; EmbeddingRetrievalAsync(
+        Func&lt;Task&lt;double[]&gt;&gt; questionVector, int topK, List&lt;CallRecord&gt; calls, CancellationToken ct = default)
+    {
+        var vectors = await EnsureSectionVectorsAsync(calls, ct);
+        var query = await questionVector();
+        var scored = vectors.Select((v, i) =&gt; (Score: ResponseCache.CosineSimilarity(query, v), Index: i)).ToList();
+        var top = scored.OrderByDescending(x =&gt; x.Score).Take(topK).Select(x =&gt; Sections[x.Index].Text);
+        return string.Join(SectionSeparator, top);
+    }
+
+    private async Task&lt;List&lt;double[]&gt;&gt; EnsureSectionVectorsAsync(List&lt;CallRecord&gt; calls, CancellationToken ct)
+    {
+        await _indexLock.WaitAsync(ct);
+        try
+        {
+            if (_sectionVectors != null) return _sectionVectors;
+
+            var deployment = _client.Model("embedding").Deployment;
+            var cacheKey = (_client.Mock ? "mock:" : "") + deployment;
+            var fingerprint = Convert.ToHexString(
+                    SHA256.HashData(Encoding.UTF8.GetBytes(string.Join("\n\u0000", Sections.Select(s =&gt; s.Text)))))
+                .ToLowerInvariant();
+
+            var stored = ReadEmbeddingsFile();
+            if (stored[cacheKey] is JsonObject entry
+                &amp;&amp; JsonUtil.Str(entry["fingerprint"]) == fingerprint
+                &amp;&amp; entry["vectors"] is JsonArray cachedVectors
+                &amp;&amp; cachedVectors.Count == Sections.Count)
+            {
+                _sectionVectors = cachedVectors
+                    .Select(v =&gt; v is JsonArray a ? a.Select(x =&gt; JsonUtil.Dbl(x) ?? 0).ToArray() : Array.Empty&lt;double&gt;())
+                    .ToList();
+                return _sectionVectors;
+            }
+
+            var vectors = new List&lt;double[]&gt;();
+            var texts = Sections.Select(s =&gt; s.Text).ToList();
+            for (int start = 0; start &lt; texts.Count; start += 64)
+            {
+                var result = await _client.EmbedAsync("embedding", texts.Skip(start).Take(64).ToList(), ct);
+                calls.Add(result.Call); // cost is counted once, on the item that triggers the indexing
+                vectors.AddRange(result.Vectors);
+            }
+            _sectionVectors = vectors;
+
+            if (_embeddingsFile != null)
+            {
+                var vectorArray = new JsonArray();
+                foreach (var v in vectors)
+                {
+                    var inner = new JsonArray();
+                    foreach (var x in v) inner.Add((JsonNode)x);
+                    vectorArray.Add((JsonNode)inner);
+                }
+                stored[cacheKey] = new JsonObject { ["fingerprint"] = fingerprint, ["vectors"] = vectorArray };
+                try
+                {
+                    var dir = Path.GetDirectoryName(_embeddingsFile);
+                    if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+                    File.WriteAllText(_embeddingsFile, stored.ToJsonString(JsonUtil.Compact));
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    Console.Error.WriteLine($"⚠️  Could not write {_embeddingsFile}: {ex.Message}");
+                }
+            }
+            return vectors;
+        }
+        finally
+        {
+            _indexLock.Release();
+        }
+    }
+
+    private JsonObject ReadEmbeddingsFile()
+    {
+        if (_embeddingsFile == null || !File.Exists(_embeddingsFile)) return new JsonObject();
+        try
+        {
+            return JsonNode.Parse(File.ReadAllText(_embeddingsFile)) as JsonObject ?? new JsonObject();
+        }
+        catch (Exception)
+        {
+            return new JsonObject();
+        }
+    }</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set retrieval.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 4</strong> with the complete block below. Locate <code>&quot;retrieval&quot;: &quot;all&quot;,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 4–4</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="4" data-end-line="4" data-optional="true"><code>  "retrieval": "embedding",</code></pre></div><p><strong>Set top_k.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 5</strong> with the complete block below. Locate <code>&quot;top_k&quot;: 3,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 5–5</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="5" data-end-line="5" data-optional="true"><code>  "top_k": 3,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><p>Initial KB indexing is billed once and saved with a deployment/content fingerprint; question embeddings are also billed. To return to the core solution, restore <code>"retrieval": "keyword"</code> without removing the new methods.</p></div></details></div></details>
 </article>
 <article class="step-card" id="step-1.3" data-step="1.3" data-group="c1" aria-labelledby="h-1.3">
   <header class="step-head">
@@ -1059,6 +1344,60 @@ mine.OrderByDescending(o =&gt; (string?)o["placed_at"]).Take(3)</code></pre></di
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li><code>input_tokens</code> drop again, most on FAQ and policy questions, which now carry zero orders.</li><li>Order-status questions still pass. If they don't, check the ID match (case) and the "3 most recent" logic.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-1-3" data-solution-step="1.3"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>python/starter/tokenwars/context.py</code>, replace <strong>lines 157–158</strong> with the complete block below. Locate <code>def lookup_orders(self, question: str, customer_id: str, order_specific: bool) -&gt; list[dict[str, Any]]:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/context.py · lines 157–158</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/context.py" data-start-line="157" data-end-line="158"><code>    def lookup_orders(self, question: str, customer_id: str, order_specific: bool) -&gt; list[dict[str, Any]]:
+        ids = {m.upper() for m in ORDER_ID_RE.findall(question)}
+        if ids:
+            return [o for o in self.orders if str(o.get("order_id", "")).upper() in ids]
+        if order_specific:
+            mine = [o for o in self.orders if o.get("customer_id") == customer_id]
+            mine.sort(key=lambda o: str(o.get("placed_at", "")), reverse=True)
+            return mine[:3]
+        return []</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set order_lookup.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 6</strong> with the complete block below. Locate <code>&quot;order_lookup&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 6–6</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="6" data-end-line="6"><code>  "order_lookup": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>dotnet/starter/TokenWars/ContextBuilder.cs</code>, replace <strong>lines 281–284</strong> with the complete block below. Locate <code>public List&lt;JsonNode&gt; LookupOrders(string question, string customerId, bool orderSpecific)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/ContextBuilder.cs · lines 281–284</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/ContextBuilder.cs" data-start-line="281" data-end-line="284"><code>    public List&lt;JsonNode&gt; LookupOrders(string question, string customerId, bool orderSpecific)
+    {
+        var ids = new HashSet&lt;string&gt;(
+            TextUtil.OrderIdRegex.Matches(question).Select(m =&gt; m.Value.ToUpperInvariant()),
+            StringComparer.Ordinal);
+        if (ids.Count &gt; 0)
+        {
+            return Orders.Where(o =&gt; ids.Contains((OrderField(o, "order_id") ?? "").ToUpperInvariant())).ToList();
+        }
+        if (orderSpecific)
+        {
+            return Orders
+                .Where(o =&gt; OrderField(o, "customer_id") == customerId)
+                .OrderByDescending(o =&gt; OrderField(o, "placed_at") ?? "", StringComparer.Ordinal)
+                .Take(3)
+                .ToList();
+        }
+        return new List&lt;JsonNode&gt;();
+    }</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set order_lookup.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 6</strong> with the complete block below. Locate <code>&quot;order_lookup&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 6–6</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="6" data-end-line="6"><code>  "order_lookup": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div></div></details>
 </article>
 <article class="step-card" id="step-1.4" data-step="1.4" data-group="c1" aria-labelledby="h-1.4">
   <header class="step-head">
@@ -1092,6 +1431,45 @@ return (0.7, null);</code></pre></div></div><div class="hint-item">A cap that's 
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li><code>output_tokens</code> fall, and so does <code>latency_p95_ms</code> (no more long generations).</li><li>No empty answers and no answers that stop mid-sentence in <code>results/run-*.json</code>.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-1-4" data-solution-step="1.4"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>python/starter/tokenwars/pipeline.py</code>, replace <strong>lines 84–88</strong> with the complete block below. Locate <code>def generation_settings(self) -&gt; tuple[float, int | None]:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/pipeline.py · lines 84–88</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/pipeline.py" data-start-line="84" data-end-line="88"><code>    def generation_settings(self) -&gt; tuple[float, int | None]:
+        """Returns (temperature, max_tokens) for answer calls."""
+        if self.strategy.max_output_tokens is not None:
+            return 0.2, self.strategy.max_output_tokens
+        return 0.7, None</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set max_output_tokens.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 7</strong> with the complete block below. Locate <code>&quot;max_output_tokens&quot;: null,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 7–7</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="7" data-end-line="7"><code>  "max_output_tokens": 350,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>dotnet/starter/TokenWars/Pipeline.cs</code>, replace <strong>lines 102–109</strong> with the complete block below. Locate <code>public (double Temperature, int? MaxTokens) GenerationSettings()</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/Pipeline.cs · lines 102–109</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/Pipeline.cs" data-start-line="102" data-end-line="109"><code>    public (double Temperature, int? MaxTokens) GenerationSettings()
+    {
+        if (_strategy.MaxOutputTokens.HasValue)
+        {
+            return (0.2, _strategy.MaxOutputTokens.Value);
+        }
+        return (0.7, null);
+    }</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set max_output_tokens.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 7</strong> with the complete block below. Locate <code>&quot;max_output_tokens&quot;: null,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 7–7</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="7" data-end-line="7"><code>  "max_output_tokens": 350,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><p>The client uses <code>max_completion_tokens</code> and omits temperature for the GPT tiers. If answers are empty or truncated, inspect the scored results before increasing the cap.</p></div></details>
 </article>
 <article class="step-card" id="step-1.5" data-step="1.5" data-group="c1" aria-labelledby="h-1.5">
   <header class="step-head">
@@ -1116,6 +1494,61 @@ return (0.7, null);</code></pre></div></div><div class="hint-item">A cap that's 
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li><code>cache_hits_exact</code> &gt; 0.</li><li><code>total_cost_usd</code> and <code>latency_p50_ms</code> drop.</li><li><code>pass_rate</code> is unchanged.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-1-5" data-solution-step="1.5"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>python/starter/tokenwars/cache.py</code>, replace <strong>lines 32–40</strong> with the complete block below. Locate <code>@staticmethod</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/cache.py · lines 32–40</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/cache.py" data-start-line="32" data-end-line="40"><code>    @staticmethod
+    def exact_key(normalized_question: str, customer_id: str, order_specific: bool) -&gt; str:
+        return f"{normalized_question}|{customer_id}" if order_specific else normalized_question
+
+    def get_exact(self, key: str) -&gt; str | None:
+        with self._lock:
+            return self._exact.get(key)
+
+    def put_exact(self, key: str, answer: str) -&gt; None:
+        with self._lock:
+            self._exact[key] = answer</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set exact_cache.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 8</strong> with the complete block below. Locate <code>&quot;exact_cache&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 8–8</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="8" data-end-line="8"><code>  "exact_cache": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>dotnet/starter/TokenWars/ResponseCache.cs</code>, replace <strong>lines 19–32</strong> with the complete block below. Locate <code>public static string ExactKey(string normalizedQuestion, string customerId, bool orderSpecific)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/ResponseCache.cs · lines 19–32</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/ResponseCache.cs" data-start-line="19" data-end-line="32"><code>    public static string ExactKey(string normalizedQuestion, string customerId, bool orderSpecific) =&gt;
+        orderSpecific ? $"{normalizedQuestion}|{customerId}" : normalizedQuestion;
+
+    public string? GetExact(string key)
+    {
+        lock (_lock)
+        {
+            return _exact.TryGetValue(key, out var answer) ? answer : null;
+        }
+    }
+
+    public void PutExact(string key, string answer)
+    {
+        lock (_lock)
+        {
+            _exact[key] = answer;
+        }
+    }</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set exact_cache.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 8</strong> with the complete block below. Locate <code>&quot;exact_cache&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 8–8</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="8" data-end-line="8"><code>  "exact_cache": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div></div></details>
 </article>
 <article class="step-card" id="step-1.6" data-step="1.6" data-group="c1" aria-labelledby="h-1.6">
   <header class="step-head">
@@ -1141,6 +1574,90 @@ return best_entry.answer if best &gt;= threshold else None</code></pre></div></d
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li><code>cache_hits_semantic</code> &gt; 0.</li><li>An <code>embedding</code> row appears in <code>calls_by_model</code>, with a tiny cost.</li><li><code>pass_rate</code> holds. If it drops, look for items with <code>cache: "semantic"</code> and a low judge score.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-1-6" data-solution-step="1.6"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>python/starter/tokenwars/cache.py</code>, replace <strong>lines 52–60</strong> with the complete block below. Locate <code>@staticmethod</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/cache.py · lines 52–60</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/cache.py" data-start-line="52" data-end-line="60"><code>    @staticmethod
+    def cosine_similarity(a: list[float], b: list[float]) -&gt; float:
+        dot = sum(x * y for x, y in zip(a, b))
+        norm_a = math.sqrt(sum(x * x for x in a))
+        norm_b = math.sqrt(sum(y * y for y in b))
+        return dot / (norm_a * norm_b) if norm_a and norm_b else 0.0
+
+    def get_semantic(self, vector: list[float], threshold: float) -&gt; str | None:
+        with self._lock:
+            entries = list(self._semantic)
+        best_score, best_answer = -1.0, None
+        for entry in entries:
+            score = self.cosine_similarity(vector, entry.vector)
+            if score &gt; best_score:
+                best_score, best_answer = score, entry.answer
+        return best_answer if best_answer is not None and best_score &gt;= threshold else None
+
+    def put_semantic(self, vector: list[float], answer: str) -&gt; None:
+        with self._lock:
+            self._semantic.append(SemanticEntry(vector, answer))</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set semantic_cache.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 9</strong> with the complete block below. Locate <code>&quot;semantic_cache&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 9–9</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="9" data-end-line="9"><code>  "semantic_cache": true,</code></pre></div><p><strong>Set semantic_cache_threshold.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 10</strong> with the complete block below. Locate <code>&quot;semantic_cache_threshold&quot;: 0.92,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 10–10</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="10" data-end-line="10"><code>  "semantic_cache_threshold": 0.92,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>dotnet/starter/TokenWars/ResponseCache.cs</code>, replace <strong>lines 44–57</strong> with the complete block below. Locate <code>public static double CosineSimilarity(double[] a, double[] b)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/ResponseCache.cs · lines 44–57</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/ResponseCache.cs" data-start-line="44" data-end-line="57"><code>    public static double CosineSimilarity(double[] a, double[] b)
+    {
+        int n = Math.Min(a.Length, b.Length);
+        double dot = 0;
+        for (int i = 0; i &lt; n; i++) dot += a[i] * b[i];
+        double normA = Math.Sqrt(a.Sum(x =&gt; x * x));
+        double normB = Math.Sqrt(b.Sum(y =&gt; y * y));
+        return normA &gt; 0 &amp;&amp; normB &gt; 0 ? dot / (normA * normB) : 0.0;
+    }
+
+    public string? GetSemantic(double[] vector, double threshold)
+    {
+        List&lt;(double[] Vector, string Answer)&gt; entries;
+        lock (_lock)
+        {
+            entries = new List&lt;(double[] Vector, string Answer)&gt;(_semantic);
+        }
+        double bestScore = -1.0;
+        string? bestAnswer = null;
+        foreach (var entry in entries)
+        {
+            double score = CosineSimilarity(vector, entry.Vector);
+            if (score &gt; bestScore)
+            {
+                bestScore = score;
+                bestAnswer = entry.Answer;
+            }
+        }
+        return bestAnswer != null &amp;&amp; bestScore &gt;= threshold ? bestAnswer : null;
+    }
+
+    public void PutSemantic(double[] vector, string answer)
+    {
+        lock (_lock)
+        {
+            _semantic.Add((vector, answer));
+        }
+    }</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set semantic_cache.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 9</strong> with the complete block below. Locate <code>&quot;semantic_cache&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 9–9</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="9" data-end-line="9"><code>  "semantic_cache": true,</code></pre></div><p><strong>Set semantic_cache_threshold.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 10</strong> with the complete block below. Locate <code>&quot;semantic_cache_threshold&quot;: 0.92,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 10–10</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="10" data-end-line="10"><code>  "semantic_cache_threshold": 0.92,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><p>The pipeline already excludes order-specific questions from semantic caching. The threshold is inclusive: a similarity of exactly 0.92 is accepted. Real embeddings may require a higher threshold to preserve quality.</p></div></details>
 </article>
 <article class="step-card" id="step-1.7" data-step="1.7" data-group="c1" aria-labelledby="h-1.7">
   <header class="step-head">
@@ -1173,6 +1690,85 @@ user   = $"Customer ID: {cid}\nToday: {AppInfo.ScenarioToday}\n\nContext:\n{ctx}
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li><code>cached_input_tokens</code> &gt; 0 (real Azure runs only).</li><li><code>calls_by_model</code> shows cached tokens on the models that see repeated prefixes.</li><li>Pass rate is unchanged. Moving text between messages shouldn't change the answers.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-1-7" data-solution-step="1.7"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>python/starter/tokenwars/prompts.py</code>, replace <strong>lines 120–122</strong> with the complete block below. Locate <code>def build_cache_friendly_messages(strategy, template: str, extra: str, question: str, customer_id: str,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/prompts.py · lines 120–122</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/prompts.py" data-start-line="120" data-end-line="122"><code>def build_cache_friendly_messages(strategy, template: str, extra: str, question: str, customer_id: str,
+                                  kb_text: str, orders_json: str) -&gt; list[dict[str, str]]:
+    kb_is_static = strategy.retrieval == "all"
+    if strategy.compact_prompt:
+        system = COMPACT_SYSTEM_PROMPT + ("\n" + extra if extra else "")
+        if kb_is_static:
+            system += "\n\nKnowledge base:\n" + kb_text
+    else:
+        static_lines = [line for line in template.splitlines()
+                        if "{{now}}" not in line and "{{customer_id}}" not in line]
+        system = ("\n".join(static_lines).strip()
+                  .replace("{{knowledge_base}}", kb_text if kb_is_static else _MOVED_TO_USER)
+                  .replace("{{orders}}", _MOVED_TO_USER))
+        if extra:
+            system += "\n\n" + extra
+    user = (f"Customer ID: {customer_id}\n"
+            f"Today: {SCENARIO_DATE}\n\n"
+            f"Context:\n{context_block('' if kb_is_static else kb_text, orders_json)}\n\n"
+            f"Question: {question}")
+    return [{"role": "system", "content": system}, {"role": "user", "content": user}]</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set prompt_cache_friendly.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 3</strong> with the complete block below. Locate <code>&quot;prompt_cache_friendly&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 3–3</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="3" data-end-line="3"><code>  "prompt_cache_friendly": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>dotnet/starter/TokenWars/Prompts.cs</code>, replace <strong>lines 133–138</strong> with the complete block below. Locate <code>public static List&lt;ChatMessage&gt; BuildCacheFriendlyMessages(</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/Prompts.cs · lines 133–138</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/Prompts.cs" data-start-line="133" data-end-line="138"><code>    public static List&lt;ChatMessage&gt; BuildCacheFriendlyMessages(
+        Strategy strategy, string template, string extra, string question, string customerId,
+        string kbText, string ordersJson)
+    {
+        bool kbIsStatic = strategy.Retrieval == "all";
+        string system;
+        if (strategy.CompactPrompt)
+        {
+            system = CompactSystemPrompt + (extra.Length &gt; 0 ? "\n" + extra : "");
+            if (kbIsStatic) system += "\n\nKnowledge base:\n" + kbText;
+        }
+        else
+        {
+            var staticLines = template.Split('\n')
+                .Where(line =&gt; !line.Contains("{{now}}") &amp;&amp; !line.Contains("{{customer_id}}"));
+            system = string.Join("\n", staticLines).Trim()
+                .Replace("{{knowledge_base}}", kbIsStatic ? kbText : MovedToUser)
+                .Replace("{{orders}}", MovedToUser);
+            if (extra.Length &gt; 0) system += "\n\n" + extra;
+        }
+
+        var context = ContextBlock(kbIsStatic ? "" : kbText, ordersJson);
+        var user =
+            $"Customer ID: {customerId}\n" +
+            $"Today: {AppInfo.ScenarioToday}\n\n" +
+            $"Context:\n{context}\n\n" +
+            $"Question: {question}";
+        return new List&lt;ChatMessage&gt;
+        {
+            new ChatMessage("system", system),
+            new ChatMessage("user", user),
+        };
+    }</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set prompt_cache_friendly.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 3</strong> with the complete block below. Locate <code>&quot;prompt_cache_friendly&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 3–3</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="3" data-end-line="3"><code>  "prompt_cache_friendly": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div></div></details>
 </article></section>
 <section id="ch2" class="doc-section" aria-labelledby="ch2-h"><p class="kicker">Challenge 2</p><h2 id="ch2-h">Challenge 2 · Bring Your Own Model</h2>
 <div class="chal-banner c2"><div><p class="chal-time">1:40 – 2:40</p><p class="chal-lede">Sending everything to frontier is a habit, not a strategy. Measure quality per dollar across frontier, mini, nano and open-weight models, and let the numbers decide.</p></div>
@@ -1205,6 +1801,86 @@ terraform apply</code></pre></div>
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li><code>doctor</code> lists <code>open</code> (and <code>selfhosted</code>, if deployed), and the test call succeeds.</li><li>Nothing changes on the scorecard yet. This step only unlocks options.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-2-1" data-solution-step="2.1"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><p>No application TODO is needed for the already-wired <code>open</code> and <code>selfhosted</code> providers. Run from the repository root. Review each Terraform plan: deployment changes incur Azure charges and require login, model availability and quota.</p><h4>Use the managed open-weight deployment</h4><p>In <code>infra/terraform.tfvars</code>, add or update <code>deploy_open_model = true</code> (the documented example is at line 39 of <code>infra/terraform.tfvars.example</code>). Do not duplicate assignments.</p><div class="code"><div class="code-head"><span class="code-label">infra/terraform.tfvars · existing deployment setting</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>deploy_open_model = true</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>terraform -chdir=infra init
+if ($LASTEXITCODE -ne 0) { throw "Terraform initialization failed." }
+terraform -chdir=infra apply -var="deploy_open_model=true"
+if ($LASTEXITCODE -ne 0) { throw "Deployment failed; do not continue." }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  if ! terraform -chdir=infra init; then
+    printf '%s\n' "Terraform initialization failed." &gt;&amp;2
+    exit 1
+  fi
+  if ! terraform -chdir=infra apply -var="deploy_open_model=true"; then
+    printf '%s\n' "Deployment failed; do not continue." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><details class="hint"><summary>Optional: deploy the self-hosted model instead</summary><div class="hint-body"><p>Update <code>deploy_selfhosted_model</code> in <code>infra/terraform.tfvars</code> (example line 60), then apply. Wait for Ollama to finish pulling the model. This infrastructure has an hourly cost even though its token price is zero.</p><div class="code"><div class="code-head"><span class="code-label">infra/terraform.tfvars · existing deployment setting</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>deploy_selfhosted_model = true</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>terraform -chdir=infra init
+if ($LASTEXITCODE -ne 0) { throw "Terraform initialization failed." }
+terraform -chdir=infra apply -var="deploy_selfhosted_model=true"
+if ($LASTEXITCODE -ne 0) { throw "Deployment failed; do not continue." }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  if ! terraform -chdir=infra init; then
+    printf '%s\n' "Terraform initialization failed." &gt;&amp;2
+    exit 1
+  fi
+  if ! terraform -chdir=infra apply -var="deploy_selfhosted_model=true"; then
+    printf '%s\n' "Deployment failed; do not continue." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div></details><p>Terraform updates the registry and keys; do not hand-edit <code>shared/config/models.json</code>. Keep the settings in your existing tfvars: command-line overrides last only for one apply.</p><div class="lang-py"><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars doctor
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars doctor; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars compare --models frontier,mini,nano,open
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars compare --models frontier,mini,nano,open; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- doctor
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- doctor; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- compare --models frontier,mini,nano,open
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- compare --models frontier,mini,nano,open; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div></div></details>
 </article>
 <article class="step-card" id="step-2.2" data-step="2.2" data-group="c2" aria-labelledby="h-2.2">
   <header class="step-head">
@@ -1248,6 +1924,65 @@ terraform apply</code></pre></div>
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li>A <code>results/compare-*.json</code> file exists, and your team has agreed on a default model and a tier mapping.</li><li>Your next full run is still <strong>VALID</strong>, with a lower <code>cost_per_success_usd</code>, and <code>calls_by_model</code> is dominated by the new default.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-2-2" data-solution-step="2.2"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><p>The reproducible reference choice is <code>mini</code> (GPT-5.6 Terra), not a guaranteed winner. First compare the deployed models and keep this choice only if real scored runs clear the quality bar. No router implementation is enabled until Challenge 3.</p><div class="lang-py"><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars compare --models frontier,mini,nano,open
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars compare --models frontier,mini,nano,open; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><p><strong>Keep this reference tier mapping (or restore this declaration if you changed it).</strong> In <code>python/starter/tokenwars/router.py</code>, replace <strong>line 9</strong> with the complete block below. Locate <code>TIER_MODELS = {&quot;SIMPLE&quot;: &quot;nano&quot;, &quot;STANDARD&quot;: &quot;mini&quot;, &quot;COMPLEX&quot;: &quot;frontier&quot;}</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/router.py · lines 9–9</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/router.py" data-start-line="9" data-end-line="9"><code>TIER_MODELS = {"SIMPLE": "nano", "STANDARD": "mini", "COMPLEX": "frontier"}</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set default_model.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 11</strong> with the complete block below. Locate <code>&quot;default_model&quot;: &quot;frontier&quot;,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 11–11</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="11" data-end-line="11"><code>  "default_model": "mini",</code></pre></div><p><strong>Set routing.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 12</strong> with the complete block below. Locate <code>&quot;routing&quot;: &quot;none&quot;,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 12–12</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="12" data-end-line="12"><code>  "routing": "none",</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- compare --models frontier,mini,nano,open
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- compare --models frontier,mini,nano,open; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><p><strong>Keep this reference tier mapping (or restore this declaration if you changed it).</strong> In <code>dotnet/starter/TokenWars/Router.cs</code>, replace <strong>lines 9–14</strong> with the complete block below. Locate <code>public static readonly Dictionary&lt;string, string&gt; TierModels = new(StringComparer.Ordinal)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/Router.cs · lines 9–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/Router.cs" data-start-line="9" data-end-line="14"><code>    public static readonly Dictionary&lt;string, string&gt; TierModels = new(StringComparer.Ordinal)
+    {
+        ["SIMPLE"] = "nano",
+        ["STANDARD"] = "mini",
+        ["COMPLEX"] = "frontier",
+    };</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set default_model.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 11</strong> with the complete block below. Locate <code>&quot;default_model&quot;: &quot;frontier&quot;,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 11–11</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="11" data-end-line="11"><code>  "default_model": "mini",</code></pre></div><p><strong>Set routing.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 12</strong> with the complete block below. Locate <code>&quot;routing&quot;: &quot;none&quot;,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 12–12</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="12" data-end-line="12"><code>  "routing": "none",</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><p>Require ≥85% pass rate on the full workload, then compare cost per successful answer. Keep frontier for the complex tier. Use the same pinned GPT-5.5 judge throughout.</p></div></details>
 </article>
 <article class="step-card" id="step-2.3" data-step="2.3" data-group="c2" aria-labelledby="h-2.3">
   <header class="step-head">
@@ -1275,6 +2010,44 @@ return ""</code></pre><pre class="lang-net"><code>return modelKey is "open" or "
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li>The pass rate and avg score for <code>open</code> (and <code>selfhosted</code>) in compare hold or improve.</li><li>Fewer failing items with judge reasons like "hallucinated policy".</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-2-3" data-solution-step="2.3"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>python/starter/tokenwars/prompts.py</code>, replace <strong>lines 61–62</strong> with the complete block below. Locate <code>def model_specific_instructions(model_key: str) -&gt; str:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/prompts.py · lines 61–62</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/prompts.py" data-start-line="61" data-end-line="62"><code>def model_specific_instructions(model_key: str) -&gt; str:
+    if model_key in ("open", "selfhosted", "custom") or model_key.startswith("fw_"):
+        return "Answer in English. Do not invent policies."
+    return ""</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars compare --models open
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars compare --models open; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>dotnet/starter/TokenWars/Prompts.cs</code>, replace <strong>lines 58–61</strong> with the complete block below. Locate <code>public static string ModelSpecificInstructions(string modelKey)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/Prompts.cs · lines 58–61</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/Prompts.cs" data-start-line="58" data-end-line="61"><code>    public static string ModelSpecificInstructions(string modelKey)
+    {
+        if (modelKey is "open" or "selfhosted" or "custom" || modelKey.StartsWith("fw_", StringComparison.Ordinal))
+        {
+            return "Answer in English. Do not invent policies.";
+        }
+        return "";
+    }</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- compare --models open
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- compare --models open; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div></div></details>
 </article>
 <article class="step-card" id="step-2-4" data-step="2.4" data-group="c2" aria-labelledby="h-2.4">
   <header class="step-head">
@@ -1355,6 +2128,97 @@ fireworks_models = {
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li>The compare table has four rows (<code>mini</code>, <code>frontier</code>, <code>fw_fast</code>, <code>fw_pro</code>), and your team can say which tier each Fireworks model replaces, and why.</li><li>If you routed to a Fireworks model: <code>calls_by_model</code> shows <code>fw_fast</code> / <code>fw_pro</code>, the run is still <strong>VALID</strong>, and <code>cost_per_success_usd</code> is lower than your Challenge 2 checkpoint.</li><li>Stretch: <code>cached_input_tokens</code> for <code>fw_fast</code> is higher with <code>prompt_cache_key</code> / <code>x-session-affinity</code> than without.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-2-4" data-solution-step="2.4"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><p>Optional extension: complete TODO 2.3 first. Deployment and Fireworks opt-in can each take up to 30 minutes; use the supported US Data Zone and agree the illustrative prices with your coach.</p><p class="muted small">The Bash prerequisite block invokes the repository’s existing PowerShell helper: PowerShell 7 (<code>pwsh</code>) must also be installed and available on PATH. There is no separate Bash version of that helper.</p><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · Fireworks prerequisite checks (repo root)</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>pwsh -File .\infra\scripts\check-fireworks-prereqs.ps1 -Register
+if ($LASTEXITCODE -ne 0) { throw "Wait for registration and repeat the prerequisites check." }
+pwsh -File .\infra\scripts\check-fireworks-prereqs.ps1
+if ($LASTEXITCODE -ne 0) { throw "Resolve prerequisites before deploying." }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · Fireworks prerequisite checks (repo root)</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  if ! pwsh -File ./infra/scripts/check-fireworks-prereqs.ps1 -Register; then
+    printf '%s\n' "Wait for registration and repeat the prerequisites check." &gt;&amp;2
+    exit 1
+  fi
+  if ! pwsh -File ./infra/scripts/check-fireworks-prereqs.ps1; then
+    printf '%s\n' "Resolve prerequisites before deploying." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><p>In <code>infra/terraform.tfvars</code>, replace the existing <code>deploy_fireworks</code> assignment (example line 78) with:</p><div class="code"><div class="code-head"><span class="code-label">infra/terraform.tfvars · replace the existing property</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>deploy_fireworks = true</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>terraform -chdir=infra init
+if ($LASTEXITCODE -ne 0) { throw "Terraform initialization failed." }
+terraform -chdir=infra apply -var="deploy_fireworks=true"
+if ($LASTEXITCODE -ne 0) { throw "Deployment failed; do not continue." }
+terraform -chdir=infra output fireworks_deployments
+if ($LASTEXITCODE -ne 0) { throw "Terraform output failed." }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  if ! terraform -chdir=infra init; then
+    printf '%s\n' "Terraform initialization failed." &gt;&amp;2
+    exit 1
+  fi
+  if ! terraform -chdir=infra apply -var="deploy_fireworks=true"; then
+    printf '%s\n' "Deployment failed; do not continue." &gt;&amp;2
+    exit 1
+  fi
+  if ! terraform -chdir=infra output fireworks_deployments; then
+    printf '%s\n' "Terraform output failed." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><div class="lang-py"><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars doctor
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars doctor; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars compare --models mini,frontier,fw_fast,fw_pro
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars compare --models mini,frontier,fw_fast,fw_pro; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- doctor
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- doctor; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- compare --models mini,frontier,fw_fast,fw_pro
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- compare --models mini,frontier,fw_fast,fw_pro; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><details class="hint"><summary>Optional tier replacement after measuring quality</summary><div class="hint-body"><p>Only after the comparison proves acceptable quality, and after implementing 3.1 or 3.2, use this alternative mapping. It is not the core reference mapping; unmapped Fireworks keys escalate directly to frontier in TODO 3.3.</p><div class="lang-py"><p><strong>Replace only the tier declaration.</strong> In <code>python/starter/tokenwars/router.py</code>, replace <strong>line 9</strong> with the complete block below. Locate <code>TIER_MODELS = {&quot;SIMPLE&quot;: &quot;nano&quot;, &quot;STANDARD&quot;: &quot;mini&quot;, &quot;COMPLEX&quot;: &quot;frontier&quot;}</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/router.py · lines 9–9</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/router.py" data-start-line="9" data-end-line="9" data-optional="true"><code>TIER_MODELS = {"SIMPLE": "fw_fast", "STANDARD": "fw_fast", "COMPLEX": "frontier"}</code></pre></div></div><div class="lang-net"><p><strong>Replace only the tier declaration.</strong> In <code>dotnet/starter/TokenWars/Router.cs</code>, replace <strong>lines 9–14</strong> with the complete block below. Locate <code>public static readonly Dictionary&lt;string, string&gt; TierModels = new(StringComparer.Ordinal)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/Router.cs · lines 9–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/Router.cs" data-start-line="9" data-end-line="14" data-optional="true"><code>    public static readonly Dictionary&lt;string, string&gt; TierModels = new(StringComparer.Ordinal)
+    {
+        ["SIMPLE"] = "fw_fast",
+        ["STANDARD"] = "fw_fast",
+        ["COMPLEX"] = "frontier",
+    };</code></pre></div></div></div></details></div></details>
 </article></section>
 <section id="ch3" class="doc-section" aria-labelledby="ch3-h"><p class="kicker">Challenge 3</p><h2 id="ch3-h">Challenge 3 · Route &amp; Rule</h2>
 <div class="chal-banner c3"><div><p class="chal-time">2:40 – 3:30</p><p class="chal-lede">Send every request to the cheapest model that can handle it, escalate when unsure, and govern the traffic with an AI gateway.</p></div>
@@ -1396,6 +2260,49 @@ fireworks_models = {
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li><code>calls_by_model</code> spreads across <code>nano</code>, <code>mini</code> and <code>frontier</code>.</li><li><code>total_cost_usd</code> drops. Keep an eye on <code>pass_rate</code>: this is where runs turn INVALID.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-3-1" data-solution-step="3.1"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>python/starter/tokenwars/router.py</code>, replace <strong>lines 41–42</strong> with the complete block below. Locate <code>def route_rules(self, question: str, normalized: str, order_specific: bool) -&gt; str:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/router.py · lines 41–42</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/router.py" data-start-line="41" data-end-line="42"><code>    def route_rules(self, question: str, normalized: str, order_specific: bool) -&gt; str:
+        if order_specific:
+            return TIER_MODELS["STANDARD"]
+        markers = sum(1 for m in COMPLEXITY_MARKERS if _contains_phrase(normalized, m))
+        if len(question.strip()) &gt; LONG_QUESTION_CHARS or markers &gt;= 2:
+            return TIER_MODELS["COMPLEX"]
+        if any(_contains_phrase(normalized, w) for w in COMPLAINT_WORDS):
+            return TIER_MODELS["STANDARD"]
+        return TIER_MODELS["SIMPLE"]</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set routing.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 12</strong> with the complete block below. Locate <code>&quot;routing&quot;: &quot;none&quot;,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 12–12</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="12" data-end-line="12"><code>  "routing": "rules",</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>dotnet/starter/TokenWars/Router.cs</code>, replace <strong>lines 58–61</strong> with the complete block below. Locate <code>public string RouteRules(string question, string normalized, bool orderSpecific)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/Router.cs · lines 58–61</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/Router.cs" data-start-line="58" data-end-line="61"><code>    public string RouteRules(string question, string normalized, bool orderSpecific)
+    {
+        if (orderSpecific) return TierModels["STANDARD"];
+        int markers = ComplexityMarkers.Count(m =&gt; ContainsPhrase(normalized, m));
+        if (TextUtil.CodePointCount(question.Trim()) &gt; LongQuestionChars || markers &gt;= 2) return TierModels["COMPLEX"];
+        if (ComplaintWords.Any(w =&gt; ContainsPhrase(normalized, w))) return TierModels["STANDARD"];
+        return TierModels["SIMPLE"];
+    }</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set routing.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 12</strong> with the complete block below. Locate <code>&quot;routing&quot;: &quot;none&quot;,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 12–12</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="12" data-end-line="12"><code>  "routing": "rules",</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div></div></details>
 </article>
 <article class="step-card" id="step-3.2" data-step="3.2" data-group="c3" aria-labelledby="h-3.2">
   <header class="step-head">
@@ -1424,6 +2331,59 @@ Reply with exactly one word: SIMPLE, STANDARD or COMPLEX.</code></pre></div>
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li><code>nano</code> calls rise by about one per non-cached item (the classifier), at a tiny cost.</li><li>Compared with rules: is the pass rate higher and the cost per success lower? Keep whichever wins.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-3-2" data-solution-step="3.2"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>python/starter/tokenwars/router.py</code>, replace <strong>lines 50–51</strong> with the complete block below. Locate <code>def route_classifier(self, question: str, calls: list) -&gt; str:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/router.py · lines 50–51</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/router.py" data-start-line="50" data-end-line="51"><code>    def route_classifier(self, question: str, calls: list) -&gt; str:
+        result = self.client.chat(
+            "nano",
+            [{"role": "system", "content": CLASSIFIER_SYSTEM_PROMPT}, {"role": "user", "content": question}],
+            temperature=0,
+            max_tokens=5,
+            purpose="classifier",
+        )
+        calls.append(result)
+        words = result.text.strip().upper().split()
+        label = words[0].strip(".,:;!\"'`*") if words else ""
+        return TIER_MODELS.get(label, self.strategy.default_model)</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set routing.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 12</strong> with the complete block below. Locate <code>&quot;routing&quot;: &quot;none&quot;,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 12–12</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="12" data-end-line="12"><code>  "routing": "classifier",</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace the complete method(s), including the signatures.</strong> In <code>dotnet/starter/TokenWars/Router.cs</code>, replace <strong>lines 71–74</strong> with the complete block below. Locate <code>public Task&lt;string&gt; RouteClassifierAsync(string question, List&lt;CallRecord&gt; calls, CancellationToken ct = default)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/Router.cs · lines 71–74</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/Router.cs" data-start-line="71" data-end-line="74"><code>    public async Task&lt;string&gt; RouteClassifierAsync(string question, List&lt;CallRecord&gt; calls, CancellationToken ct = default)
+    {
+        var messages = new List&lt;ChatMessage&gt;
+        {
+            new ChatMessage("system", Prompts.ClassifierSystemPrompt),
+            new ChatMessage("user", question),
+        };
+        var result = await _client.ChatAsync("nano", messages, temperature: 0, maxTokens: 5, purpose: "classifier", ct: ct);
+        calls.Add(result.Call);
+
+        var words = result.Text.Trim().ToUpperInvariant()
+            .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        var label = words.Length &gt; 0 ? words[0].Trim('.', ',', ':', ';', '!', '"', '\'', '`', '*') : "";
+        return TierModels.TryGetValue(label, out var model) ? model : _strategy.DefaultModel;
+    }</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set routing.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 12</strong> with the complete block below. Locate <code>&quot;routing&quot;: &quot;none&quot;,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 12–12</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="12" data-end-line="12"><code>  "routing": "classifier",</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><p>Keep the classifier call in the bill. An unrecognized label uses the configured default. A mock classifier always returns SIMPLE; only real runs can establish the routing mix and quality.</p></div></details>
 </article>
 <article class="step-card" id="step-3.3" data-step="3.3" data-group="c3" aria-labelledby="h-3.3">
   <header class="step-head">
@@ -1462,6 +2422,52 @@ any other key (fw_fast, fw_pro, custom, ...) -&gt; frontier</code></pre></div>
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li><code>escalations</code> &gt; 0, but modest. If a large share of items escalates, routing is too aggressive and you're paying twice.</li><li><code>pass_rate</code> recovers compared with routing alone; <code>latency_p95_ms</code> may rise a little.</li><li>Some items in <code>results/run-*.json</code> have a multi-step <code>model_path</code>.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-3-3" data-solution-step="3.3"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace only the escalation block inside the answer method.</strong> In <code>python/starter/tokenwars/pipeline.py</code>, replace <strong>lines 156–157</strong> with the complete block below. Locate <code>if self.strategy.escalation:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/pipeline.py · lines 156–157</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/pipeline.py" data-start-line="156" data-end-line="157"><code>        if self.strategy.escalation:
+            while model_key != "frontier" and answer.strip().upper().startswith("ESCALATE"):
+                next_key = ESCALATION_NEXT.get(model_key, "frontier")  # unmapped keys (fw_*, custom) -&gt; frontier
+                if next_key not in self.config.models:
+                    break
+                model_key = next_key
+                result.model_path.append(model_key)
+                answer = self._call_model(model_key, question, customer_id, order_specific, calls, question_vector)</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set escalation.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 13</strong> with the complete block below. Locate <code>&quot;escalation&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 13–13</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="13" data-end-line="13"><code>  "escalation": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace only the escalation block inside the answer method.</strong> In <code>dotnet/starter/TokenWars/Pipeline.cs</code>, replace <strong>lines 205–208</strong> with the complete block below. Locate <code>if (_strategy.Escalation)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/Pipeline.cs · lines 205–208</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/Pipeline.cs" data-start-line="205" data-end-line="208"><code>        if (_strategy.Escalation)
+        {
+            while (modelKey != "frontier"
+                   &amp;&amp; answer.Trim().ToUpperInvariant().StartsWith("ESCALATE", StringComparison.Ordinal))
+            {
+                var next = EscalationNext.TryGetValue(modelKey, out var mapped) ? mapped : "frontier"; // unmapped keys (fw_*, custom) -&gt; frontier
+                if (!_cfg.Models.ContainsKey(next)) break;
+                modelKey = next;
+                result.ModelPath.Add(modelKey);
+                answer = await CallModelAsync(modelKey, question, customerId, orderSpecific, calls, QuestionVector, ct);
+            }
+        }</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set escalation.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 13</strong> with the complete block below. Locate <code>&quot;escalation&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 13–13</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="13" data-end-line="13"><code>  "escalation": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div></div></details>
 </article>
 <article class="step-card" id="step-3.4" data-step="3.4" data-group="c3" aria-labelledby="h-3.4">
   <header class="step-head">
@@ -1493,6 +2499,88 @@ any other key (fw_fast, fw_pro, custom, ...) -&gt; frontier</code></pre></div>
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li>No items in <code>results/run-*.json</code> have a non-null <code>error</code>, even under load.</li><li><code>latency_p95_ms</code> may rise when retries happen. That's the price of reliability.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-3-4" data-solution-step="3.4"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><div class="lang-py"><p><strong>Replace this method.</strong> In <code>python/starter/tokenwars/llm_client.py</code>, replace <strong>lines 176–177</strong> with the complete block below. Locate <code>def _send_with_retry(self, send_once: Callable[[], Any]) -&gt; Any:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/llm_client.py · lines 176–177</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/llm_client.py" data-start-line="176" data-end-line="177"><code>    def _send_with_retry(self, send_once: Callable[[], Any]) -&gt; Any:
+        for attempt in range(MAX_RETRIES + 1):
+            response = send_once()
+            status = getattr(response, "status_code", 200)
+            if status not in RETRYABLE_STATUS or attempt == MAX_RETRIES:
+                return response
+            wait = _retry_after_seconds(response.headers)
+            if wait is None:
+                wait = 2 ** attempt + random.uniform(0, 0.5)  # 1s, 2s, 4s, 8s + jitter
+            print(f"   ↻ HTTP {status} – retrying in {wait:.1f}s (retry {attempt + 1}/{MAX_RETRIES})",
+                  file=sys.stderr)
+            time.sleep(wait)
+        return response  # pragma: no cover</code></pre></div><p><strong>Insert the header-parsing helper at module level before _warn_empty_length.</strong> In <code>python/starter/tokenwars/llm_client.py</code>, replace <strong>line 180</strong> with the complete block below. Locate <code>def _warn_empty_length(model_key: str, max_tokens: int | None) -&gt; None:</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/tokenwars/llm_client.py · lines 180–180</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/tokenwars/llm_client.py" data-start-line="180" data-end-line="180"><code>def _retry_after_seconds(headers: Any) -&gt; float | None:
+    for name, scale in (("retry-after-ms", 0.001), ("retry-after", 1.0)):
+        value = headers.get(name) if headers is not None else None
+        if value is None:
+            continue
+        try:
+            return max(0.0, float(value) * scale)
+        except ValueError:
+            continue  # e.g. an HTTP date – fall back to backoff
+    return None
+
+
+def _warn_empty_length(model_key: str, max_tokens: int | None) -&gt; None:</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set retry_on_throttle.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 15</strong> with the complete block below. Locate <code>&quot;retry_on_throttle&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 15–15</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="15" data-end-line="15"><code>  "retry_on_throttle": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p><strong>Replace the entire method, including its async signature.</strong> In <code>dotnet/starter/TokenWars/LlmClient.cs</code>, replace <strong>lines 232–235</strong> with the complete block below. Locate <code>private Task&lt;JsonNode?&gt; SendWithRetryAsync(Func&lt;Task&lt;JsonNode?&gt;&gt; sendOnce, CancellationToken ct)</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/LlmClient.cs · lines 232–235</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/LlmClient.cs" data-start-line="232" data-end-line="235"><code>    private async Task&lt;JsonNode?&gt; SendWithRetryAsync(Func&lt;Task&lt;JsonNode?&gt;&gt; sendOnce, CancellationToken ct)
+    {
+        for (int attempt = 0; ; attempt++)
+        {
+            try
+            {
+                return await sendOnce();
+            }
+            catch (LlmException ex) when (ex.StatusCode is int status
+                                          &amp;&amp; RetryableStatus.Contains(status)
+                                          &amp;&amp; attempt &lt; MaxRetries)
+            {
+                double waitSeconds;
+                if (ex.RetryAfterMs is double ms)
+                {
+                    waitSeconds = Math.Max(0, ms / 1000.0);
+                }
+                else if (ex.RetryAfterSeconds is double s)
+                {
+                    waitSeconds = Math.Max(0, s);
+                }
+                else
+                {
+                    waitSeconds = Math.Pow(2, attempt) + Random.Shared.NextDouble() * 0.5; // 1s, 2s, 4s, 8s + jitter
+                }
+                Console.Error.WriteLine(
+                    $"   ↻ HTTP {ex.StatusCode} – retrying in {waitSeconds.ToString("0.0", CultureInfo.InvariantCulture)}s (retry {attempt + 1}/{MaxRetries})");
+                await Task.Delay(TimeSpan.FromSeconds(waitSeconds), ct);
+            }
+        }
+    }</code></pre></div><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set retry_on_throttle.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 15</strong> with the complete block below. Locate <code>&quot;retry_on_throttle&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 15–15</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="15" data-end-line="15"><code>  "retry_on_throttle": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><p>Numeric Retry-After headers take precedence over backoff. There are at most four retries; the final failure remains visible. Persistent throttling can still require lower concurrency or a larger agreed budget.</p></div></details>
 </article>
 <article class="step-card" id="step-3.5" data-step="3.5" data-group="c3" aria-labelledby="h-3.5">
   <header class="step-head">
@@ -1529,19 +2617,129 @@ any other key (fw_fast, fw_pro, custom, ...) -&gt; frontier</code></pre></div>
                        &lt;/retry&gt;
 &lt;/backend&gt;</code></pre></div></div></details>
   <h4 class="sub">What to do</h4>
-  <ol class="do-list"><li><strong>3.5a: token limit per consumer.</strong> In <code>&lt;inbound&gt;</code>, add <code>llm-token-limit</code> so that <em>each</em> APIM subscription gets its own <code>${tokens_per_minute}</code> budget: <code>counter-key="@(context.Subscription.Id)"</code>, <code>tokens-per-minute="${tokens_per_minute}"</code>, <code>estimate-prompt-tokens="false"</code>, and expose the remaining budget with <code>remaining-tokens-header-name="x-ratelimit-remaining-tokens"</code>. Callers over the limit get HTTP 429 + Retry-After, which TODO 3.4 handles.</li><li><strong>3.5b: token metrics.</strong> Add <code>llm-emit-token-metric</code> with <code>namespace="tokenwars"</code> and dimensions <code>Subscription ID</code>, <code>API ID</code>, plus a custom <code>Model</code> dimension read from the request body's <code>model</code> field (policy expression). That answers "who uses how many tokens on which model?".</li><li><strong>3.5c: resilience.</strong> Part 1: switch <code>set-backend-service</code> from <code>${backend_id}</code> to <code>${pool_backend_id}</code>. Part 2: in <code>&lt;backend&gt;</code>, wrap <code>forward-request</code> in a <code>retry</code> on 429 and 5xx, e.g. <code>condition="@(context.Response.StatusCode == 429 || context.Response.StatusCode &gt;= 500)" count="2" interval="1" first-fast-retry="true"</code>.</li><li>Apply it:<div class="code"><div class="code-head"><span class="code-label">terminal</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>cd infra
+  <ol class="do-list"><li><strong>3.5a: token limit per consumer.</strong> In <code>&lt;inbound&gt;</code>, add <code>llm-token-limit</code> so that <em>each</em> APIM subscription gets its own <code>${tokens_per_minute}</code> budget: <code>counter-key="@(context.Subscription.Id)"</code>, <code>tokens-per-minute="${tokens_per_minute}"</code>, <code>estimate-prompt-tokens="false"</code>, and expose the remaining budget with <code>remaining-tokens-header-name="x-ratelimit-remaining-tokens"</code>. Callers over the limit get HTTP 429 + Retry-After, which TODO 3.4 handles.</li><li><strong>3.5b: token metrics.</strong> Add <code>llm-emit-token-metric</code> with <code>namespace="tokenwars"</code> and dimensions <code>Subscription ID</code>, <code>Backend ID</code>, plus a custom <code>Model</code> dimension read from the request body's <code>model</code> field (policy expression). That answers "who uses how many tokens on which model?".</li><li><strong>3.5c: resilience.</strong> Part 1: switch <code>set-backend-service</code> from <code>${backend_id}</code> to <code>${pool_backend_id}</code>. Part 2: in <code>&lt;backend&gt;</code>, wrap <code>forward-request</code> in a <code>retry</code> on 429 and 5xx, e.g. <code>condition="@(context.Response.StatusCode == 429 || context.Response.StatusCode &gt;= 500)" count="2" interval="1" first-fast-retry="true"</code>.</li><li>Apply it:<div class="code"><div class="code-head"><span class="code-label">terminal</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>cd infra
 terraform apply        # re-renders policies/ai-gateway-starter.xml (the default apim_policy_file)
 # compare with the reference policy, then switch back:
 terraform apply -var apim_policy_file=policies/ai-gateway-solution.xml</code></pre></div></li><li>Set <code>"use_gateway": true</code>. Models with <code>via_gateway: true</code> now call <code>gateway.base_url</code> with <code>APIM_SUBSCRIPTION_KEY</code> (the <code>support-squad</code> key). Then run <span class="lang-py"><code>python -m tokenwars run</code></span><span class="lang-net"><code>dotnet run -- run</code></span>.</li></ol>
   
   <details class="hint">
     <summary>💡 Need a hint?</summary>
-    <div class="hint-body"><div class="hint-item">Leave <code>${...}</code> placeholders exactly as written. Terraform substitutes them; literal <code>$</code> in comments is written as <code>$$</code>.</div><div class="hint-item">Failover only has somewhere to go with <code>deploy_secondary_region = true</code>. The secondary account (<code>secondary_location</code>, default <code>francecentral</code>) has a small <code>secondary_capacity</code> (50) so you can trip the primary's circuit breaker and watch retried requests move to the next healthy backend. The breaker honours Retry-After.</div><div class="hint-item"><code>use_gateway</code> only takes effect when <code>gateway</code> exists in <code>models.json</code> (<code>deploy_apim = true</code>) and the model has <code>via_gateway: true</code>. <code>selfhosted</code> always goes direct.</div><div class="hint-item">Policy docs are linked in the XML header comment: llm-token-limit, llm-emit-token-metric, backends (load-balanced pools, circuit breaker) and retry. <code>BasicV2</code>/<code>StandardV2</code> support both LLM policies.</div><div class="hint-item"><strong>Stuck?</strong> Compare with <code>infra/policies/ai-gateway-solution.xml</code>.</div></div>
+    <div class="hint-body"><div class="hint-item">Leave <code>${...}</code> placeholders exactly as written. Terraform substitutes them; literal <code>$</code> in comments is written as <code>$$</code>.</div><div class="hint-item">Failover only has somewhere to go with <code>deploy_secondary_region = true</code>. The secondary account (<code>secondary_location</code>, default <code>francecentral</code>) has its own <code>secondary_capacity</code> (800 by default). Deliberately trip the primary's circuit breaker during the controlled test to watch retried requests move to the next healthy backend. The breaker honours Retry-After.</div><div class="hint-item"><code>use_gateway</code> only takes effect when <code>gateway</code> exists in <code>models.json</code> (<code>deploy_apim = true</code>) and the model has <code>via_gateway: true</code>. <code>selfhosted</code> always goes direct.</div><div class="hint-item">Policy docs are linked in the XML header comment: llm-token-limit, llm-emit-token-metric, backends (load-balanced pools, circuit breaker) and retry. <code>BasicV2</code>/<code>StandardV2</code> support both LLM policies.</div><div class="hint-item"><strong>Stuck?</strong> Compare with <code>infra/policies/ai-gateway-solution.xml</code>.</div></div>
   </details>
   <div class="check-box">
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li>The run is still <strong>VALID</strong> with no errored items (TODO 3.4 retry absorbs the 429s from 3.5a).</li><li><code>total_cost_usd</code> is about the same as without the gateway. The price doesn't change; your control does.</li><li>After a few minutes, the <code>tokenwars</code> custom metric namespace in Application Insights shows tokens per subscription and model (3.5b).</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-3-5" data-solution-step="3.5"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><p>These changes are shared by both languages. Keep Terraform placeholders exactly as copied; <code>${...}</code> is rendered by Terraform, not pasted into the Azure portal.</p><h4>TODO 3.5a: token budget</h4><p><strong>Replace the complete TODO 3.5a comment with this policy.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>lines 25–31</strong> with the complete block below. Locate <code>&lt;!-- TODO 3.5a: Token limit per consumer.</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 25–31</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="25" data-end-line="31"><code>    &lt;llm-token-limit counter-key="@(context.Subscription.Id)"
+                     tokens-per-minute="${tokens_per_minute}"
+                     estimate-prompt-tokens="false"
+                     remaining-tokens-header-name="x-ratelimit-remaining-tokens"
+                     tokens-consumed-header-name="x-tokens-consumed" /&gt;</code></pre></div><h4>TODO 3.5b: token metrics</h4><p><strong>Replace the complete TODO 3.5b comment with this policy.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>lines 33–37</strong> with the complete block below. Locate <code>&lt;!-- TODO 3.5b: Token metrics.</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 33–37</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="33" data-end-line="37"><code>    &lt;llm-emit-token-metric namespace="tokenwars"&gt;
+      &lt;dimension name="Subscription ID" /&gt;
+      &lt;dimension name="API ID" /&gt;
+      &lt;dimension name="Operation ID" /&gt;
+      &lt;dimension name="Model" value="@{
+          var body = context.Request.Body?.As&amp;lt;Newtonsoft.Json.Linq.JObject&amp;gt;(preserveContent: true);
+          var model = body?[&amp;quot;model&amp;quot;]?.ToString();
+          return string.IsNullOrEmpty(model) ? &amp;quot;unknown&amp;quot; : model;
+      }" /&gt;
+    &lt;/llm-emit-token-metric&gt;</code></pre></div><h4>TODO 3.5c: backend pool and retry</h4><p><strong>Replace the existing backend-selection line.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>line 41</strong> with the complete block below. Locate <code>&lt;set-backend-service backend-id=&quot;${backend_id}&quot; /&gt;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 41–41</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="41" data-end-line="41"><code>    &lt;set-backend-service backend-id="${pool_backend_id}" /&gt;</code></pre></div><p><strong>Replace forward-request with the complete retry wrapper.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>line 57</strong> with the complete block below. Locate <code>&lt;forward-request buffer-request-body=&quot;true&quot; timeout=&quot;120&quot; /&gt;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 57–57</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="57" data-end-line="57"><code>    &lt;retry condition="@(context.Response.StatusCode == 429 || context.Response.StatusCode &gt;= 500)"
+           count="2" interval="1" max-interval="8" delta="2" first-fast-retry="true"&gt;
+      &lt;forward-request buffer-request-body="true" timeout="120" /&gt;
+    &lt;/retry&gt;</code></pre></div><p><strong>Replace the outbound block to expose the backend response header.</strong> In <code>infra/policies/ai-gateway-starter.xml</code>, replace <strong>lines 60–62</strong> with the complete block below. Locate <code>&lt;outbound&gt;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-starter.xml · lines 60–62</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-starter.xml" data-start-line="60" data-end-line="62"><code>  &lt;outbound&gt;
+    &lt;base /&gt;
+    &lt;!-- Show which backend served the call (useful for the failover demo). --&gt;
+    &lt;set-header name="x-tokenwars-backend" exists-action="override"&gt;
+      &lt;value&gt;@(context.Request.Url.Host)&lt;/value&gt;
+    &lt;/set-header&gt;
+  &lt;/outbound&gt;</code></pre></div><p>Update the existing assignments in <code>infra/terraform.tfvars</code> (examples at lines 52–55), without duplicates:</p><div class="code"><div class="code-head"><span class="code-label">infra/terraform.tfvars · existing gateway settings</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>deploy_apim = true
+apim_policy_file = "policies/ai-gateway-starter.xml"</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>terraform -chdir=infra init
+if ($LASTEXITCODE -ne 0) { throw "Terraform initialization failed." }
+terraform -chdir=infra apply -var="deploy_apim=true" -var="apim_policy_file=policies/ai-gateway-starter.xml"
+if ($LASTEXITCODE -ne 0) { throw "Deployment failed; do not continue." }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  if ! terraform -chdir=infra init; then
+    printf '%s\n' "Terraform initialization failed." &gt;&amp;2
+    exit 1
+  fi
+  if ! terraform -chdir=infra apply -var="deploy_apim=true" -var="apim_policy_file=policies/ai-gateway-starter.xml"; then
+    printf '%s\n' "Deployment failed; do not continue." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><p>Only after Terraform succeeds, enable the gateway. Keep the judge direct and do not change pricing, scoring or workload.</p><div class="lang-py"><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set use_gateway.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 14</strong> with the complete block below. Locate <code>&quot;use_gateway&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 14–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="14" data-end-line="14"><code>  "use_gateway": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars doctor
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars doctor; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set use_gateway.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 14</strong> with the complete block below. Locate <code>&quot;use_gateway&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 14–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="14" data-end-line="14"><code>  "use_gateway": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- doctor
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- doctor; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><p>The default consumer budget is 20,000 TPM, independent of deployment capacity 800. Finite retries cannot overcome sustained over-budget traffic; lower concurrency or agree a larger budget with the coach.</p><details class="hint"><summary>Optional TODO 3.5c: add the second-region backend</summary><div class="hint-body"><p>Verify availability and quota in the secondary region first. Update these existing properties in <code>infra/terraform.tfvars</code> (examples at lines 66–68); do not duplicate assignments:</p><div class="code"><div class="code-head"><span class="code-label">infra/terraform.tfvars · optional second-region settings</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>deploy_secondary_region = true
+secondary_capacity = 800</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>terraform -chdir=infra init
+if ($LASTEXITCODE -ne 0) { throw "Terraform initialization failed." }
+terraform -chdir=infra apply -var="deploy_apim=true" -var="deploy_secondary_region=true" -var="secondary_capacity=800" -var="apim_policy_file=policies/ai-gateway-starter.xml"
+if ($LASTEXITCODE -ne 0) { throw "Deployment failed; do not continue." }
+terraform -chdir=infra output apim_failover_backend
+if ($LASTEXITCODE -ne 0) { throw "Terraform output failed." }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  if ! terraform -chdir=infra init; then
+    printf '%s\n' "Terraform initialization failed." &gt;&amp;2
+    exit 1
+  fi
+  if ! terraform -chdir=infra apply -var="deploy_apim=true" -var="deploy_secondary_region=true" -var="secondary_capacity=800" -var="apim_policy_file=policies/ai-gateway-starter.xml"; then
+    printf '%s\n' "Deployment failed; do not continue." &gt;&amp;2
+    exit 1
+  fi
+  if ! terraform -chdir=infra output apim_failover_backend; then
+    printf '%s\n' "Terraform output failed." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><p>Repeat doctor and the scored smoke run, then follow this card’s controlled failover test. The judge, embeddings and open model remain in the primary region. A second backend does not guarantee failover for every 429.</p></div></details></div></details>
 </article>
 <article class="step-card" id="step-3-6" data-step="3.6" data-group="c3" aria-labelledby="h-3.6">
   <header class="step-head">
@@ -1600,6 +2798,219 @@ curl -s -D - -o /dev/null "${GW}chat/completions" \
     <h4>✅ Check your result: what should change on the scorecard</h4>
     <ul><li>Under forced throttling, some responses carry <code>x-tokenwars-provider: fireworks</code> and <code>x-tokenwars-model: FW-…</code>.</li><li>The run stays <strong>VALID</strong>, with fewer (ideally zero) errored items than the same load without the multi-provider policy.</li><li>"Provider Tokens" in Application Insights shows a <code>fireworks</code> series next to <code>azure-openai</code>.</li></ul>
   </div>
+
+<details class="hint step-solution" id="solution-3-6" data-solution-step="3.6"><summary>Solution — exact copy-and-paste steps</summary><div class="hint-body"><p class="muted small">Spoiler: back up your edits first. Line numbers refer to the original starter in this checkout, before applying any solutions. Follow the named method or anchor if the numbers have moved. Replace only the indicated blocks and preserve previous TODOs unless a full-file replacement is explicitly requested.</p><p>Optional stretch: finish 2.4 and 3.4–3.5 first. This policy has not been validated end-to-end on a live gateway; deployment success alone is not proof of failover.</p><p><strong>Keep this complete reference policy (or replace the entire file if you edited it).</strong> In <code>infra/policies/ai-gateway-multiprovider.xml</code>, replace <strong>lines 1–138</strong> with the complete block below. Locate <code>&lt;policies&gt;</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">infra/policies/ai-gateway-multiprovider.xml · lines 1–138</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="infra/policies/ai-gateway-multiprovider.xml" data-start-line="1" data-end-line="138"><code>&lt;policies&gt;
+  &lt;!--
+    Token Wars - AI gateway policy, Challenge 3.6 (stretch) "Multi-Provider Failover" for the "openai" API.
+    Everything from the SOLUTION policy (token limit per consumer, token metrics, Azure failover pool) PLUS:
+    when the Azure OpenAI backend answers 429 or 5xx, the request is retried ONCE against the Fireworks on Foundry
+    backend, with the "model" field rewritten to the mapped Fireworks deployment (failover_model_map).
+
+    Apply with (needs deploy_fireworks = true):
+      terraform apply -var 'deploy_fireworks=true' -var 'apim_policy_file=policies/ai-gateway-multiprovider.xml'
+
+    Template variables (double $ so they are not substituted here):
+      $${backend_id}            primary Azure backend
+      $${pool_backend_id}       Azure failover pool (or the primary if no secondary region)
+      $${fireworks_backend_id}  APIM backend "fireworks" (US Foundry resource, /openai/v1)
+      $${fireworks_auth}        "api_key" (backend injects the key from a secret named value) | "managed_identity"
+      $${tokens_per_minute}     var.tokens_per_minute_per_consumer
+      failover_model_map        Azure deployment name -&gt; Fireworks deployment name (rendered as a lookup below)
+
+    Response headers: x-tokenwars-provider: azure-openai | fireworks, x-tokenwars-model (model that answered).
+    Debrief: a DIFFERENT model silently answers during failover (quality drift!), and llm-token-limit counts the
+    tokens of both providers against the same consumer budget.
+
+    VALIDATE (not yet tested end-to-end on a live gateway):
+      * llm-emit-token-metric: whether the custom "Provider" dimension is evaluated after the backend call
+        (otherwise it always reports azure-openai; the outbound emit-metric "Provider Tokens" is exact).
+      * when the pool/primary circuit breaker is OPEN the gateway may raise an error instead of returning a 503
+        response -&gt; on-error runs and no Fireworks retry happens (keep deploy_secondary_region = false for the demo).
+      * Fireworks models may reject GPT-5.x-only parameters: reasoning_effort is removed and max_completion_tokens is
+        renamed to max_tokens before the retry.
+  --&gt;
+  &lt;inbound&gt;
+    &lt;base /&gt;
+
+    &lt;!-- Token budget per consumer (APIM subscription); applies to Azure AND Fireworks tokens. --&gt;
+    &lt;llm-token-limit counter-key="@(context.Subscription.Id)"
+                     tokens-per-minute="${tokens_per_minute}"
+                     estimate-prompt-tokens="false"
+                     remaining-tokens-header-name="x-ratelimit-remaining-tokens"
+                     tokens-consumed-header-name="x-tokens-consumed" /&gt;
+
+    &lt;!-- Requested model (= Azure deployment name) and its Fireworks failover target ("" = no failover). --&gt;
+    &lt;set-variable name="tw-model" value="@{
+        var body = context.Request.Body?.As&amp;lt;Newtonsoft.Json.Linq.JObject&amp;gt;(preserveContent: true);
+        var model = body?[&amp;quot;model&amp;quot;]?.ToString();
+        return string.IsNullOrEmpty(model) ? &amp;quot;unknown&amp;quot; : model;
+    }" /&gt;
+    &lt;set-variable name="tw-fw-model" value="@{
+        var model = (string)context.Variables[&amp;quot;tw-model&amp;quot;];%{ for azure_model, fw_model in failover_model_map }
+        if (model == &amp;quot;${azure_model}&amp;quot;) { return &amp;quot;${fw_model}&amp;quot;; }%{ endfor }
+        return &amp;quot;&amp;quot;;
+    }" /&gt;
+    &lt;set-variable name="tw-provider" value="azure-openai" /&gt;
+    &lt;set-variable name="tw-failover" value="@(false)" /&gt;
+
+    &lt;!-- Token metrics to Application Insights (custom metrics, namespace "tokenwars") with a provider dimension. --&gt;
+    &lt;llm-emit-token-metric namespace="tokenwars"&gt;
+      &lt;dimension name="Subscription ID" /&gt;
+      &lt;dimension name="Backend ID" /&gt;
+      &lt;dimension name="Model" value="@((string)context.Variables[&amp;quot;tw-model&amp;quot;])" /&gt;
+      &lt;dimension name="Provider" value="@(context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;(&amp;quot;tw-provider&amp;quot;, &amp;quot;azure-openai&amp;quot;))" /&gt;
+    &lt;/llm-emit-token-metric&gt;
+
+    &lt;!-- First attempt: Azure (failover pool if a secondary region exists, otherwise the primary). --&gt;
+    &lt;set-backend-service backend-id="${pool_backend_id}" /&gt;
+
+    &lt;!-- Keyless backend auth with APIM's managed identity (Azure resources). --&gt;
+    &lt;authentication-managed-identity resource="https://cognitiveservices.azure.com" /&gt;
+
+    &lt;!-- Never forward the caller's APIM subscription key to a model endpoint. --&gt;
+    &lt;set-header name="api-key" exists-action="delete" /&gt;
+  &lt;/inbound&gt;
+
+  &lt;backend&gt;
+    &lt;!-- Runs once; retried ONCE (count=1) only if tw-failover was set after the Azure attempt. --&gt;
+    &lt;retry condition="@(context.Variables.GetValueOrDefault&amp;lt;bool&amp;gt;(&amp;quot;tw-failover&amp;quot;, false))"
+           count="1" interval="1" first-fast-retry="true"&gt;
+      &lt;choose&gt;
+        &lt;when condition="@(context.Variables.GetValueOrDefault&amp;lt;bool&amp;gt;(&amp;quot;tw-failover&amp;quot;, false))"&gt;
+          &lt;!-- Second attempt: Fireworks on Foundry with the mapped deployment name. --&gt;
+          &lt;set-variable name="tw-provider" value="fireworks" /&gt;
+          &lt;set-backend-service backend-id="${fireworks_backend_id}" /&gt;
+          &lt;set-body&gt;@{
+              var body = context.Request.Body.As&amp;lt;Newtonsoft.Json.Linq.JObject&amp;gt;(preserveContent: true);
+              body[&amp;quot;model&amp;quot;] = (string)context.Variables[&amp;quot;tw-fw-model&amp;quot;];
+              body.Remove(&amp;quot;reasoning_effort&amp;quot;);
+              if (body[&amp;quot;max_completion_tokens&amp;quot;] != null) {
+                  if (body[&amp;quot;max_tokens&amp;quot;] == null) {
+                      body[&amp;quot;max_tokens&amp;quot;] = body[&amp;quot;max_completion_tokens&amp;quot;];
+                  }
+                  body.Remove(&amp;quot;max_completion_tokens&amp;quot;);
+              }
+              return body.ToString();
+          }&lt;/set-body&gt;%{ if fireworks_auth == "api_key" }
+          &lt;!-- The fireworks backend adds the api-key header itself; drop the Azure bearer token. --&gt;
+          &lt;set-header name="Authorization" exists-action="delete" /&gt;%{ endif }
+        &lt;/when&gt;
+      &lt;/choose&gt;
+      &lt;forward-request buffer-request-body="true" timeout="120" /&gt;
+      &lt;!-- Fail over only from Azure, only for mapped models, only on throttling / server errors. --&gt;
+      &lt;set-variable name="tw-failover" value="@(
+          context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;(&amp;quot;tw-provider&amp;quot;, &amp;quot;azure-openai&amp;quot;) == &amp;quot;azure-openai&amp;quot;
+          &amp;amp;&amp;amp; context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;(&amp;quot;tw-fw-model&amp;quot;, &amp;quot;&amp;quot;) != &amp;quot;&amp;quot;
+          &amp;amp;&amp;amp; context.Response != null
+          &amp;amp;&amp;amp; (context.Response.StatusCode == 429 || context.Response.StatusCode &amp;gt;= 500))" /&gt;
+    &lt;/retry&gt;
+  &lt;/backend&gt;
+
+  &lt;outbound&gt;
+    &lt;base /&gt;
+    &lt;set-header name="x-tokenwars-provider" exists-action="override"&gt;
+      &lt;value&gt;@(context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;("tw-provider", "azure-openai"))&lt;/value&gt;
+    &lt;/set-header&gt;
+    &lt;set-header name="x-tokenwars-model" exists-action="override"&gt;
+      &lt;value&gt;@(context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;("tw-provider", "azure-openai") == "fireworks" ? context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;("tw-fw-model", "") : context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;("tw-model", "unknown"))&lt;/value&gt;
+    &lt;/set-header&gt;
+    &lt;set-header name="x-tokenwars-backend" exists-action="override"&gt;
+      &lt;value&gt;@(context.Request.Url.Host)&lt;/value&gt;
+    &lt;/set-header&gt;
+    &lt;!-- Exact per-provider token counter (non-streaming JSON responses), evaluated after the final attempt. --&gt;
+    &lt;emit-metric name="Provider Tokens" namespace="tokenwars" value="@{
+        var contentType = context.Response.Headers.GetValueOrDefault(&amp;quot;Content-Type&amp;quot;, &amp;quot;&amp;quot;);
+        if (!contentType.Contains(&amp;quot;json&amp;quot;)) { return 0d; }
+        var body = context.Response.Body?.As&amp;lt;Newtonsoft.Json.Linq.JObject&amp;gt;(preserveContent: true);
+        return (double)((double?)body?[&amp;quot;usage&amp;quot;]?[&amp;quot;total_tokens&amp;quot;] ?? 0d);
+    }"&gt;
+      &lt;dimension name="Subscription ID" /&gt;
+      &lt;dimension name="Provider" value="@(context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;(&amp;quot;tw-provider&amp;quot;, &amp;quot;azure-openai&amp;quot;))" /&gt;
+      &lt;dimension name="Model" value="@((string)context.Variables[&amp;quot;tw-model&amp;quot;])" /&gt;
+    &lt;/emit-metric&gt;
+  &lt;/outbound&gt;
+
+  &lt;on-error&gt;
+    &lt;base /&gt;
+    &lt;set-header name="x-tokenwars-provider" exists-action="override"&gt;
+      &lt;value&gt;@(context.Variables.GetValueOrDefault&amp;lt;string&amp;gt;("tw-provider", "azure-openai"))&lt;/value&gt;
+    &lt;/set-header&gt;
+  &lt;/on-error&gt;
+&lt;/policies&gt;</code></pre></div><p>Update the existing assignments in <code>infra/terraform.tfvars</code> (examples at lines 52–55, 66 and 78); do not append duplicate properties:</p><div class="code"><div class="code-head"><span class="code-label">infra/terraform.tfvars · multi-provider settings</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre><code>deploy_apim = true
+deploy_fireworks = true
+deploy_secondary_region = false
+apim_policy_file = "policies/ai-gateway-multiprovider.xml"</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>terraform -chdir=infra init
+if ($LASTEXITCODE -ne 0) { throw "Terraform initialization failed." }
+terraform -chdir=infra apply -var="deploy_apim=true" -var="deploy_fireworks=true" -var="deploy_secondary_region=false" -var="apim_policy_file=policies/ai-gateway-multiprovider.xml"
+if ($LASTEXITCODE -ne 0) { throw "Deployment failed; do not continue." }
+terraform -chdir=infra output apim_failover_model_map
+if ($LASTEXITCODE -ne 0) { throw "Terraform output failed." }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  if ! terraform -chdir=infra init; then
+    printf '%s\n' "Terraform initialization failed." &gt;&amp;2
+    exit 1
+  fi
+  if ! terraform -chdir=infra apply -var="deploy_apim=true" -var="deploy_fireworks=true" -var="deploy_secondary_region=false" -var="apim_policy_file=policies/ai-gateway-multiprovider.xml"; then
+    printf '%s\n' "Deployment failed; do not continue." &gt;&amp;2
+    exit 1
+  fi
+  if ! terraform -chdir=infra output apim_failover_model_map; then
+    printf '%s\n' "Terraform output failed." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><div class="lang-py"><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set use_gateway.</strong> In <code>python/starter/strategy.json</code>, replace <strong>line 14</strong> with the complete block below. Locate <code>&quot;use_gateway&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">python/starter/strategy.json · lines 14–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="python/starter/strategy.json" data-start-line="14" data-end-line="14"><code>  "use_gateway": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars doctor
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars doctor; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\python\starter
+try {
+    python -m tokenwars run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./python/starter"
+  if ! python -m tokenwars run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><div class="lang-net"><p>Update only the following existing properties in <code>strategy.json</code>; these blocks are JSON fragments, not a replacement for the whole file. Preserve all other settings and do not add duplicate keys.</p><p><strong>Set use_gateway.</strong> In <code>dotnet/starter/TokenWars/strategy.json</code>, replace <strong>line 14</strong> with the complete block below. Locate <code>&quot;use_gateway&quot;: false,</code> if earlier edits have shifted the lines. Keep the displayed indentation.</p><div class="code"><div class="code-head"><span class="code-label">dotnet/starter/TokenWars/strategy.json · lines 14–14</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-edit-file="dotnet/starter/TokenWars/strategy.json" data-start-line="14" data-end-line="14"><code>  "use_gateway": true,</code></pre></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- doctor
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- doctor; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div><div class="shell-pair"><div class="code"><div class="code-head"><span class="code-label">PowerShell · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="powershell"><code>$env:TOKENWARS_MOCK = "0"
+Push-Location .\dotnet\starter\TokenWars
+try {
+    dotnet run -- run --limit 20
+    if ($LASTEXITCODE -ne 0) { throw "Command failed; inspect the error before continuing." }
+} finally { Pop-Location }</code></pre></div><div class="code"><div class="code-head"><span class="code-label">Bash · run from the repository root</span><button type="button" class="copy-btn" aria-label="Copy code to clipboard">Copy</button></div><pre data-shell="bash"><code>(
+  set -e
+  export TOKENWARS_MOCK=0
+  cd "./dotnet/starter/TokenWars"
+  if ! dotnet run -- run --limit 20; then
+    printf '%s\n' "Command failed; inspect the error before continuing." &gt;&amp;2
+    exit 1
+  fi
+)</code></pre></div></div></div><p>The default map fails over mini/Terra to <code>fw_fast</code> and frontier/Sol to <code>fw_pro</code> on eligible backend 429/5xx responses. Unmapped models, consumer-budget 429s and the direct judge do not fail over. Follow the controlled test above and inspect <code>x-tokenwars-provider</code>/<code>x-tokenwars-model</code>. Restore any fault-injection settings afterward. The scorecard still uses the requested model’s pricing key, so do not claim token-price savings from failover.</p></div></details>
 </article></section>
 <section id="coach-demo" class="doc-section" aria-labelledby="coach-demo-h"><p class="kicker">Coach demo · ≈10 min</p><h2 id="coach-demo-h">Coach demo: Own the Weights</h2>
 <p><span class="coach-only">Coach only · watch, don't deploy</span></p>
