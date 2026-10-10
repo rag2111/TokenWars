@@ -48,6 +48,8 @@ info() { echo "▶ $*"; }
 
 need_vars() {
   : "${AZ_SUBSCRIPTION_ID:?set AZ_SUBSCRIPTION_ID}" "${AZ_RESOURCE_GROUP:?set AZ_RESOURCE_GROUP}" "${FOUNDRY_ACCOUNT:?set FOUNDRY_ACCOUNT}"
+  [[ "$BASE_MODEL" =~ ^[[:alnum:]][[:alnum:]._:/-]*$ ]] \
+    || die "invalid BASE_MODEL '$BASE_MODEL' – use the exact model id from preflight (remove commas, spaces and quotes)"
   ENDPOINT="${FOUNDRY_ENDPOINT:-https://${FOUNDRY_ACCOUNT}.services.ai.azure.com/openai/v1}"
   ENDPOINT="${ENDPOINT%/}"
   [[ -n "${AUTH_HEADER:-}" ]] || resolve_auth
@@ -62,7 +64,10 @@ state_set() {
 }
 
 # json_get <json-string> <python expression on d>
-json_get() { "$PY" -c 'import json,sys; d=json.loads(sys.argv[1]); v=eval(sys.argv[2]); print("" if v is None else v)' "$1" "$2"; }
+json_get() {
+  printf '%s' "$1" | "$PY" -c \
+    'import json,sys; d=json.load(sys.stdin); v=eval(sys.argv[1]); print("" if v is None else v)' "$2"
+}
 
 # Resolved once in the main shell (api() runs inside $(...) subshells, which could not cache a token).
 resolve_auth() {
@@ -100,18 +105,16 @@ cmd_preflight() {
   done
   info "Endpoint: $ENDPOINT   auth: $([[ -n "${FOUNDRY_API_KEY:-}" ]] && echo api-key || echo 'Entra ID token')"
   info "Fine-tunable base models matching ministral|gpt-oss|qwen3|llama-3.3 (VALIDATE: capability field names):"
-  local models
-  models="$(api GET /models)"
-  "$PY" - "$models" <<'PYEOF'
+  api GET /models | "$PY" -c '
 import json, re, sys
-data = json.loads(sys.argv[1]).get("data", [])
+data = json.load(sys.stdin).get("data", [])
 hits = [m for m in data if re.search(r"ministral|gpt-oss|qwen3|llama-3\.3", m.get("id", ""), re.I)]
 for m in hits:
     ft = (m.get("capabilities") or {}).get("fine_tune")
     print(f"   {m.get('id')}   fine_tune={ft}")
 if not hits:
     print("   (none listed – check the model id in the Foundry portal: Fine-tuning > + Fine-tune model)")
-PYEOF
+'
   echo "   BASE_MODEL=$BASE_MODEL  TRAINING_TYPE=$TRAINING_TYPE  DEPLOY_SKU=$DEPLOY_SKU (pay-per-token + hourly hosting, no PTU)"
 }
 

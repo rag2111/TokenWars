@@ -71,6 +71,8 @@ Data Zone (US) prices are about 10 % higher. `breakeven.py` has these as presets
 
 Requirements: Python 3.10+, `requests` (real teacher mode only), Azure CLI, and `curl` (bash) or PowerShell 7+.
 Generated data goes to `coach/own-the-weights/data/`, which is git-ignored.
+The Bash script streams large Foundry JSON responses to Python through standard input, so `/models` responses are not
+subject to the operating system's command-line argument-size limit.
 
 **Required inference gateway:** the real teacher and registered `custom` model use the coach's APIM gateway
 and subscription key (`via_gateway: true`). Deploy the fine-tuned model on the primary Foundry resource so
@@ -148,7 +150,9 @@ Delete `data-mock/` afterwards.
 ```bash
 # bash
 export AZ_SUBSCRIPTION_ID=<coach-sub> AZ_RESOURCE_GROUP=rg-tokenwars-coach FOUNDRY_ACCOUNT=<foundry-account-name>
-# optional: export FOUNDRY_API_KEY=... (otherwise an Entra ID token is used), BASE_MODEL=gpt-oss-20b, N_EPOCHS=3
+# optional (no commas between Bash assignments):
+export BASE_MODEL=gpt-oss-20b N_EPOCHS=3
+# export FOUNDRY_API_KEY=... # otherwise an Entra ID token is used
 az login
 ./finetune.sh preflight      # lists base-model ids that look fine-tunable – set BASE_MODEL to the exact id
 ./finetune.sh all            # upload → create → wait (polls every 60 s) → deploy → test
@@ -164,6 +168,9 @@ az login
 You can run the steps one at a time (`upload`, `create`, `wait`, `deploy`, `test`). `wait` can be interrupted and resumed,
 because job and file ids live in `data/.finetune-state`. If `deploy` fails on the model format, deploy once in the portal
 (*Fine-tuning → job → Deploy → Serverless → Global Standard*) and keep going with step 6.3.
+
+If the create payload shows a model such as `"gpt-oss-20b,"`, the comma became part of `BASE_MODEL`. Reset it with
+`export BASE_MODEL=gpt-oss-20b`. Both scripts reject commas, spaces and quotes in model identifiers before making calls.
 
 ### 6.3 Register as `custom` and dry-run
 

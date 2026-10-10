@@ -56,6 +56,9 @@ function Initialize-Context {
     foreach ($n in 'AZ_SUBSCRIPTION_ID', 'AZ_RESOURCE_GROUP', 'FOUNDRY_ACCOUNT') {
         if ([string]::IsNullOrEmpty([Environment]::GetEnvironmentVariable($n))) { Fail "set $n" }
     }
+    if ($BaseModel -notmatch '^[A-Za-z0-9][A-Za-z0-9._:/-]*$') {
+        Fail "invalid BASE_MODEL '$BaseModel' – use the exact model id from preflight (remove commas, spaces and quotes)"
+    }
     $script:Sub = $env:AZ_SUBSCRIPTION_ID; $script:Rg = $env:AZ_RESOURCE_GROUP; $script:Account = $env:FOUNDRY_ACCOUNT
     # VALIDATE: new-Foundry domain; the classic https://<acct>.openai.azure.com/openai/v1 works for the same account.
     $script:Endpoint = (Get-EnvOr 'FOUNDRY_ENDPOINT' "https://$($script:Account).services.ai.azure.com/openai/v1").TrimEnd('/')
