@@ -80,6 +80,29 @@ routing rule; changing `base_url` alone is insufficient. See [gateway and provid
 }
 ```
 
+## Lightweight self-hosted smoke test
+
+The CPU-only Ollama deployment is not suitable for the expensive starter baseline: eight concurrent requests,
+the entire knowledge base and orders database, and unlimited output can exceed the .NET client's 60-second timeout.
+APIM also limits backend requests to 120 seconds, so raising only the client timeout is not a complete fix.
+
+Use the separate [self-hosted strategy](TokenWars/strategy.selfhosted.json) from `dotnet/solution/TokenWars/`:
+
+```powershell
+dotnet run -- compare --models selfhosted --strategy strategy.selfhosted.json --limit 3 --no-judge
+```
+
+This profile uses the existing solution implementations: compact instructions, keyword retrieval of two sections,
+relevant orders only, at most 96 output tokens, and concurrency 1. Routing, escalation and both response caches are
+disabled so every answer tests Ollama through APIM without classifier or embedding calls. The default strategies and
+starter exercises are unchanged. Do not use this profile in the starter until its corresponding TODOs are implemented.
+
+`--no-judge` checks inference, not answer quality. Inspect the generated compare JSON for non-empty answers,
+`error: null`, and latency below 60 seconds. Then remove `--no-judge` to evaluate quality with the pinned judge; a
+96-token limit may truncate answers, and this small model is not guaranteed to meet the 85% pass-rate bar.
+Increase the workload only after the smoke test works. If it still times out, check Ollama's logs for model loading,
+queued requests or resource pressure before choosing a smaller model or changing infrastructure.
+
 ## Where each TODO is solved
 
 | ID | Challenge | What | File |

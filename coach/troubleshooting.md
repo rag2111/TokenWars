@@ -101,7 +101,7 @@ files to `true`; use `--mock` if the gateway is not ready. Only the configured i
 | Symptom | Cause | Fix |
 |---|---|---|
 | `model "llama3.2:3b" not found` right after deploy | The model is pulled at container start (~2 GB, 1–5 min). | Wait; check logs: `az containerapp logs show -n <app> -g <rg> --follow`. |
-| Very slow answers / timeouts (60 s) | CPU inference: ~5–15 tokens/s with 4 vCPU; long baseline prompts take minutes. | Use it only with compact prompt + retrieval + `max_output_tokens`, low concurrency; or pick a smaller model (`selfhosted_model = "qwen2.5:1.5b"`, `llama3.2:1b`). Expect low quality — that's part of the Challenge 2 story. |
+| Very slow answers / timeouts (60 s) | CPU inference: ~5–15 tokens/s with 4 vCPU; long baseline prompts take minutes. | Start with the [.NET solution self-hosted smoke test](../dotnet/solution/README.md#lightweight-self-hosted-smoke-test): compact prompt, retrieval, relevant orders, 96 output tokens and concurrency 1. The starter needs its corresponding TODOs implemented first. APIM also has a 120 s backend timeout, so increasing only the client timeout is insufficient. If needed, pick a smaller model (`selfhosted_model = "qwen2.5:1.5b"`, `llama3.2:1b`). Expect low quality — that's part of the Challenge 2 story. |
 | Container restarts / OOM | Model + context does not fit memory. | Keep 8Gi with 4 vCPU; smaller model. |
 | Model re-downloads after restart | No persistent volume (by design, to keep it simple). | Acceptable for a workshop; mount Azure Files for `/root/.ollama` if needed. |
 
