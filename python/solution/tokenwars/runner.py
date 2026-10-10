@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urljoin, urlsplit
 
 import requests
 
@@ -233,9 +234,31 @@ def submit(config: AppConfig, payload: dict[str, Any]) -> None:
     if key:
         headers["x-submit-key"] = key
     body = {k: payload[k] for k in ("team", "language", "variant", "timestamp", "mock", "strategy", "summary")}
+    endpoint = f"{url}/api/submissions"
     try:
-        response = requests.post(f"{url}/api/submissions", data=json.dumps(body), headers=headers, timeout=30)
-        _say(f"📤 Leaderboard responded HTTP {response.status_code}: {response.text[:500]}")
+        response = requests.post(endpoint, data=json.dumps(body), headers=headers, timeout=30,
+                                 allow_redirects=False)
+        if response.status_code in (301, 302, 307, 308) and response.headers.get("location"):
+            redirected = urljoin(endpoint, response.headers["location"])
+            source, target = urlsplit(endpoint), urlsplit(redirected)
+            same_origin = source.scheme == target.scheme and source.netloc == target.netloc
+            https_upgrade = (source.scheme == "http" and target.scheme == "https"
+                             and source.hostname == target.hostname
+                             and source.port in (None, 80) and target.port in (None, 443))
+            safe_redirect = same_origin or https_upgrade
+            if not safe_redirect:
+                _say(f"❌ Leaderboard refused unsafe redirect to {redirected}")
+                return
+            response = requests.post(redirected, data=json.dumps(body), headers=headers, timeout=30,
+                                     allow_redirects=False)
+        try:
+            result = response.json()
+        except requests.exceptions.JSONDecodeError:
+            result = None
+        if response.status_code != 201 or not isinstance(result, dict) or result.get("accepted") is not True:
+            _say(f"❌ Leaderboard rejected the submission (HTTP {response.status_code}): {response.text[:500]}")
+            return
+        _say(f"📤 Leaderboard accepted the submission (HTTP 201): {response.text[:500]}")
     except requests.RequestException as exc:
         _say(f"❌ Submit failed: {exc}")
 

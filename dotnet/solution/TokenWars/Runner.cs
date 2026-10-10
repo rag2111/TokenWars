@@ -80,7 +80,10 @@ public static class Runner
 {
     private static readonly QuestionInput PreflightItem = new("preflight", "C1001", "Can I return shoes I bought last week?");
     private static readonly object PrintLock = new();
-    private static readonly HttpClient SubmitHttp = new() { Timeout = TimeSpan.FromSeconds(30) };
+    private static readonly HttpClient SubmitHttp = new(new HttpClientHandler { AllowAutoRedirect = false })
+    {
+        Timeout = TimeSpan.FromSeconds(30)
+    };
 
     private static void Say(string text = "")
     {
@@ -391,18 +394,66 @@ public static class Runner
         }
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, url + "/api/submissions");
-            request.Content = new StringContent(body.ToJsonString(JsonUtil.Compact), Encoding.UTF8, "application/json");
             var key = cfg.GetEnv("TOKENWARS_LEADERBOARD_KEY").Trim();
-            if (key.Length > 0) request.Headers.TryAddWithoutValidation("x-submit-key", key);
-            using var response = await SubmitHttp.SendAsync(request);
-            var text = await response.Content.ReadAsStringAsync();
-            Say($"📤 Leaderboard responded HTTP {(int)response.StatusCode}: {Truncate(text, 500)}");
+            var endpoint = new Uri(url + "/api/submissions");
+            var json = body.ToJsonString(JsonUtil.Compact);
+            using var response = await SendSubmissionAsync(endpoint, json, key);
+            if (IsRedirect(response) && response.Headers.Location is Uri location)
+            {
+                var redirected = location.IsAbsoluteUri ? location : new Uri(endpoint, location);
+                var sameOrigin = endpoint.Scheme.Equals(redirected.Scheme, StringComparison.OrdinalIgnoreCase)
+                    && endpoint.Authority.Equals(redirected.Authority, StringComparison.OrdinalIgnoreCase);
+                var httpsUpgrade = endpoint.Scheme == Uri.UriSchemeHttp
+                    && redirected.Scheme == Uri.UriSchemeHttps
+                    && endpoint.Host.Equals(redirected.Host, StringComparison.OrdinalIgnoreCase)
+                    && endpoint.IsDefaultPort && redirected.IsDefaultPort;
+                var safeRedirect = sameOrigin || httpsUpgrade;
+                if (!safeRedirect)
+                {
+                    Say($"❌ Leaderboard refused unsafe redirect to {redirected}");
+                    return;
+                }
+                using var redirectedResponse = await SendSubmissionAsync(redirected, json, key);
+                await ReportSubmissionResponseAsync(redirectedResponse);
+                return;
+            }
+            await ReportSubmissionResponseAsync(response);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or InvalidOperationException or UriFormatException)
         {
             Say($"❌ Submit failed: {ex.Message}");
         }
+    }
+
+    private static async Task<HttpResponseMessage> SendSubmissionAsync(Uri endpoint, string json, string key)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+        if (key.Length > 0) request.Headers.TryAddWithoutValidation("x-submit-key", key);
+        return await SubmitHttp.SendAsync(request);
+    }
+
+    private static bool IsRedirect(HttpResponseMessage response) =>
+        (int)response.StatusCode is 301 or 302 or 307 or 308;
+
+    private static async Task ReportSubmissionResponseAsync(HttpResponseMessage response)
+    {
+        var text = await response.Content.ReadAsStringAsync();
+        JsonNode? result = null;
+        try
+        {
+            result = JsonNode.Parse(text);
+        }
+        catch (JsonException)
+        {
+            // Report the unexpected response below.
+        }
+        if ((int)response.StatusCode != 201 || result?["accepted"]?.GetValue<bool>() != true)
+        {
+            Say($"❌ Leaderboard rejected the submission (HTTP {(int)response.StatusCode}): {Truncate(text, 500)}");
+            return;
+        }
+        Say($"📤 Leaderboard accepted the submission (HTTP 201): {Truncate(text, 500)}");
     }
 
     private static string Truncate(string text, int max) => text.Length > max ? text.Substring(0, max) : text;
