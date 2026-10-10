@@ -56,7 +56,7 @@ public sealed class Pipeline
 {
     /// <summary>
     /// Next model tier when a cheaper model answers ESCALATE (TODO 3.3).
-    /// Any other non-premium key (fw_fast, fw_pro, custom, ...) escalates straight to "premium".
+    /// Any other non-premium key (fw, custom, ...) escalates straight to "premium".
     /// </summary>
     public static readonly Dictionary<string, string> EscalationNext = new(StringComparer.Ordinal)
     {
@@ -197,7 +197,7 @@ public sealed class Pipeline
         // (see Prompts.EscalateInstruction). Implement the safety net:
         //   while modelKey != "premium" and answer.Trim() starts with "ESCALATE" (upper-cased):
         //       next = EscalationNext.TryGetValue(modelKey, out var mapped) ? mapped : "premium";
-        //              // keys not in the map (fw_fast, fw_pro, custom, ...) escalate straight to premium
+        //              // keys not in the map (fw, custom, ...) escalate straight to premium
         //       if next is not configured (not in _cfg.Models): break;
         //       modelKey = next; result.ModelPath.Add(modelKey);
         //       answer = await CallModelAsync(modelKey, question, customerId, orderSpecific, calls, QuestionVector, ct);
