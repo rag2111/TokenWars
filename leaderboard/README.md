@@ -34,12 +34,12 @@ the big screen shows the ranking at `/` (auto-refresh every 10 s).
 cd leaderboard
 python3 server.py                                  # http://localhost:8080
 # or with a submit key and a custom port
-PORT=9000 LEADERBOARD_SUBMIT_KEY=letmein python3 server.py
+PORT=9000 LEADERBOARD_SUBMIT_KEY=tokenwars python3 server.py
 ```
 Test a submission (PowerShell users: use `Invoke-RestMethod`):
 ```bash
 curl -X POST http://localhost:8080/api/submissions \
-  -H "content-type: application/json" -H "x-submit-key: letmein" \
+  -H "content-type: application/json" -H "x-submit-key: tokenwars" \
   -d '{"team":"demo","language":"python","variant":"starter","mock":false,
        "summary":{"items":100,"successes":90,"pass_rate":0.9,"total_cost_usd":3.2,"cost_per_success_usd":0.0356,
                   "latency_p95_ms":9000,"cache_hits_exact":0,"cache_hits_semantic":0}}'
