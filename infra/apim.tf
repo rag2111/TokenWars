@@ -41,10 +41,12 @@ locals {
   } : {}
 
   # Multi-provider failover: Azure deployment name (the "model" the app sends) -> Fireworks deployment name.
-  # Default: balanced -> fw_fast, premium -> fw_pro (only for keys present in fireworks_models).
+  # Default: balanced and premium both fail over to the single fw deployment.
   failover_model_map = var.failover_model_map != null ? var.failover_model_map : merge(
-    contains(keys(var.fireworks_models), "fw_fast") ? { (local.deployment_names.balanced) = local.fireworks_deployment_names["fw_fast"] } : {},
-    contains(keys(var.fireworks_models), "fw_pro") ? { (local.deployment_names.premium) = local.fireworks_deployment_names["fw_pro"] } : {}
+    contains(keys(var.fireworks_models), "fw") ? {
+      (local.deployment_names.balanced) = local.fireworks_deployment_names["fw"]
+      (local.deployment_names.premium)  = local.fireworks_deployment_names["fw"]
+    } : {}
   )
 
   # api_key auth: the backend injects the key header on every forwarded request (key kept in a secret named value)

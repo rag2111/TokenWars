@@ -50,10 +50,10 @@ public static class Prompts
         DateTime.UtcNow.ToString("HH:mm:ss", CultureInfo.InvariantCulture) + "Z";
 
     // SOLUTION 2.3 – model-specific prompt adaptation for every non-OpenAI model:
-    // open-weight (open), self-hosted, the coach's fine-tuned "custom" model and Fireworks models (fw_*).
+    // open-weight (open), self-hosted, the coach's fine-tuned "custom" model and Fireworks models (fw / fw_*).
     public static string ModelSpecificInstructions(string modelKey)
     {
-        if (modelKey is "open" or "selfhosted" or "custom" || modelKey.StartsWith("fw_", StringComparison.Ordinal))
+        if (modelKey is "open" or "selfhosted" or "custom" or "fw" || modelKey.StartsWith("fw_", StringComparison.Ordinal))
         {
             return "Answer in English. Do not invent policies.";
         }

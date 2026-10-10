@@ -248,7 +248,7 @@ variable "tokens_per_minute_per_consumer" {
 }
 
 variable "failover_model_map" {
-  description = "Multi-provider failover (policies/ai-gateway-multiprovider.xml): Azure deployment name sent by the app -> Fireworks deployment name. null = { <balanced deployment> = <fw_fast deployment>, <premium deployment> = <fw_pro deployment> }. Requests for unmapped models are never failed over."
+  description = "Multi-provider failover (policies/ai-gateway-multiprovider.xml): Azure deployment name sent by the app -> Fireworks deployment name. null maps both balanced and premium to the single default fw deployment. Requests for unmapped models are never failed over."
   type        = map(string)
   default     = null
 }
@@ -314,21 +314,22 @@ variable "secondary_capacity" {
 # the workshop's synthetic data). Chat completions only (no embeddings). Per-token models can retire with 15 days notice.
 # -----------------------------------------------------------------------------
 variable "deploy_fireworks" {
-  description = "Deploy Fireworks catalog models (pay-per-token) on a second, US-based Foundry resource. Adds models.json keys fw_fast / fw_pro."
+  description = "Deploy the Fireworks catalog model (pay-per-token) on a second Foundry resource. Adds the models.json key fw."
   type        = bool
   default     = false
 }
 
 variable "fireworks_location" {
-  description = "Region of the Fireworks Foundry resource. Data Zone Standard pay-per-token: eastus, eastus2, centralus, northcentralus, westus, westus3."
+  description = "Region of the Fireworks Foundry resource. The default Global Standard model uses eastus2; Data Zone Standard is limited to eastus, eastus2, centralus, northcentralus, westus and westus3."
   type        = string
   default     = "eastus2"
 }
 
 # Model IDs are the Foundry catalog IDs (Foundry portal > Discover > Models, filter "Fireworks").
-# Alternatives (check availability one week before the event - per-token offers can retire with 15 days notice):
-#   Data Zone Standard : FW-Nemotron-Lightning-3.5-30B-A3B, FW-GLM-5.3, FW-GLM-5.2-Fast, FW-MiniMax-M3
-#   Global Standard    : FW-DeepSeek-V4.1-Flash, FW-Kimi-K3, FW-GLM-5.3-Flash   (set sku = "GlobalStandard")
+# Current default (check availability one week before the event - per-token offers can retire with 15 days notice):
+#   Global Standard: FW-GLM-5.3-Flash
+# Alternatives: FW-DeepSeek-V4.1-Flash or FW-Kimi-K3 (Global Standard);
+# FW-GLM-5.3, FW-GLM-5.2-Fast, FW-MiniMax-M3 or FW-Nemotron-Lightning-3.5-30B-A3B (Data Zone Standard).
 # If you switch models, add a matching key to shared/config/pricing.json and set pricing_key.
 # Small open models (Llama 3.1 8B, Qwen3.5 9B, gpt-oss-20b, Ministral 3B) are PTU-only on Fireworks -> not usable here.
 #   model                = catalog model ID (also the default deployment name)
@@ -340,7 +341,7 @@ variable "fireworks_location" {
 #   extra_body           = merged into every chat request; prompt_cache_key improves Fireworks prompt-cache hit rate
 #   extra_headers        = e.g. { "x-session-affinity" = "bytecart" } (alternative way to pin the prompt cache)
 variable "fireworks_models" {
-  description = "Fireworks catalog models to deploy (models.json key -> settings). Keys must start with fw_."
+  description = "Fireworks catalog models to deploy (models.json key -> settings). Use fw for the default model; additional keys must start with fw_."
   type = map(object({
     model                = string
     deployment_name      = optional(string)
@@ -354,19 +355,16 @@ variable "fireworks_models" {
     extra_headers        = optional(map(string), {})
   }))
   default = {
-    fw_fast = {
-      model       = "FW-DeepSeek-V4-Flash-0731"
-      pricing_key = "fw-deepseek-v4-flash-0731"
-    }
-    fw_pro = {
-      model       = "FW-DeepSeek-V4-Pro"
-      pricing_key = "fw-deepseek-v4-pro"
+    fw = {
+      model       = "FW-GLM-5.3-Flash"
+      sku         = "GlobalStandard"
+      pricing_key = "fw-glm-5.3-flash"
     }
   }
 
   validation {
-    condition     = length(var.fireworks_models) > 0 && alltrue([for k in keys(var.fireworks_models) : can(regex("^fw_[a-z0-9_]+$", k))])
-    error_message = "fireworks_models needs at least one entry and every key must match ^fw_[a-z0-9_]+$ (the apps treat fw_* keys as open models)."
+    condition     = length(var.fireworks_models) > 0 && alltrue([for k in keys(var.fireworks_models) : k == "fw" || can(regex("^fw_[a-z0-9_]+$", k))])
+    error_message = "fireworks_models needs at least one entry; use key fw or keys matching ^fw_[a-z0-9_]+$."
   }
 
   validation {

@@ -73,24 +73,21 @@ deploy_secondary_region = false
 #   2. re-run the script until it reports 0 blockers
 #   3. set deploy_fireworks = true and terraform apply
 # Data Zone Standard pay-per-token is US-only (eastus, eastus2, centralus, northcentralus, westus, westus3) and
-# Fireworks on Foundry is currently excluded from the EU Data Boundary. Writes models.json keys fw_fast / fw_pro and
+# Fireworks on Foundry is currently excluded from the EU Data Boundary. Writes the models.json key fw and
 # FIREWORKS_AI_API_KEY to .env.
 deploy_fireworks = false
 # fireworks_location = "eastus2"
 # fireworks_models = {
-#   fw_fast = {
-#     model       = "FW-DeepSeek-V4-Flash-0731"
-#     pricing_key = "fw-deepseek-v4-flash-0731"
+#   fw = {
+#     model       = "FW-GLM-5.3-Flash"
+#     sku         = "GlobalStandard"
+#     pricing_key = "fw-glm-5.3-flash"
 #     capacity    = 200                                    # TPM in thousands
 #     # extra_body    = { prompt_cache_key = "bytecart-support" }   # default
 #     # extra_headers = { "x-session-affinity" = "bytecart" }
 #   }
-#   fw_pro = {
-#     model       = "FW-DeepSeek-V4-Pro"
-#     pricing_key = "fw-deepseek-v4-pro"
-#   }
-#   # Alternatives (Data Zone Standard): FW-Nemotron-Lightning-3.5-30B-A3B, FW-GLM-5.3, FW-GLM-5.2-Fast, FW-MiniMax-M3
-#   # Global Standard (sku = "GlobalStandard"): FW-DeepSeek-V4.1-Flash, FW-Kimi-K3, FW-GLM-5.3-Flash
+#   # Alternatives (Global Standard): FW-DeepSeek-V4.1-Flash, FW-Kimi-K3
+#   # Data Zone Standard: FW-Nemotron-Lightning-3.5-30B-A3B, FW-GLM-5.3, FW-GLM-5.2-Fast, FW-MiniMax-M3
 #   # (add a matching pricing key to shared/config/pricing.json)
 # }
 # fireworks_model_format        = "Fireworks"      # VALIDATE with the prereq script output
@@ -100,4 +97,4 @@ deploy_fireworks = false
 # Challenge 3.6 (stretch): failover only; provider routing is built in (needs deploy_fireworks)
 # apim_policy_file       = "policies/ai-gateway-multiprovider.xml"
 # fireworks_backend_auth = "api_key"                # or "managed_identity"
-# failover_model_map     = { "gpt-5.6-terra" = "FW-DeepSeek-V4-Flash-0731", "gpt-5.6-sol" = "FW-DeepSeek-V4-Pro" }   # default
+# failover_model_map     = { "gpt-5.6-terra" = "FW-GLM-5.3-Flash", "gpt-5.6-sol" = "FW-GLM-5.3-Flash" }   # default

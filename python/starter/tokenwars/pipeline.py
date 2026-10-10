@@ -12,7 +12,7 @@ from .prompts import build_messages, load_baseline_template
 from .router import TIER_MODELS, Router
 
 # Next model tier when a cheaper model answers ESCALATE (TODO 3.3).
-# Any other non-premium key (fw_fast, fw_pro, custom, ...) escalates straight to "premium".
+# Any other non-premium key (fw, custom, ...) escalates straight to "premium".
 ESCALATION_NEXT = {"economy": "balanced", "balanced": "premium", "open": "premium", "selfhosted": "premium"}
 
 
@@ -147,7 +147,7 @@ class Pipeline:
         # With escalation=true, non-premium models are told to reply with the single word ESCALATE when unsure
         # (see ESCALATE_INSTRUCTION in prompts.py). Implement the safety net:
         #   while model_key != "premium" and answer.strip().upper() starts with "ESCALATE":
-        #       next_key = ESCALATION_NEXT.get(model_key, "premium")   # keys not in the map (fw_fast, fw_pro,
+        #       next_key = ESCALATION_NEXT.get(model_key, "premium")   # keys not in the map (fw,
         #                                                               # custom, ...) escalate straight to premium
         #       if next_key is not configured (not in self.config.models): break
         #       model_key = next_key; result.model_path.append(model_key)

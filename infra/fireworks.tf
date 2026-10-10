@@ -2,8 +2,8 @@
 # Fireworks on Foundry deployments (optional, var.deploy_fireworks) - pay-per-token only.
 # Account + project: main.tf. Prerequisite check: scripts/check-fireworks-prereqs.sh (.ps1).
 #
-# Deployments on one resource are created one after another where possible: the first map entry (sorted keys)
-# is created before all others (with the default map fw_fast -> fw_pro this is fully sequential).
+# Deployments on one resource are created one after another where possible. The default config contains one
+# deployment (`fw`); the sequencing remains for users who explicitly add more models.
 # -----------------------------------------------------------------------------
 
 locals {

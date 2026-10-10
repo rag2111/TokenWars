@@ -75,12 +75,12 @@ cd infra
 
 - [ ] Feature `Microsoft.CognitiveServices/Fireworks.EnableDeploy` is **Registered** ("Registering" still counts as a
       blocker), and the `Microsoft.CognitiveServices` provider was re-registered (the script does it with `--register`).
-- [ ] `fireworks_location` is a US Data Zone region: eastus, eastus2 (default), centralus, northcentralus, westus, westus3.
-- [ ] Step 6 of the script lists `FW-DeepSeek-V4-Flash-0731` and `FW-DeepSeek-V4-Pro` (Data Zone Standard). Note the
+- [ ] `fireworks_location` exposes `FW-GLM-5.3-Flash` with Global Standard quota (default `eastus2`).
+- [ ] Step 6 of the script lists `FW-GLM-5.3-Flash` (Global Standard). Note the
       *format* column — if it is not `Fireworks`, set `fireworks_model_format` accordingly.
 - [ ] Fireworks quota: default 10M TPM per region per pool (shared by all Fireworks models). More: aka.ms/fireworks-quota.
-- [ ] Understood the current limitations: US-only for pay-per-token, **excluded from the EU Data Boundary** (the
-      workshop uses synthetic data), chat completions only, adaptive rate limits (429s).
+- [ ] Understood the current limitations: Data Zone Standard is US-only, Fireworks is **excluded from the EU Data
+      Boundary** (the workshop uses synthetic data), chat completions only, adaptive rate limits (429s).
 
 ### A5. Deploy the day before (T-1)
 
@@ -102,7 +102,7 @@ terraform output next_steps
 - [ ] Existing checkout: migrate tier overrides/registries to `premium` / `balanced` / `economy` using the
       [tier migration instructions](../README.md#provider-neutral-model-tiers). Confirm the old infrastructure was
       destroyed using its original configuration before a fresh deployment; no automatic state migration is provided.
-- [ ] `doctor` is green for every chat model (`fw_fast` / `fw_pro` too if enabled):
+- [ ] `doctor` is green for every chat model (`fw` too if enabled):
       `cd python/starter && python -m tokenwars doctor` or `cd dotnet/starter/TokenWars && dotnet run -- doctor`.
 - [ ] One quick real call works: `run --limit 20 --no-judge` (≈ $0.80 on the baseline). Don't submit it.
 - [ ] 401s on `*.services.ai.azure.com`? Set `ai_endpoint_style = "openai"`, re-apply, run `doctor` again.

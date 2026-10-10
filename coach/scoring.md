@@ -18,9 +18,9 @@ cost_per_success_usd = total_cost_usd / max(successes, 1)
 
 ## Fireworks and custom models
 
-- **Fireworks models (`fw_fast`, `fw_pro`, Challenge 2.4) and any custom model are scored like every other model:**
-  per-token prices from `shared/config/pricing.json` via the model's `pricing_key` (e.g. `fw-deepseek-v4-flash-0731`,
-  `fw-deepseek-v4-pro`), with the same formula, validity gate and ranking.
+- **The Fireworks model (`fw`, Challenge 2.4) and any custom model are scored like every other model:**
+  per-token prices from `shared/config/pricing.json` via the model's `pricing_key` (`fw-glm-5.3-flash`),
+  with the same formula, validity gate and ranking.
 - **Unverified prices are flagged:** entries with `"verified": false` in `pricing.json` (currently the Fireworks prices)
   are illustrative. The coach confirms or updates them one week before the event and announces at kickoff which
   prices are still unverified. They are identical for every team, so the ranking stays comparable; prices are not

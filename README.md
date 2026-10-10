@@ -156,7 +156,7 @@ your **cost per successful answer** drop. The `solution/` folders contain the re
 | Skip judging | `python -m tokenwars run --no-judge` | `dotnet run -- run --no-judge` |
 | Ask one question | `python -m tokenwars ask "Can I return shoes?" --customer C1001` | `dotnet run -- ask "Can I return shoes?" --customer C1001` |
 | Compare models (Ch. 2) | `python -m tokenwars compare --models premium,balanced,economy,open` | `dotnet run -- compare --models premium,balanced,economy,open` |
-| Fireworks Arena (Ch. 2.4, optional) | `python -m tokenwars compare --models balanced,premium,fw_fast,fw_pro` | `dotnet run -- compare --models balanced,premium,fw_fast,fw_pro` |
+| Fireworks Arena (Ch. 2.4, optional) | `python -m tokenwars compare --models balanced,premium,fw` | `dotnet run -- compare --models balanced,premium,fw` |
 | Check setup | `python -m tokenwars doctor` | `dotnet run -- doctor` |
 
 ## Microsoft Foundry
@@ -196,10 +196,10 @@ prints what to run next.
 | `apim_policy_file` | `policies/ai-gateway-starter.xml` | policy template applied to the `openai` API (TODO 3.5; `ai-gateway-multiprovider.xml` for 3.6) |
 | `deploy_selfhosted_model` | `false` | Ollama (`llama3.2:3b`) on Azure Container Apps (CPU) → models.json key `selfhosted` |
 | `deploy_secondary_region` | `false` | second Foundry resource + APIM backend pool for the failover demo |
-| `deploy_fireworks` | `false` | Challenge 2.4: second Foundry resource + project in `fireworks_location` (default `eastus2`, US Data Zone only) with the `fireworks_models` deployments → models.json keys `fw_fast`, `fw_pro`, `.env` `FIREWORKS_AI_API_KEY` |
-| `fireworks_models` | `fw_fast` = `FW-DeepSeek-V4-Flash-0731`, `fw_pro` = `FW-DeepSeek-V4-Pro` | DataZoneStandard / GlobalStandard only (no PTU); alternatives listed in `terraform.tfvars.example` |
+| `deploy_fireworks` | `false` | Challenge 2.4: second Foundry resource + project in `fireworks_location` (default `eastus2`) with one Fireworks deployment → models.json key `fw`, `.env` `FIREWORKS_AI_API_KEY` |
+| `fireworks_models` | `fw` = `FW-GLM-5.3-Flash` | GlobalStandard pay-per-token by default (no PTU); alternatives listed in `terraform.tfvars.example` |
 | `fireworks_grant_deployer_role` | `false` | assigns `fireworks_deployer_role` (`Foundry Owner`) on the Fireworks project if deployment fails with Forbidden |
-| `fireworks_backend_auth` / `failover_model_map` | `api_key` / balanced→fw_fast, premium→fw_pro | Fireworks auth for all policies / Challenge 3.6 Azure→Fireworks failover mapping |
+| `fireworks_backend_auth` / `failover_model_map` | `api_key` / balanced,premium→fw | Fireworks auth for all policies / Challenge 3.6 Azure→Fireworks failover mapping |
 | `*_model` | GPT-5.6 answer tiers, GPT-5.5 judge, text-embedding-3-small, Llama 3.3 70B | model name / version / SKU / capacity (TPM ×1000) / pricing key / `max_tokens_param` / `supports_temperature` / `extra_body` / `extra_headers` |
 
 Re-run `terraform apply` after every change; it regenerates `.env` and `shared/config/models.json`.
@@ -215,8 +215,7 @@ Re-run `terraform apply` after every change; it regenerates `.env` and `shared/c
 | `embedding` | `text-embedding-3-small` | semantic cache / embedding retrieval |
 | `open` | `Llama-3.3-70B-Instruct` | serverless open-weight model, `max_tokens`, temperature supported |
 | `selfhosted` | `llama3.2:3b` (Ollama) | optional, CPU on Container Apps; routed through APIM |
-| `fw_fast` | `FW-DeepSeek-V4-Flash-0731` | optional (Challenge 2.4), Fireworks on Foundry, Data Zone Standard pay-per-token, through APIM (`via_gateway: true`), `prompt_cache_key` in `extra_body` |
-| `fw_pro` | `FW-DeepSeek-V4-Pro` | same; open premium model vs `premium` |
+| `fw` | `FW-GLM-5.3-Flash` | optional (Challenge 2.4), Fireworks on Foundry, Global Standard pay-per-token, through APIM (`via_gateway: true`), `prompt_cache_key` in `extra_body` |
 | `custom` | fine-tuned model | coach demo only ("Own the Weights", coach subscription); has an informational `hourly_cost_usd` |
 
 The three GPT-5.6 answer deployments and the independent GPT-5.5 `judge` default to capacity **800** (800K TPM each).
@@ -292,12 +291,13 @@ Reasoning tokens are billed as **output** tokens and count against `max_completi
 `none`/`low` for cheap tiers (per-model `extra_body` in `terraform.tfvars`).
 
 Any key in `models.json` works with `compare`, `default_model` and the router's tier mapping; keys outside the
-`economy → balanced → premium` chain (`open`, `selfhosted`, `fw_*`, `custom`) escalate straight to `premium`.
+`economy → balanced → premium` chain (`open`, `selfhosted`, `fw`, `fw_*`, `custom`) escalate straight to `premium`.
 
 ### Optional: Fireworks Arena (Challenge 2.4) and Multi-Provider Failover (Challenge 3.6)
 
-Fireworks on Foundry lets you put **open premium** models (DeepSeek V4 Flash / Pro) next to the closed premium
-models — pay-per-token only.
+Fireworks on Foundry lets you compare the current **open premium** `FW-GLM-5.3-Flash` model with the closed premium
+models. One Fireworks deployment is enough for the Arena and for failover; deploying separate fast/pro models added
+cost and setup time without enabling a distinct workshop capability.
 
 ```bash
 cd infra

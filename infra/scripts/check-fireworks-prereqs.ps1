@@ -148,10 +148,10 @@ Info "fireworks_grant_deployer_role = true in terraform.tfvars and apply again (
 # 5. Region ----------------------------------------------------------------------------------------
 Write-Host "5) Region: $Location"
 if ($DataZoneRegions -contains $Location.ToLowerInvariant()) {
-  Ok "$Location supports Data Zone Standard (pay-per-token) Fireworks deployments"
+  Ok "$Location supports Data Zone Standard and Global Standard Fireworks deployments"
 } else {
-  Fail ("$Location is not a Data Zone Standard region for Fireworks (US only: " + ($DataZoneRegions -join " ") + ")")
-  Next 'Set fireworks_location = "eastus2" (or another US Data Zone region) in terraform.tfvars'
+  Info ("$Location is outside the US Data Zone set (" + ($DataZoneRegions -join " ") + ").")
+  Info "The default FW-GLM-5.3-Flash uses Global Standard; confirm that offer is listed in step 6."
 }
 Info "Note: Fireworks on Foundry is currently excluded from the EU Data Boundary (workshop data is synthetic)."
 
@@ -165,7 +165,7 @@ if ($models.Count -gt 0) {
   $format = ($models[0] -split "`t")[1]
   if ($format) { Info "-> Terraform: fireworks_model_format = `"$format`" (default in variables.tf: `"Fireworks`")" }
   $names = $models | ForEach-Object { ($_ -split "`t")[0] }
-  foreach ($m in @("FW-DeepSeek-V4-Flash-0731", "FW-DeepSeek-V4-Pro")) {
+  foreach ($m in @("FW-GLM-5.3-Flash")) {
     if ($names -contains $m) { Ok "$m available" } else { Warn "$m not listed - pick an alternative in fireworks_models" }
   }
 } else {

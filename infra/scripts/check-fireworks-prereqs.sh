@@ -158,10 +158,10 @@ echo "         fireworks_grant_deployer_role = true in terraform.tfvars and appl
 echo "5) Region: $LOCATION"
 LOC_LC="$(printf '%s' "$LOCATION" | tr '[:upper:]' '[:lower:]')"
 if printf ' %s ' "$DATA_ZONE_REGIONS" | grep -q " $LOC_LC "; then
-  ok "$LOCATION supports Data Zone Standard (pay-per-token) Fireworks deployments"
+  ok "$LOCATION supports Data Zone Standard and Global Standard Fireworks deployments"
 else
-  fail "$LOCATION is not a Data Zone Standard region for Fireworks (US only: $DATA_ZONE_REGIONS)"
-  next "Set fireworks_location = \"eastus2\" (or another US Data Zone region) in terraform.tfvars"
+  echo "         $LOCATION is outside the US Data Zone set ($DATA_ZONE_REGIONS)."
+  echo "         The default FW-GLM-5.3-Flash uses Global Standard; confirm that offer is listed in step 6."
 fi
 echo "         Note: Fireworks on Foundry is currently excluded from the EU Data Boundary (workshop data is synthetic)."
 
@@ -175,7 +175,7 @@ if [ -n "$MODELS" ]; then
   printf '%s\n' "$MODELS" | head -n 40 | sed 's/^/         /'
   FORMAT="$(printf '%s\n' "$MODELS" | head -n1 | cut -f2)"
   [ -n "$FORMAT" ] && echo "         -> Terraform: fireworks_model_format = \"$FORMAT\" (default in variables.tf: \"Fireworks\")"
-  for m in FW-DeepSeek-V4-Flash-0731 FW-DeepSeek-V4-Pro; do
+  for m in FW-GLM-5.3-Flash; do
     if printf '%s\n' "$MODELS" | cut -f1 | grep -qx "$m"; then ok "$m available"; else warn "$m not listed - pick an alternative in fireworks_models"; fi
   done
 else

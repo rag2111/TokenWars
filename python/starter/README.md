@@ -97,12 +97,12 @@ it as `""` (which fails the judge) and prints a one-time warning.
 `pricing.json` includes prices for the `gpt-5.6-*` answer models and `gpt-5.5` judge as well as the older `gpt-4.1*` models, for teams that
 still have access to those.
 
-**More model keys can appear.** With Challenge 2.4 the generated `models.json` can also contain `fw_fast` and
-`fw_pro` (Fireworks models on Microsoft Foundry – see the website section
+**More model keys can appear.** With Challenge 2.4 the generated `models.json` can also contain `fw`
+(a Fireworks model on Microsoft Foundry – see the website section
 [Challenge 2.4 Fireworks Arena](../../docs/index.html#step-2-4)), and the coach may add a `custom` entry (a fine-tuned
 model from the "Own the Weights" demo). Any key in `models.json` works everywhere: `compare --models
-balanced,premium,fw_fast,fw_pro`, `default_model` and `TIER_MODELS` in `tokenwars/router.py`. A key that is not configured fails before any spend.
-With escalation on, keys outside the explicit `economy → balanced → premium` chain (`open`, `selfhosted`, `fw_*`,
+balanced,premium,fw`, `default_model` and `TIER_MODELS` in `tokenwars/router.py`. A key that is not configured fails before any spend.
+With escalation on, keys outside the explicit `economy → balanced → premium` chain (`open`, `selfhosted`, `fw`, `fw_*`,
 `custom`, …) escalate straight to `premium`.
 
 ## Where the TODOs live
@@ -121,7 +121,7 @@ spending anything, with `NotImplementedError: TODO x.y not implemented yet – s
 | 1.7 | Token Diet | Prompt-caching-friendly message layout | `tokenwars/prompts.py` | `"prompt_cache_friendly": true` |
 | 2.1 | BYOM | Deploy/register an open-weight model | `infra/`, `shared/config/models.json` | – |
 | 2.2 | BYOM | Run `compare`, pick a model per tier | `strategy.json` (`default_model`), `TIER_MODELS` in `tokenwars/router.py` | `"default_model"` |
-| 2.3 | BYOM | Extra instruction for non-OpenAI models (`open`, `selfhosted`, `custom`, `fw_*`) | `tokenwars/prompts.py` | – (always active once implemented) |
+| 2.3 | BYOM | Extra instruction for non-OpenAI models (`open`, `selfhosted`, `custom`, `fw`, `fw_*`) | `tokenwars/prompts.py` | – (always active once implemented) |
 | 3.1 | Route & Rule | Rules router | `tokenwars/router.py` | `"routing": "rules"` |
 | 3.2 | Route & Rule | Classifier router (economy) | `tokenwars/router.py` | `"routing": "classifier"` |
 | 3.3 | Route & Rule | Escalation on `ESCALATE` | `tokenwars/pipeline.py` | `"escalation": true` |
@@ -140,7 +140,7 @@ workload is ground truth for the judge, and using it for routing means disqualif
 2. Exact cache, then semantic cache (semantic only for questions that are not about orders).
 3. Route to a model: `default_model`, rules or the classifier.
 4. Build the context (KB retrieval and orders), build the messages and call the model.
-5. Escalate to the next tier (`economy → balanced → premium`; any other key, e.g. `open`, `selfhosted`, `fw_fast`, `custom`
+5. Escalate to the next tier (`economy → balanced → premium`; any other key, e.g. `open`, `selfhosted`, `fw`, `custom`
    `→ premium`) when the model answers `ESCALATE`.
 6. Store the answer in the caches. Every call's tokens are priced with `shared/config/pricing.json`.
 

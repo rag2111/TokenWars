@@ -56,12 +56,12 @@ scores are not directly comparable. Terraform updates the generated registry onl
 - `hourly_cost_usd` (optional, default `0`): a fixed hosting fee, e.g. for a fine-tuned deployment. Informational only –
   when any model in a `compare` run has a value above 0, the table gets an extra `hosting $/h` column and each entry in
   the compare JSON gets an `hourly_cost_usd` field. It is never added to the costs or the score.
-- **More model keys can appear.** With Challenge 2.4 `models.json` can also contain `fw_fast` and `fw_pro` (Fireworks
-  models on Microsoft Foundry – see the website section [Challenge 2.4 Fireworks Arena](../../docs/index.html#step-2-4)),
+- **More model keys can appear.** With Challenge 2.4 `models.json` can also contain `fw` (a Fireworks
+  model on Microsoft Foundry – see the website section [Challenge 2.4 Fireworks Arena](../../docs/index.html#step-2-4)),
   and the coach may add a `custom` entry (a fine-tuned model from the "Own the Weights" demo). Any key in
-  `models.json` works for `compare --models balanced,premium,fw_fast,fw_pro`, `default_model` and `Router.TierModels`;
+  `models.json` works for `compare --models balanced,premium,fw`, `default_model` and `Router.TierModels`;
   a key that is not configured fails before any spend. With escalation on, keys outside the explicit
-  `economy → balanced → premium` chain (`open`, `selfhosted`, `fw_*`, `custom`, …) escalate straight to `premium`.
+  `economy → balanced → premium` chain (`open`, `selfhosted`, `fw`, `fw_*`, `custom`, …) escalate straight to `premium`.
 
 **APIM is required for all real inference**, including Azure, Fireworks, Ollama and embeddings. Keep
 `use_gateway: true` and every non-judge entry's `via_gateway: true`. All policies route by physical deployment
@@ -93,7 +93,7 @@ routing rule; changing `base_url` alone is insufficient. See [gateway and provid
 | 1.7 | Token Diet | Prompt-caching-friendly message layout | `TokenWars/Prompts.cs` (`BuildCacheFriendlyMessages`) |
 | 2.1 | BYOM | Deploy/register an open-weight model | `infra/`, `shared/config/models.json` |
 | 2.2 | BYOM | Pick a model per tier after `compare` | `TokenWars/strategy.json` (`default_model`), `Router.TierModels` |
-| 2.3 | BYOM | Model-specific prompt adaptation (`open`, `selfhosted`, `custom`, `fw_*`) | `TokenWars/Prompts.cs` (`ModelSpecificInstructions`) |
+| 2.3 | BYOM | Model-specific prompt adaptation (`open`, `selfhosted`, `custom`, `fw`, `fw_*`) | `TokenWars/Prompts.cs` (`ModelSpecificInstructions`) |
 | 3.1 | Route & Rule | Rules router | `TokenWars/Router.cs` (`RouteRules`) |
 | 3.2 | Route & Rule | Classifier router (economy) | `TokenWars/Router.cs` (`RouteClassifierAsync`) |
 | 3.3 | Route & Rule | Escalation on `ESCALATE` | `TokenWars/Pipeline.cs` (`AnswerCoreAsync`, step 8) |

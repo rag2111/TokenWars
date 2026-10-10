@@ -24,7 +24,7 @@ COMPACT_SYSTEM_PROMPT = (
     "If the context does not contain the answer, say you will connect the customer with a human agent."
 )
 
-# SPEC 4.9 TODO 2.3 / AMENDMENT B3 – the apps append this line for non-OpenAI keys (open, selfhosted, custom, fw_*).
+# SPEC 4.9 TODO 2.3 / AMENDMENT B3 – the apps append this line for non-OpenAI keys (open, selfhosted, custom, fw, fw_*).
 MODEL_ADAPTATION_LINE = "Answer in English. Do not invent policies."
 
 TOKEN_RE = re.compile(r"[a-z0-9]+")

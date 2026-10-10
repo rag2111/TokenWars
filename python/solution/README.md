@@ -91,12 +91,12 @@ it as `""` (which fails the judge) and prints a one-time warning.
 `pricing.json` includes prices for the `gpt-5.6-*` answer models and `gpt-5.5` judge as well as the older `gpt-4.1*` models, for teams that
 still have access to those.
 
-**More model keys can appear.** With Challenge 2.4 the generated `models.json` can also contain `fw_fast` and
-`fw_pro` (Fireworks models on Microsoft Foundry – see the website section
+**More model keys can appear.** With Challenge 2.4 the generated `models.json` can also contain `fw`
+(a Fireworks model on Microsoft Foundry – see the website section
 [Challenge 2.4 Fireworks Arena](../../docs/index.html#step-2-4)), and the coach may add a `custom` entry (a fine-tuned
 model from the "Own the Weights" demo). Any key in `models.json` works everywhere: `compare --models
-balanced,premium,fw_fast,fw_pro`, `default_model` and `TIER_MODELS` in `tokenwars/router.py`. A key that is not configured fails before any spend.
-With escalation on, keys outside the explicit `economy → balanced → premium` chain (`open`, `selfhosted`, `fw_*`,
+balanced,premium,fw`, `default_model` and `TIER_MODELS` in `tokenwars/router.py`. A key that is not configured fails before any spend.
+With escalation on, keys outside the explicit `economy → balanced → premium` chain (`open`, `selfhosted`, `fw`, `fw_*`,
 `custom`, …) escalate straight to `premium`.
 
 ## Where each TODO is solved

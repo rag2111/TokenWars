@@ -218,12 +218,12 @@ Option                                                $/1M in  $/1M out  tokens 
 premium + retrieval (gpt-5.6-sol)                      4.000    20.000       $7,200             -      $7,200    7.2000
 balanced + retrieval (gpt-5.6-terra)                        2.000    12.000       $3,840             -      $3,840    3.8400
 Ministral-3B (2411) FT, short prompt                    0.050     0.150       $58.00          $474        $532    0.0580
-Fireworks per-token (fw-deepseek-v4-flash-0731)         0.150     0.310         $217             -        $217    0.2172 ◀ cheapest
+Fireworks per-token (fw-glm-5.3-flash)                  0.150     0.500         $240             -        $240    0.2400 ◀ cheapest
 ------------------------------------------------------------------------------------------------------------------------
-⚠️  Fireworks per-token (fw-deepseek-v4-flash-0731): price not verified (pricing.json verified=false).
+⚠️  Fireworks per-token (fw-glm-5.3-flash): price not verified (pricing.json verified=false).
 Break-even vs balanced: 125,463 requests/month (≈ 4,182/day). Above that the fine-tuned model wins; below it the hosting fee dominates.
   vs premium + retrieval (gpt-5.6-sol): 66,438 requests/month
-  vs Fireworks per-token (fw-deepseek-v4-flash-0731): 2,980,528 requests/month
+  vs Fireworks per-token (fw-glm-5.3-flash): 2,604,396 requests/month
 One-off training: 250,000 tokens × 3 epochs × $1.0/1M ≈ $0.75 (plus teacher-generation tokens).
 Hosting is billed per hour while the deployment EXISTS, even with zero traffic – delete it after the demo.
 PTU (for reference, not recommended for this workshop): 15 PTU × $1.0/PTU-h × 730 h ≈ $10,950/month regardless of volume (illustrative rate – VALIDATE).

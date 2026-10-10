@@ -53,9 +53,9 @@ the fun is in the trade-offs, not in typing tokenisers.
 |---|---|
 | 1:40–1:45 | Coach intro: model tiers, open-weight vs self-hosted TCO, open vs closed premium |
 | 1:45–1:55 | 2.1 open / self-hosted model, `doctor` |
-| 1:55–2:10 | 2.2 `compare --models premium,balanced,economy,open` (teams with Fireworks add `fw_fast,fw_pro` here and save a `compare` run), pick a model per tier |
-| 2:10–2:20 | 2.3 prompt adaptation (also applies to `fw_*`) |
-| 2:20–2:35 | 2.4 *Fireworks Arena*: decide which tier `fw_fast` / `fw_pro` replaces by cost per success + p95, edit `TIER_MODELS` / `Router.TierModels` or `default_model`, quick run. Teams without Fireworks: tune the tier mapping instead. |
+| 1:55–2:10 | 2.2 `compare --models premium,balanced,economy,open` (teams with Fireworks add `fw` here and save a `compare` run), pick a model per tier |
+| 2:10–2:20 | 2.3 prompt adaptation (also applies to `fw` / `fw_*`) |
+| 2:20–2:35 | 2.4 *Fireworks Arena*: decide which tier `fw` replaces by cost per success + p95, edit `TIER_MODELS` / `Router.TierModels` or `default_model`, quick run. Teams without Fireworks: tune the tier mapping instead. |
 | 2:35–2:40 | Full run + submit |
 
 Never let a team start the Fireworks opt-in or deployment during Challenge 2: up to 30 min for the feature plus up to
@@ -115,20 +115,20 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
 - Self-hosted shows **$0 token cost** on the scorecard but: slow on CPU (p95 of tens of seconds), weaker quality,
   and a fixed infra cost (~$0.45/h for 4 vCPU/8 GiB) that the per-token metric does not show → TCO discussion.
 - **2.3** Model-specific prompt adaptation ("Answer in English. Do not invent policies.") for every non-OpenAI key:
-  `open`, `selfhosted`, `custom` and `fw_*`.
+  `open`, `selfhosted`, `custom`, `fw` and `fw_*`.
 
 ### Challenge 2.4 — "Fireworks Arena" (optional)
-- Fireworks on Microsoft Foundry: open-weight **premium** models (default `fw_fast` = `FW-DeepSeek-V4-Flash-0731`,
-  `fw_pro` = `FW-DeepSeek-V4-Pro`) served pay-per-token (Data Zone Standard) from a second Foundry resource in a US
-  region. Deployed during setup (`deploy_fireworks = true`); during the challenge it is pure measurement.
-- Flow: `doctor` (shows `fw_fast` / `fw_pro`) → `compare --models balanced,premium,fw_fast,fw_pro` → decide which tier each
+- Fireworks on Microsoft Foundry: one current open-weight **premium** model (default `fw` =
+  `FW-GLM-5.3-Flash`) served pay-per-token (Global Standard) from a second Foundry resource. Deployed during setup
+  (`deploy_fireworks = true`); during the challenge it is pure measurement.
+- Flow: `doctor` (shows `fw`) → `compare --models balanced,premium,fw` → decide which tier the
   Fireworks model replaces by **cost per success + p95** → edit `TIER_MODELS` (Python, `tokenwars/router.py`) /
   `Router.TierModels` (.NET) or `default_model` → full run → submit.
-- Price lens (`pricing.json`, **`verified: false`** — illustrative): `fw_fast` $0.15 in / $0.03 cached / $0.31 out
-  vs economy $0.20 / $1.20 and balanced $2 / $12; `fw_pro` $1.93 / $0.165 / $3.83 vs premium $4 / $20. On paper
-  `fw_fast` undercuts economy on output by 4× — but the judge decides, and p95 from the US region matters too.
-- `fw_*` use APIM (`via_gateway: true`, caller key `APIM_SUBSCRIPTION_KEY`) with model-based routing in every policy.
-  The Fireworks backend owns its provider credentials. Escalation from a `fw_*`
+- Price lens (`pricing.json`, **`verified: false`** — illustrative): `fw` $0.15 in / $0.03 cached / $0.50 out
+  vs economy $0.20 / $1.20, balanced $2 / $12 and premium $4 / $20. The model is inexpensive on paper, but the
+  judge decides, and cross-region p95 matters too.
+- `fw` / `fw_*` use APIM (`via_gateway: true`, caller key `APIM_SUBSCRIPTION_KEY`) with model-based routing in every policy.
+  The Fireworks backend owns its provider credentials. Escalation from a Fireworks
   answer goes straight to `premium`.
 - Prompt caching: Terraform sets `extra_body = { prompt_cache_key = "bytecart-support" }`; `user` or an
   `x-session-affinity` header (`extra_headers`) also help routing to a warm cache. Stretch: compare `cached_tokens`
@@ -165,8 +165,8 @@ Never let a team start the Fireworks opt-in or deployment during Challenge 2: up
   `terraform apply -var 'deploy_fireworks=true' -var 'apim_policy_file=policies/ai-gateway-multiprovider.xml'`
   (or set both in tfvars). A precondition blocks the apply without Fireworks.
 - `infra/policies/ai-gateway-multiprovider.xml` = everything from the solution policy, plus: when the **Azure backend**
-  answers **429 or ≥ 500** for a model in `failover_model_map` (default `gpt-5.6-terra` → `FW-DeepSeek-V4-Flash-0731`,
-  `gpt-5.6-sol` → `FW-DeepSeek-V4-Pro`; `terraform output apim_failover_model_map`), the request is retried **once** on
+  answers **429 or ≥ 500** for a model in `failover_model_map` (default `gpt-5.6-terra` and `gpt-5.6-sol` →
+  `FW-GLM-5.3-Flash`; `terraform output apim_failover_model_map`), the request is retried **once** on
   backend `fireworks`. The body is rewritten: `model` → Fireworks deployment, `reasoning_effort` removed,
   `max_completion_tokens` → `max_tokens`.
 - Response headers `x-tokenwars-provider` (`azure-openai` | `fireworks`), `x-tokenwars-model`, `x-tokenwars-backend`;
@@ -255,8 +255,7 @@ $4 input / $20 output promotion through at least 2026-11-30. Cache/routing resul
 | Same on `balanced` only (gpt-5.6-terra) | ~900–1,400 | $0.30–0.70 | measure | measure | measure |
 | Same on `open` only (Llama-3.3-70B) | ~900–1,400 | $0.06–0.11 | $0.0007–0.0014 if valid | 80–90 % | 3–10 s |
 | Same on `economy` only (gpt-5.6-luna) | ~900–1,400 | $0.03–0.07 | measure | measure | measure |
-| Same on `fw_fast` only (FW-DeepSeek-V4-Flash, optional) | ~900–1,400 | $0.02–0.05 ¹ | measure in the dry run | measure | measure (US region) |
-| Same on `fw_pro` only (FW-DeepSeek-V4-Pro, optional) | ~900–1,400 | $0.20–0.35 ¹ | measure in the dry run | measure | measure (US region) |
+| Same on `fw` only (FW-GLM-5.3-Flash, optional) | ~900–1,400 | $0.03–0.07 ¹ | measure in the dry run | measure | measure (Fireworks region) |
 | Solution (classifier + escalation + caches, balanced default) | ~1,000 | measure | measure | measure | measure |
 
 ¹ Token cost only, from the unverified `pricing.json` values (`verified: false`); pass rate and latency are not known
@@ -285,8 +284,8 @@ yet — record them during the T-7 dry run. If a Fireworks model emits reasoning
 | 1.7 | "What changes between two calls — and where is it in the prompt?" | Static system message, dynamic user message (`Customer ID`, `Today`, `Context`, `Question`). | `prompts` (SOLUTION 1.7) |
 | 2.1 | "Which models are in models.json?" | `deploy_open_model` / `deploy_selfhosted_model` → `terraform apply` → `doctor`. | infra README / tfvars example |
 | 2.2 | "Which model is good enough for which question type?" | `compare --models premium,balanced,economy,open`, set `default_model` + router mapping. | solution `strategy.json` |
-| 2.3 | "Is the open model answering in another language or inventing rules?" | Append the extra instruction for `open`/`selfhosted`/`custom`/`fw_*`. | `prompts` (SOLUTION 2.3) |
-| 2.4 | "Which tier could an open premium model replace?" | `compare --models balanced,premium,fw_fast,fw_pro`; compare cost per success **and** p95; put the winner into `TIER_MODELS` / `Router.TierModels` or `default_model`. | solution `strategy.json` + router mapping |
+| 2.3 | "Is the open model answering in another language or inventing rules?" | Append the extra instruction for `open`/`selfhosted`/`custom`/`fw`/`fw_*`. | `prompts` (SOLUTION 2.3) |
+| 2.4 | "Which tier could an open premium model replace?" | `compare --models balanced,premium,fw`; compare cost per success **and** p95; put the winner into `TIER_MODELS` / `Router.TierModels` or `default_model`. | solution `strategy.json` + router mapping |
 | 3.1 | "Which questions are obviously easy?" | Implement the 4 rules in order (order-specific first). | `router` (SOLUTION 3.1) |
 | 3.2 | "Let the cheapest model decide." | economy, temperature 0 (omitted when `supports_temperature` is false), max 5 tokens, map SIMPLE/STANDARD/COMPLEX. | `router` (SOLUTION 3.2) |
 | 3.3 | "What if the cheap model isn't sure?" | Add the ESCALATE instruction; on `ESCALATE` re-run with next tier; cost every call. | `pipeline` (SOLUTION 3.3) |
@@ -321,7 +320,7 @@ az containerapp update --name tokenwars-leaderboard --resource-group <rg> --min-
 3. What would you do in production? Evals in CI, token budgets per team at the gateway, prompt-cache-friendly
    layout by default, model routing with escalation, observability of tokens per feature/customer.
 4. Hidden costs: self-hosting infra, engineering time, latency SLOs, data residency (Global vs DataZone deployments;
-   Fireworks pay-per-token is US Data Zone only and currently outside the EU Data Boundary).
+   Fireworks Data Zone Standard is US-only and Fireworks is currently outside the EU Data Boundary).
 5. Multi-provider (3.6): failover keeps the service up, but a **different model answers silently** — quality drift,
    different prompt behaviour, one shared token budget. Would you rather fail fast or fail over?
 6. Own vs rent: "Own the Weights" break-even (section 5) — hosting fee vs per-token, and PTU only for steady high load.
@@ -339,7 +338,7 @@ az containerapp update --name tokenwars-leaderboard --resource-group <rg> --min-
 | Judge (GPT-5.5; roughly 2.5× Terra token rates; measure during dry run) | budget ~$12–25 | budget ~$120–250 |
 | APIM StandardV2_1 (~$0.96/h × ~6 h) | ~$6 | ~$60 |
 | Ollama on ACA, 4 vCPU/8 GiB (~$0.45/h × ~3 h, optional) | ~$1.5 | ~$15 |
-| Fireworks Arena, optional: `compare` 30 items × `fw_fast` + `fw_pro` (~$0.01 + ~$0.08 compact prompt; up to ~$1 with the baseline prompt) + 2–4 full runs (~$0.02 `fw_fast` / ~$0.30 `fw_pro` each) ¹ | ~$0.5–3 | ~$5–30 |
+| Fireworks Arena, optional: `compare` 30 items × `fw` plus 2–4 full runs ¹ | ~$0.2–1 | ~$2–10 |
 | Multi-provider failover tests (3.6, optional, a few dozen calls) | < $0.5 | < $5 |
 | Fireworks Foundry resource + pay-per-token deployments (no hourly fee) | $0 idle | $0 idle |
 | Log Analytics / App Insights | < $1 | < $10 |
@@ -378,15 +377,15 @@ Fix the defaults or add a note to [troubleshooting.md](troubleshooting.md) for a
 **Fireworks on Foundry (Challenge 2.4)**
 - [ ] **Feature namespace** `Microsoft.CognitiveServices` for `Fireworks.EnableDeploy`: `check-fireworks-prereqs.sh --register`
       registers it (the script falls back to `az feature list`); note the real time to `Registered`.
-- [ ] **Model availability** of `FW-DeepSeek-V4-Flash-0731` and `FW-DeepSeek-V4-Pro` as Data Zone Standard in `eastus2`
+- [ ] **Model availability** of `FW-GLM-5.3-Flash` as Global Standard in `eastus2`
       (script step 6). Per-token offers can retire with 15 days' notice — re-check now, swap to an alternative if needed.
 - [ ] **Deployment `format`**: compare the script's *format* column with `fireworks_model_format` (default `"Fireworks"`;
       `"FireworksCustom"` is for imported custom weights only).
 - [ ] **Model version**: `null` (= default, catalog shows "Version: 1") deploys.
 - [ ] **Deployer role**: does Owner/Contributor alone deploy, or is `fireworks_grant_deployer_role = true` needed? Does the
       tenant show "Foundry Owner" or still "Azure AI Owner" (`fireworks_deployer_role`)?
-- [ ] **Gateway routing** for `fw_*`: `via_gateway: true`, `doctor` green using the APIM key, then
-      `compare --models balanced,premium,fw_fast,fw_pro`; record pass rate, cost per success and p95 for section 6.
+- [ ] **Gateway routing** for `fw` / `fw_*`: `via_gateway: true`, `doctor` green using the APIM key, then
+      `compare --models balanced,premium,fw`; record pass rate, cost per success and p95 for section 6.
 - [ ] **Prices**: confirm the `fw-*` prices in the Azure pricing calculator; update `pricing.json` and set `"verified": true`
       only for confirmed values.
 - [ ] Stretch check: `cached_tokens` with and without `prompt_cache_key`.

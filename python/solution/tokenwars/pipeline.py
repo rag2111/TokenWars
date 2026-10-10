@@ -12,7 +12,7 @@ from .prompts import build_messages, load_baseline_template
 from .router import TIER_MODELS, Router
 
 # Next model tier when a cheaper model answers ESCALATE (TODO 3.3).
-# Any other non-premium key (fw_fast, fw_pro, custom, ...) escalates straight to "premium".
+# Any other non-premium key (fw, custom, ...) escalates straight to "premium".
 ESCALATION_NEXT = {"economy": "balanced", "balanced": "premium", "open": "premium", "selfhosted": "premium"}
 
 
@@ -141,7 +141,7 @@ class Pipeline:
         # 8. SOLUTION 3.3 – escalation: a cheaper model that answers ESCALATE hands over to the next tier.
         if self.strategy.escalation:
             while model_key != "premium" and answer.strip().upper().startswith("ESCALATE"):
-                next_key = ESCALATION_NEXT.get(model_key, "premium")  # unmapped keys (fw_*, custom) -> premium
+                next_key = ESCALATION_NEXT.get(model_key, "premium")  # unmapped keys (fw / fw_*, custom) -> premium
                 if next_key not in self.config.models:
                     break
                 model_key = next_key

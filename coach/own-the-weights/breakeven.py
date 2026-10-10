@@ -85,7 +85,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--training-tokens", type=float, default=250_000,
                    help="tokens in train.jsonl (see manifest.json; ~250k for 360 examples)")
     p.add_argument("--epochs", type=int, default=3)
-    p.add_argument("--fireworks-key", default="fw-deepseek-v4-flash-0731",
+    p.add_argument("--fireworks-key", default="fw-glm-5.3-flash",
                    help="pricing.json key of an optional Fireworks per-token model (skipped if absent)")
     p.add_argument("--fireworks-price", help='manual Fireworks price "input,output" USD per 1M (overrides pricing.json)')
     p.add_argument("--no-fireworks", action="store_true")

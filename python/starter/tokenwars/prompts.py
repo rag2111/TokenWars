@@ -57,8 +57,8 @@ def utc_now_iso() -> str:
 # TODO 2.3 – Model-specific prompt adaptation (Challenge 2 "Bring Your Own Model")
 # Open-weight and small self-hosted models tend to drift (answer in another language, make up policies).
 # Return the extra instruction "Answer in English. Do not invent policies." for every non-OpenAI model key:
-# "open", "selfhosted", "custom" (coach demo) and any key that starts with "fw_" (Fireworks, e.g. fw_fast,
-# fw_pro) – and "" for every other model. It is appended to the system instructions automatically.
+# "open", "selfhosted", "custom" (coach demo), "fw", and any key that starts with "fw_" (Fireworks)
+# – and "" for every other model. It is appended to the system instructions automatically.
 def model_specific_instructions(model_key: str) -> str:
     return ""
 

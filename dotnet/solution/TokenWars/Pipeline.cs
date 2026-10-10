@@ -56,7 +56,7 @@ public sealed class Pipeline
 {
     /// <summary>
     /// Next model tier when a cheaper model answers ESCALATE (TODO 3.3).
-    /// Any other non-premium key (fw_fast, fw_pro, custom, ...) escalates straight to "premium".
+    /// Any other non-premium key (fw, custom, ...) escalates straight to "premium".
     /// </summary>
     public static readonly Dictionary<string, string> EscalationNext = new(StringComparer.Ordinal)
     {
@@ -193,7 +193,7 @@ public sealed class Pipeline
             while (modelKey != "premium"
                    && answer.Trim().ToUpperInvariant().StartsWith("ESCALATE", StringComparison.Ordinal))
             {
-                var next = EscalationNext.TryGetValue(modelKey, out var mapped) ? mapped : "premium"; // unmapped keys (fw_*, custom) -> premium
+                var next = EscalationNext.TryGetValue(modelKey, out var mapped) ? mapped : "premium"; // unmapped keys (fw / fw_*, custom) -> premium
                 if (!_cfg.Models.ContainsKey(next)) break;
                 modelKey = next;
                 result.ModelPath.Add(modelKey);
