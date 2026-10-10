@@ -15,6 +15,12 @@ resource "azurerm_container_app_environment" "env" {
   logs_destination           = "log-analytics" # azurerm 5.x: required to use log_analytics_workspace_id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
   tags                       = local.tags
+
+  # Workload profiles (v2) environment: its Consumption profile allows up to 4 vCPU / 8 GiB per replica.
+  workload_profile {
+    name                  = "Consumption"
+    workload_profile_type = "Consumption"
+  }
 }
 
 resource "azurerm_container_app" "ollama" {
@@ -24,6 +30,7 @@ resource "azurerm_container_app" "ollama" {
   container_app_environment_id = azurerm_container_app_environment.env[0].id
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
+  workload_profile_name        = "Consumption"
   tags                         = local.tags
 
   template {

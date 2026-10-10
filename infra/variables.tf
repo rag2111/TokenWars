@@ -271,13 +271,13 @@ variable "selfhosted_model" {
 variable "selfhosted_cpu" {
   description = "vCPU for the Ollama container (Consumption plan max 4)."
   type        = number
-  default     = 2
+  default     = 4
 }
 
 variable "selfhosted_memory" {
   description = "Memory for the Ollama container (must match the CPU ratio 1:2, e.g. 4 vCPU = 8Gi)."
   type        = string
-  default     = "4Gi"
+  default     = "8Gi"
 }
 
 # -----------------------------------------------------------------------------
