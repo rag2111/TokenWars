@@ -180,6 +180,11 @@ details.hint{margin:14px 0;border:1px dashed rgba(255,181,71,.55);border-radius:
 details.hint>summary{cursor:pointer;padding:10px 14px;font-weight:700;color:var(--amber);list-style-position:inside}
 details.hint[open]>summary{border-block-end:1px dashed rgba(255,181,71,.35)}
 .hint-body{padding:6px 14px 12px}
+details.agentic-assistant{border-color:rgba(180,140,255,.62);background:rgba(180,140,255,.06)}
+details.agentic-assistant>summary{color:var(--violet)}
+details.agentic-assistant[open]>summary{border-block-end-color:rgba(180,140,255,.4)}
+.agentic-assistant .code{margin-block-end:8px}
+.agentic-assistant pre{max-height:34rem}
 .step-solution pre{max-height:32rem}
 .step-solution .code-head{gap:8px}
 .step-solution .code-label{min-width:0;overflow-wrap:anywhere}
@@ -1046,7 +1051,7 @@ dotnet run -- doctor
 <div class="chal-banner c1"><div><p class="chal-time">0:30 – 1:30</p><p class="chal-lede">Put the Support Copilot on a diet: fewer instruction tokens, less context, shorter answers, and reuse of everything that repeats.</p></div>
 <div class="chal-prog"><span class="lbl">Challenge progress</span><div class="bar"><span data-bar="c1"></span></div><span class="cnt" data-count="c1">0 / 7</span></div></div>
 <p><strong>Workflow for every TODO:</strong> implement → flip the flag in <span class="lang-py"><code>python/starter/strategy.json</code></span><span class="lang-net"><code>dotnet/starter/TokenWars/strategy.json</code></span> → quick run with <code>--limit 20</code> → check the scorecard fields listed on the card. If you turn a flag on before implementing its TODO, the app fails fast with <code>TODO x.y not implemented yet – see &lt;file&gt;</code>.</p>
-<p class="muted small">Each TODO has an initially hidden <strong>Solution</strong> after its hint and “Check your result”: exact starter-file locations, copyable replacements and the required settings. Reveal it only when needed. Line numbers use this checkout’s original starter; use the method names after earlier edits. For each command, choose either the PowerShell or Bash block and run it from the repository root; do not run both alternatives. Bash blocks use a subshell to preserve your current directory and shell settings. Real validation calls incur token charges, and a zero exit code alone does not prove ≥85% quality.</p>
+<p class="muted small">Each TODO has an initially hidden <strong>GitHub Copilot Agent prompt</strong> after its hint and an initially hidden <strong>Solution</strong> after “Check your result.” The prompt is tailored to the selected language and can generate the change in Agent mode; review every proposed edit before accepting it. The solution provides exact starter-file locations, copyable replacements and the required settings. Reveal either only when needed. Line numbers use this checkout’s original starter; use the method names after earlier edits. For each command, choose either the PowerShell or Bash block and run it from the repository root; do not run both alternatives. Bash blocks use a subshell to preserve your current directory and shell settings. Real validation calls incur token charges, and a zero exit code alone does not prove ≥85% quality.</p>
 <p><strong>Break checkpoint (1:30):</strong> run the full workload with <span class="lang-py"><code>python -m tokenwars run</code></span><span class="lang-net"><code>dotnet run -- run</code></span>, fill in the tracker, then submit with <span class="lang-py"><code>python -m tokenwars run --submit</code></span><span class="lang-net"><code>dotnet run -- run --submit</code></span>.</p>
 
 <article class="step-card" id="step-1.1" data-step="1.1" data-group="c1" aria-labelledby="h-1.1">
@@ -3230,6 +3235,369 @@ terraform destroy      # review, then type "yes"</code></pre></div>
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var root = document.documentElement;
+
+  /* ---------- GitHub Copilot Agent prompts ---------- */
+  var AGENTIC_TASKS = {
+    "1.1": {
+      python: `Implement TODO 1.1 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+In tokenwars/prompts.py, replace COMPACT_SYSTEM_PROMPT: str | None = None with a parenthesized string containing exactly:
+
+You are ByteCart's customer support assistant. Answer using ONLY the context provided.
+Be accurate and concise: at most 5 short sentences or bullet points. Include exact numbers, fees and deadlines from the context.
+If the context does not contain the answer, say you will connect the customer with a human agent.
+
+Preserve those newline boundaries and leave the existing message-building logic unchanged. In strategy.json, change only compact_prompt from false to true. Preserve every previously completed TODO and all unrelated settings.
+
+Run python -m tokenwars run --limit 5 --mock from python/starter. If validation fails, fix only issues caused by this change. Summarize the edits and validation result.`,
+      dotnet: `Implement TODO 1.1 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+In Prompts.cs, replace public static readonly string? CompactSystemPrompt = null with a non-null string containing exactly:
+
+You are ByteCart's customer support assistant. Answer using ONLY the context provided.
+Be accurate and concise: at most 5 short sentences or bullet points. Include exact numbers, fees and deadlines from the context.
+If the context does not contain the answer, say you will connect the customer with a human agent.
+
+Preserve those newline boundaries and leave the existing message-building logic unchanged. In strategy.json, change only compact_prompt from false to true. Preserve every previously completed TODO and all unrelated settings.
+
+Run dotnet run -- run --limit 5 --mock from dotnet/starter/TokenWars. If validation fails, fix only issues caused by this change. Summarize the edits and validation result.`
+    },
+    "1.2": {
+      python: `Implement TODO 1.2 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+In tokenwars/context.py, initialize an IDF table once in ContextBuilder.__init__ after section_terms is created. Build document frequencies by visiting each unique term in each section_terms set, then store math.log(1 + number_of_sections / document_frequency) for every term.
+
+Replace keyword_retrieval so it creates set(tokenize(question)), scores each section by summing the IDF values of query terms present in that section, sorts by (-score, original_index), takes top_k, and joins the selected section text with SECTION_SEPARATOR. Use the existing imports and data structures. Do not implement the optional embedding-retrieval stretch goal.
+
+In strategy.json, change retrieval from all to keyword and keep top_k at 3. Preserve every previously completed TODO and all unrelated settings.
+
+Run python -m tokenwars run --limit 5 --mock from python/starter. If validation fails, fix only issues caused by this change. Summarize the edits and validation result.`,
+      dotnet: `Implement TODO 1.2 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+In ContextBuilder.cs, add a Dictionary<string, double> IDF field and populate it once after SectionTerms is initialized. Build document frequencies by visiting each unique term in every SectionTerms set, then store Math.Log(1.0 + (double)sectionCount / documentFrequency) for every term.
+
+Replace KeywordRetrieval so it uses distinct TextUtil.Tokenize(question) terms, scores each section by summing the IDF values of matching terms, uses stable descending score order so ties retain original section order, takes topK, and joins the selected section Text with SectionSeparator. Do not implement the optional embedding-retrieval stretch goal.
+
+In strategy.json, change retrieval from all to keyword and keep top_k at 3. Preserve every previously completed TODO and all unrelated settings.
+
+Run dotnet run -- run --limit 5 --mock from dotnet/starter/TokenWars. If validation fails, fix only issues caused by this change. Summarize the edits and validation result.`
+    },
+    "1.3": {
+      python: `Implement TODO 1.3 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+In tokenwars/context.py, replace lookup_orders with this behavior:
+1. Extract all order IDs with ORDER_ID_RE.findall(question), normalize them to uppercase, and put them in a set.
+2. If IDs were found, return only orders whose order_id, normalized to uppercase, belongs to that set.
+3. Otherwise, when order_specific is true, filter orders by customer_id, sort them by placed_at descending, and return the first three.
+4. Otherwise, return an empty list.
+
+Handle missing fields safely with dict.get and string conversion where appropriate. Leave orders_context and serialization unchanged. In strategy.json, change only order_lookup from false to true. Preserve every previously completed TODO and all unrelated settings.
+
+Run python -m tokenwars run --limit 5 --mock from python/starter. If validation fails, fix only issues caused by this change. Summarize the edits and validation result.`,
+      dotnet: `Implement TODO 1.3 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+In ContextBuilder.cs, replace LookupOrders with this behavior:
+1. Extract IDs with TextUtil.OrderIdRegex.Matches(question), normalize them with ToUpperInvariant, and store them in a HashSet<string>.
+2. If IDs were found, return only orders whose OrderField(order, "order_id"), normalized to uppercase, belongs to that set.
+3. Otherwise, when orderSpecific is true, filter orders whose customer_id equals customerId, order them by placed_at descending using ordinal string ordering, take three, and return a list.
+4. Otherwise, return an empty List<JsonNode>.
+
+Leave OrdersContext and serialization unchanged. In strategy.json, change only order_lookup from false to true. Preserve every previously completed TODO and all unrelated settings.
+
+Run dotnet run -- run --limit 5 --mock from dotnet/starter/TokenWars. If validation fails, fix only issues caused by this change. Summarize the edits and validation result.`
+    },
+    "1.4": {
+      python: `Implement TODO 1.4 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+In tokenwars/pipeline.py, replace generation_settings so it returns (0.2, self.strategy.max_output_tokens) when max_output_tokens is not None, and otherwise returns the baseline (0.7, None). Do not change how LlmClient chooses max_tokens versus max_completion_tokens or suppresses unsupported temperature values.
+
+In strategy.json, set max_output_tokens to 350. Preserve every previously completed TODO and all unrelated settings.
+
+Run python -m tokenwars run --limit 5 --mock from python/starter. Check that answers are not empty or truncated. If validation fails, fix only issues caused by this change. Summarize the edits and validation result.`,
+      dotnet: `Implement TODO 1.4 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+In Pipeline.cs, replace GenerationSettings so it returns (0.2, _strategy.MaxOutputTokens.Value) when MaxOutputTokens.HasValue, and otherwise returns the baseline (0.7, null). Do not change how LlmClient chooses max_tokens versus max_completion_tokens or suppresses unsupported temperature values.
+
+In strategy.json, set max_output_tokens to 350. Preserve every previously completed TODO and all unrelated settings.
+
+Run dotnet run -- run --limit 5 --mock from dotnet/starter/TokenWars. Check that answers are not empty or truncated. If validation fails, fix only issues caused by this change. Summarize the edits and validation result.`
+    },
+    "1.5": {
+      python: `Implement TODO 1.5 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+In tokenwars/cache.py:
+1. exact_key returns normalized_question plus "|" and customer_id only when order_specific is true; otherwise it returns normalized_question.
+2. get_exact reads self._exact under self._lock and returns the cached answer or None.
+3. put_exact writes the answer to self._exact under self._lock.
+
+Do not change the pipeline's rule that empty answers are not cached. In strategy.json, change only exact_cache from false to true. Preserve every previously completed TODO and all unrelated settings.
+
+Run the full mock workload with python -m tokenwars run --mock from python/starter because repeated items are distributed across the workload. Confirm cache_hits_exact is greater than zero, then summarize the edits and result.`,
+      dotnet: `Implement TODO 1.5 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+In ResponseCache.cs:
+1. ExactKey returns normalizedQuestion plus "|" and customerId only when orderSpecific is true; otherwise it returns normalizedQuestion.
+2. GetExact performs a thread-safe lookup in the existing exact cache and returns the answer or null.
+3. PutExact stores the answer in the existing thread-safe exact cache.
+
+Do not change the pipeline's rule that empty answers are not cached. In strategy.json, change only exact_cache from false to true. Preserve every previously completed TODO and all unrelated settings.
+
+Run the full mock workload with dotnet run -- run --mock from dotnet/starter/TokenWars because repeated items are distributed across the workload. Confirm cache_hits_exact is greater than zero, then summarize the edits and result.`
+    },
+    "1.6": {
+      python: `Implement TODO 1.6 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+In tokenwars/cache.py:
+1. cosine_similarity computes dot(a, b) / (norm(a) * norm(b)) and returns 0.0 when either norm is zero.
+2. get_semantic copies the semantic entries while holding self._lock, finds the entry with the highest cosine similarity, and returns its answer only when the best score is greater than or equal to threshold.
+3. put_semantic appends SemanticEntry(vector, answer) while holding self._lock.
+
+Keep order-specific questions excluded from semantic caching. In strategy.json, set semantic_cache to true and keep semantic_cache_threshold at 0.92. Preserve every previously completed TODO and all unrelated settings.
+
+Run python -m tokenwars run --mock from python/starter. Confirm the implementation executes safely; note that mock embeddings do not predict real semantic hit rates. Summarize the edits and validation result.`,
+      dotnet: `Implement TODO 1.6 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+In ResponseCache.cs:
+1. CosineSimilarity computes dot(a, b) / (norm(a) * norm(b)) and returns 0.0 when either norm is zero.
+2. GetSemantic takes a thread-safe snapshot of the semantic entries, finds the entry with the highest cosine similarity, and returns its answer only when the best score is greater than or equal to threshold.
+3. PutSemantic appends a SemanticEntry containing the vector and answer through the existing thread-safe storage.
+
+Keep order-specific questions excluded from semantic caching. In strategy.json, set semantic_cache to true and keep semantic_cache_threshold at 0.92. Preserve every previously completed TODO and all unrelated settings.
+
+Run dotnet run -- run --mock from dotnet/starter/TokenWars. Confirm the implementation executes safely; note that mock embeddings do not predict real semantic hit rates. Summarize the edits and validation result.`
+    },
+    "1.7": {
+      python: `Implement TODO 1.7 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+In tokenwars/prompts.py, replace build_cache_friendly_messages so it returns exactly one system message and one user message. When retrieval is "all", keep the KB in the static system prefix; otherwise move it to the user context. With compact_prompt enabled, build the system content from COMPACT_SYSTEM_PROMPT, optional extra instructions, and the static KB when applicable. Without compact_prompt, remove template lines containing {{now}} or {{customer_id}}, replace {{knowledge_base}} with the static KB or _MOVED_TO_USER, replace {{orders}} with _MOVED_TO_USER, and append extra instructions.
+
+Build the user message as Customer ID, Today using SCENARIO_DATE, Context using context_block, and Question in the exact layout documented in TODO 1.7. Orders are always dynamic user context. In strategy.json, set prompt_cache_friendly to true. Preserve every previously completed TODO and all unrelated settings.
+
+Run python -m tokenwars run --limit 5 --mock from python/starter for structural validation. Explain that cached_input_tokens requires a real Azure run and summarize the edits.`,
+      dotnet: `Implement TODO 1.7 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+In Prompts.cs, replace BuildCacheFriendlyMessages so it returns exactly one system message and one user message. When Retrieval is "all", keep the KB in the static system prefix; otherwise move it to the user context. With CompactPrompt enabled, build the system content from CompactSystemPrompt, optional extra instructions, and the static KB when applicable. Without CompactPrompt, remove template lines containing {{now}} or {{customer_id}}, replace {{knowledge_base}} with the static KB or MovedToUser, replace {{orders}} with MovedToUser, and append extra instructions.
+
+Build the user message as Customer ID, Today using AppInfo.ScenarioToday, Context using ContextBlock, and Question in the exact layout documented in TODO 1.7. Orders are always dynamic user context. In strategy.json, set prompt_cache_friendly to true. Preserve every previously completed TODO and all unrelated settings.
+
+Run dotnet run -- run --limit 5 --mock from dotnet/starter/TokenWars for structural validation. Explain that cached_input_tokens requires a real Azure run and summarize the edits.`
+    },
+    "2.1": {
+      python: `Complete TODO 2.1 for the Token Wars Python track. Do not edit python/solution or generated shared/config/models.json by hand.
+
+Inspect infra/terraform.tfvars, infra/terraform.tfvars.example, and the model registry generation. Ensure deploy_open_model is true so Terraform generates the managed open model entry. Do not enable the optional self-hosted model unless it is already requested in terraform.tfvars. If it is requested, preserve its configured model, CPU, and memory values.
+
+Run terraform -chdir=infra fmt -check and terraform -chdir=infra validate. Generate and review a Terraform plan, but do not apply infrastructure or incur Azure charges without explicit confirmation. After an approved apply, run python -m tokenwars doctor from python/starter and confirm the open model is present. Summarize configuration changes, plan impact, and validation.`,
+      dotnet: `Complete TODO 2.1 for the Token Wars .NET track. Do not edit dotnet/solution or generated shared/config/models.json by hand.
+
+Inspect infra/terraform.tfvars, infra/terraform.tfvars.example, and the model registry generation. Ensure deploy_open_model is true so Terraform generates the managed open model entry. Do not enable the optional self-hosted model unless it is already requested in terraform.tfvars. If it is requested, preserve its configured model, CPU, and memory values.
+
+Run terraform -chdir=infra fmt -check and terraform -chdir=infra validate. Generate and review a Terraform plan, but do not apply infrastructure or incur Azure charges without explicit confirmation. After an approved apply, run dotnet run -- doctor from dotnet/starter/TokenWars and confirm the open model is present. Summarize configuration changes, plan impact, and validation.`
+    },
+    "2.2": {
+      python: `Complete TODO 2.2 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+First inspect the newest results/compare-*.json. If no current real comparison exists, explain that the command incurs model and judge token charges, obtain confirmation, then run python -m tokenwars compare --models premium,balanced,economy,open and include selfhosted only when configured.
+
+Choose the lowest cost_per_success model whose pass rate is at least 85 percent and set strategy.json default_model to that model. Keep premium for COMPLEX. Update TIER_MODELS in tokenwars/router.py only when the per-item evidence supports a different SIMPLE or STANDARD model; otherwise preserve SIMPLE=economy, STANDARD=balanced, COMPLEX=premium. Do not enable routing yet.
+
+Preserve every previously completed TODO and unrelated setting. Run a full real workload only after confirming its token cost. Report the comparison evidence, exact configuration changes, and whether the final run remained VALID.`,
+      dotnet: `Complete TODO 2.2 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+First inspect the newest results/compare-*.json. If no current real comparison exists, explain that the command incurs model and judge token charges, obtain confirmation, then run dotnet run -- compare --models premium,balanced,economy,open and include selfhosted only when configured.
+
+Choose the lowest cost_per_success model whose pass rate is at least 85 percent and set strategy.json default_model to that model. Keep premium for COMPLEX. Update Router.TierModels only when the per-item evidence supports a different SIMPLE or STANDARD model; otherwise preserve SIMPLE=economy, STANDARD=balanced, COMPLEX=premium. Do not enable routing yet.
+
+Preserve every previously completed TODO and unrelated setting. Run a full real workload only after confirming its token cost. Report the comparison evidence, exact configuration changes, and whether the final run remained VALID.`
+    },
+    "2.3": {
+      python: `Implement TODO 2.3 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+In tokenwars/prompts.py, replace model_specific_instructions so it returns exactly "Answer in English. Do not invent policies." for model keys open, selfhosted, custom, fw, and every key starting with fw_. Return an empty string for every other model. Do not change how extra_instructions appends this text or the escalation instruction.
+
+Preserve every previously completed TODO and all unrelated settings. Run python -m tokenwars compare --models open --limit 5 --no-judge from python/starter for a low-cost plumbing check. Explain that a judged real comparison is still required to measure quality, then summarize the edits and validation.`,
+      dotnet: `Implement TODO 2.3 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+In Prompts.cs, replace ModelSpecificInstructions so it returns exactly "Answer in English. Do not invent policies." for model keys open, selfhosted, custom, fw, and every key starting with fw_. Return an empty string for every other model. Use ordinal prefix comparison and do not change how ExtraInstructions appends this text or the escalation instruction.
+
+Preserve every previously completed TODO and all unrelated settings. Run dotnet run -- compare --models open --limit 5 --no-judge from dotnet/starter/TokenWars for a low-cost plumbing check. Explain that a judged real comparison is still required to measure quality, then summarize the edits and validation.`
+    },
+    "2.4": {
+      python: `Complete optional TODO 2.4 for the Token Wars Python track. Do not edit python/solution or generated shared/config/models.json by hand.
+
+Inspect infra/terraform.tfvars and the Fireworks prerequisite scripts. Set deploy_fireworks to true and keep the documented Fireworks model defaults unless the existing configuration intentionally overrides them. Run the PowerShell or Bash prerequisite checker appropriate to this environment and stop on any feature-registration, role, region, quota, or catalog blocker.
+
+Run terraform -chdir=infra fmt -check and validate, then create and review a plan. Do not apply infrastructure or incur Azure charges without explicit confirmation. After an approved apply, run python -m tokenwars doctor and python -m tokenwars compare --models balanced,premium,fw from python/starter. Update default_model or TIER_MODELS only if fw clears the 85 percent quality bar and improves cost per success. Summarize evidence and changes.`,
+      dotnet: `Complete optional TODO 2.4 for the Token Wars .NET track. Do not edit dotnet/solution or generated shared/config/models.json by hand.
+
+Inspect infra/terraform.tfvars and the Fireworks prerequisite scripts. Set deploy_fireworks to true and keep the documented Fireworks model defaults unless the existing configuration intentionally overrides them. Run the PowerShell or Bash prerequisite checker appropriate to this environment and stop on any feature-registration, role, region, quota, or catalog blocker.
+
+Run terraform -chdir=infra fmt -check and validate, then create and review a plan. Do not apply infrastructure or incur Azure charges without explicit confirmation. After an approved apply, run dotnet run -- doctor and dotnet run -- compare --models balanced,premium,fw from dotnet/starter/TokenWars. Update default_model or Router.TierModels only if fw clears the 85 percent quality bar and improves cost per success. Summarize evidence and changes.`
+    },
+    "3.1": {
+      python: `Implement TODO 3.1 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+In tokenwars/router.py, replace route_rules with these first-match-wins rules:
+1. If order_specific, return TIER_MODELS["STANDARD"].
+2. Count COMPLEXITY_MARKERS found in normalized using _contains_phrase. If the trimmed original question is longer than LONG_QUESTION_CHARS or at least two markers match, return TIER_MODELS["COMPLEX"].
+3. If any COMPLAINT_WORDS phrase matches normalized, return TIER_MODELS["STANDARD"].
+4. Otherwise return TIER_MODELS["SIMPLE"].
+
+Do not route on workload metadata. In strategy.json, set routing to rules. Preserve every previously completed TODO and unrelated setting.
+
+Run python -m tokenwars run --limit 20 --mock from python/starter. Confirm calls are routed and summarize the edits; explain that real judged validation is required to evaluate quality.`,
+      dotnet: `Implement TODO 3.1 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+In Router.cs, replace RouteRules with these first-match-wins rules:
+1. If orderSpecific, return TierModels["STANDARD"].
+2. Count ComplexityMarkers found in normalized using ContainsPhrase. If the trimmed original question is longer than LongQuestionChars or at least two markers match, return TierModels["COMPLEX"].
+3. If any ComplaintWords phrase matches normalized, return TierModels["STANDARD"].
+4. Otherwise return TierModels["SIMPLE"].
+
+Do not route on workload metadata. In strategy.json, set routing to rules. Preserve every previously completed TODO and unrelated setting.
+
+Run dotnet run -- run --limit 20 --mock from dotnet/starter/TokenWars. Confirm calls are routed and summarize the edits; explain that real judged validation is required to evaluate quality.`
+    },
+    "3.2": {
+      python: `Implement TODO 3.2 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+In tokenwars/router.py, replace route_classifier so it calls self.client.chat with model "economy", a system message containing CLASSIFIER_SYSTEM_PROMPT, a user message containing the question, temperature 0, max_tokens 5, and purpose "classifier". Append the returned call record to calls. Normalize the first response word to uppercase, strip punctuation .,:;!"'\u0060*, and return TIER_MODELS[label] when recognized; otherwise return self.strategy.default_model.
+
+In strategy.json, set routing to classifier. Preserve every previously completed TODO and unrelated setting.
+
+Run python -m tokenwars run --limit 20 --mock from python/starter. Confirm the classifier call is recorded and summarize the edits; note that mock mode always classifies SIMPLE and real judged validation is required.`,
+      dotnet: `Implement TODO 3.2 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+In Router.cs, replace RouteClassifierAsync so it awaits _client.ChatAsync with model "economy", a system message containing Prompts.ClassifierSystemPrompt, a user message containing the question, temperature 0, maxTokens 5, purpose "classifier", and the supplied cancellation token. Append result.Call to calls. Normalize the first response word to uppercase, strip punctuation, and return TierModels[label] when recognized; otherwise return _strategy.DefaultModel.
+
+In strategy.json, set routing to classifier. Preserve every previously completed TODO and unrelated setting.
+
+Run dotnet run -- run --limit 20 --mock from dotnet/starter/TokenWars. Confirm the classifier call is recorded and summarize the edits; note that mock mode always classifies SIMPLE and real judged validation is required.`
+    },
+    "3.3": {
+      python: `Implement TODO 3.3 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+In tokenwars/pipeline.py, replace the TODO 3.3 escalation block in _answer. While model_key is not premium and the trimmed uppercase answer starts with ESCALATE, choose ESCALATION_NEXT[model_key] or premium for an unmapped key. Stop when the next key is not configured. Otherwise move to that model, append it to result.model_path, and call self._call_model again with the same question, customer, order-specific flag, calls, and question-vector callback. Continue until the answer no longer requests escalation or premium answers.
+
+In strategy.json, set escalation to true. Preserve every previously completed TODO and unrelated setting.
+
+Run python -m tokenwars run --limit 20 --mock from python/starter for regression validation. Summarize the edits and explain that mock answers do not exercise escalation, so a real run is needed to observe model_path hops.`,
+      dotnet: `Implement TODO 3.3 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+In Pipeline.cs, replace the TODO 3.3 escalation block in AnswerCoreAsync. While modelKey is not premium and the trimmed uppercase answer starts with ESCALATE, choose EscalationNext[modelKey] or premium for an unmapped key. Stop when the next key is not configured. Otherwise move to that model, append it to result.ModelPath, and await CallModelAsync again with the same question, customer, order-specific flag, calls, question-vector callback, and cancellation token. Continue until the answer no longer requests escalation or premium answers.
+
+In strategy.json, set escalation to true. Preserve every previously completed TODO and unrelated setting.
+
+Run dotnet run -- run --limit 20 --mock from dotnet/starter/TokenWars for regression validation. Summarize the edits and explain that mock answers do not exercise escalation, so a real run is needed to observe ModelPath hops.`
+    },
+    "3.4": {
+      python: `Implement TODO 3.4 in the Token Wars Python starter. Work only in python/starter; do not edit python/solution.
+
+In tokenwars/llm_client.py, replace _send_with_retry with a loop over MAX_RETRIES + 1 attempts. Return immediately for a non-retryable status or after the last attempt. Retry only RETRYABLE_STATUS values 429, 500, 502, 503, and 504. Parse retry-after-ms as milliseconds first, then retry-after as seconds; ignore invalid values. When neither is usable, wait 2 ** attempt plus random jitter from 0 to 0.5 seconds. Log each retry to stderr, then sleep and retry.
+
+Keep the final failure visible. In strategy.json, set retry_on_throttle to true. Preserve every previously completed TODO and unrelated setting.
+
+Run python -m tokenwars run --limit 5 --mock from python/starter for non-throttled regression validation. Summarize the edits and explain how to validate real 429 handling safely.`,
+      dotnet: `Implement TODO 3.4 in the Token Wars .NET starter. Work only in dotnet/starter/TokenWars; do not edit dotnet/solution.
+
+In LlmClient.cs, replace SendWithRetryAsync with an async retry loop. Call sendOnce and catch only LlmException values whose StatusCode is in RetryableStatus while attempt is less than MaxRetries. Prefer RetryAfterMs converted to milliseconds, then RetryAfterSeconds, otherwise use 2 ** attempt seconds plus small random jitter. Log each retry, await Task.Delay with the supplied cancellation token, and retry. Do not swallow the final exception or retry unrelated failures.
+
+In strategy.json, set retry_on_throttle to true. Preserve every previously completed TODO and unrelated setting.
+
+Run dotnet run -- run --limit 5 --mock from dotnet/starter/TokenWars for non-throttled regression validation. Summarize the edits and explain how to validate real 429 handling safely.`
+    },
+    "3.5": {
+      python: `Implement TODO 3.5a, 3.5b, and 3.5c in infra/policies/ai-gateway-starter.xml for the Token Wars Python track. Do not replace it with the solution file and do not edit python/solution.
+
+Preserve all existing Azure, Fireworks, Ollama, embedding, authentication, and provider-routing branches.
+1. In the chat branch, add llm-token-limit keyed by context.Subscription.Id, using the Terraform token-per-minute placeholder, estimate-prompt-tokens=false, and response headers x-ratelimit-remaining-tokens and x-tokens-consumed.
+2. Keep the token metric namespace tokenwars and exactly five dimensions: Subscription ID, team from context.Subscription.Name, lowercase provider from tw-provider, API ID, and Model from tw-model.
+3. Make tw-azure-backend select the pool backend only for pool_models and the primary backend otherwise.
+4. Replace the backend forward-request with a null-safe retry for response 429 or 5xx: count 2, interval 1, max interval 8, delta 2, first-fast-retry=true, buffered request body, timeout 120.
+5. Preserve outbound provider/model/backend headers and final-response Provider Tokens telemetry, including embeddings.
+
+Run terraform -chdir=infra fmt -check and validate, then create and inspect a plan. Do not apply infrastructure or incur Azure charges without explicit confirmation. After an approved apply, run python -m tokenwars doctor and a limited real run. Summarize policy changes and validation.`,
+      dotnet: `Implement TODO 3.5a, 3.5b, and 3.5c in infra/policies/ai-gateway-starter.xml for the Token Wars .NET track. Do not replace it with the solution file and do not edit dotnet/solution.
+
+Preserve all existing Azure, Fireworks, Ollama, embedding, authentication, and provider-routing branches.
+1. In the chat branch, add llm-token-limit keyed by context.Subscription.Id, using the Terraform token-per-minute placeholder, estimate-prompt-tokens=false, and response headers x-ratelimit-remaining-tokens and x-tokens-consumed.
+2. Keep the token metric namespace tokenwars and exactly five dimensions: Subscription ID, team from context.Subscription.Name, lowercase provider from tw-provider, API ID, and Model from tw-model.
+3. Make tw-azure-backend select the pool backend only for pool_models and the primary backend otherwise.
+4. Replace the backend forward-request with a null-safe retry for response 429 or 5xx: count 2, interval 1, max interval 8, delta 2, first-fast-retry=true, buffered request body, timeout 120.
+5. Preserve outbound provider/model/backend headers and final-response Provider Tokens telemetry, including embeddings.
+
+Run terraform -chdir=infra fmt -check and validate, then create and inspect a plan. Do not apply infrastructure or incur Azure charges without explicit confirmation. After an approved apply, run dotnet run -- doctor and a limited real run. Summarize policy changes and validation.`
+    },
+    "3.6": {
+      python: `Implement stretch TODO 3.6 in infra/policies/ai-gateway-multiprovider.xml for the Token Wars Python track. Do not edit python/solution.
+
+Preserve the complete 3.5 provider routing, subscription token limit, metrics, Azure backend pool, Fireworks authentication, Ollama routing, and outbound telemetry. Add failover only for mapped Azure chat models: after an Azure backend 429 or 5xx, retry once on the Fireworks backend. On that retry, map the requested model through failover_model_map, remove reasoning_effort, rename max_completion_tokens to max_tokens, remove the Azure bearer token, and apply the configured Fireworks authentication. Never fail over unmapped models, embeddings, direct Fireworks requests, Ollama requests, or the judge.
+
+Ensure x-tokenwars-provider, x-tokenwars-model, x-tokenwars-backend, and Provider Tokens report the provider and model that actually served the final response. Keep use_gateway and retry_on_throttle enabled in python/starter/strategy.json.
+
+Run terraform -chdir=infra fmt -check and validate, then create and inspect a plan with deploy_fireworks=true and the multiprovider policy selected. Do not apply, lower capacity, raise concurrency, or incur charges without explicit confirmation. Summarize the policy, plan, and a safe controlled failover test.`,
+      dotnet: `Implement stretch TODO 3.6 in infra/policies/ai-gateway-multiprovider.xml for the Token Wars .NET track. Do not edit dotnet/solution.
+
+Preserve the complete 3.5 provider routing, subscription token limit, metrics, Azure backend pool, Fireworks authentication, Ollama routing, and outbound telemetry. Add failover only for mapped Azure chat models: after an Azure backend 429 or 5xx, retry once on the Fireworks backend. On that retry, map the requested model through failover_model_map, remove reasoning_effort, rename max_completion_tokens to max_tokens, remove the Azure bearer token, and apply the configured Fireworks authentication. Never fail over unmapped models, embeddings, direct Fireworks requests, Ollama requests, or the judge.
+
+Ensure x-tokenwars-provider, x-tokenwars-model, x-tokenwars-backend, and Provider Tokens report the provider and model that actually served the final response. Keep use_gateway and retry_on_throttle enabled in dotnet/starter/TokenWars/strategy.json.
+
+Run terraform -chdir=infra fmt -check and validate, then create and inspect a plan with deploy_fireworks=true and the multiprovider policy selected. Do not apply, lower capacity, raise concurrency, or incur charges without explicit confirmation. Summarize the policy, plan, and a safe controlled failover test.`
+    }
+  };
+
+  function addAgenticPanels() {
+    Object.keys(AGENTIC_TASKS).forEach(function (step) {
+      var card = $('.step-card[data-step="' + step + '"]');
+      if (!card) return;
+      var check = $(".check-box", card);
+      if (!check) return;
+      var details = document.createElement("details");
+      details.className = "hint agentic-assistant";
+      details.id = "agentic-" + step.replace(".", "-");
+      details.setAttribute("data-agentic-step", step);
+
+      var summary = document.createElement("summary");
+      summary.textContent = "🤖 Using GitHub Copilot? Generate this change";
+      details.appendChild(summary);
+
+      var body = document.createElement("div");
+      body.className = "hint-body";
+      var intro = document.createElement("p");
+      intro.className = "muted small";
+      intro.textContent = "Open GitHub Copilot Chat in Agent mode from the repository root, paste the prompt below, and review every proposed edit before accepting it.";
+      body.appendChild(intro);
+
+      var codeBox = document.createElement("div");
+      codeBox.className = "code";
+      var head = document.createElement("div");
+      head.className = "code-head";
+      var label = document.createElement("span");
+      label.className = "code-label";
+      label.textContent = "GitHub Copilot Agent prompt";
+      var copy = document.createElement("button");
+      copy.type = "button";
+      copy.className = "copy-btn";
+      copy.setAttribute("aria-label", "Copy GitHub Copilot Agent prompt to clipboard");
+      copy.textContent = "Copy";
+      head.appendChild(label);
+      head.appendChild(copy);
+      codeBox.appendChild(head);
+
+      ["python", "dotnet"].forEach(function (lang) {
+        var pre = document.createElement("pre");
+        pre.className = lang === "python" ? "lang-py" : "lang-net";
+        var code = document.createElement("code");
+        code.textContent = AGENTIC_TASKS[step][lang];
+        pre.appendChild(code);
+        codeBox.appendChild(pre);
+      });
+      body.appendChild(codeBox);
+      details.appendChild(body);
+      card.insertBefore(details, check);
+    });
+  }
+  addAgenticPanels();
 
   /* ---------- toast ---------- */
   var toastEl = $("#toast"), toastT;
